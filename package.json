@@ -6,6 +6,7 @@
   "license": "BSD-2-Clause",
   "scripts": {
     "start": "node server/server.js",
+    "postinstall": "npm run build",
     "build": "./node_modules/.bin/grunt --base client/ --gruntfile client/Gruntfile.js build",
     "develop-server": "./node_modules/.bin/grunt --base server/ --gruntfile server/Gruntfile.js",
     "develop-client": "./node_modules/.bin/grunt --base client/ --gruntfile client/Gruntfile.js serve",
