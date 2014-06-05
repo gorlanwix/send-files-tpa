@@ -1,29 +1,34 @@
 <h1>Send Files App </h1>
 <div class="block">
-  <p>
+  <p class="owner-message">
     Upload the file and send it to us.<br>
     We will review it as soon as possible.
   </p>
   <button>+ Add Files</button>
-  <p>
+  <p class="limitation-message">
     Up to 2GB
   </p>
 </div>
 
-<div class="row">
-  <input type="file">
-</div>
+<!-- Note: Placeholder attribute is not supported in IE9 or below -->
+<form>
+  <div class="block">
+    <input type="file" placeholder="No file added">
+  </div>
 
-<div class="row">
-  <input type="email">
-</div>
+  <div class="block">
+    <div class="email-box">
+      <input type="email" placeholder="Your email address">
+    </div>
+  </div>
 
-<!-- div by default is "display: block" which means that it streches to fill while available width -->
+  <!-- div by default is "display: block" which means that it streches to fill while available width -->
 
-<!-- span by default is ... -->
-<span></span>
+  <!-- span by default is ... -->
 
-<div class="row">
-  <textarea></textarea>
-</div>
+  <div class="block">
+    <textarea placeholder="You can add a message to site owner">
+    </textarea>
+  </div>
+</form>
 
