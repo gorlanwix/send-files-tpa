@@ -3,3 +3,5 @@ bower_components
 client/dist
 client/test/coverage
 .tmp
+*.log
+
