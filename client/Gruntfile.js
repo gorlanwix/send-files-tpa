@@ -30,7 +30,7 @@ module.exports = function (grunt) {
       },
       css: {
         files: ['{.tmp,<%= yeoman.app %>}/styles/{,*/}*.css'],
-        tasks: ['stylus']
+        tasks: ['autoprefixer']
       },
       stylus: {
         files: ['<%= yeoman.app %>/styles/{,*/}*.styl'],
@@ -128,7 +128,7 @@ module.exports = function (grunt) {
     // Add vendor prefixed styles
     autoprefixer: {
       options: {
-        browsers: ['last 1 version']
+        browsers: ['> 1%']
       },
       dist: {
         files: [
@@ -262,7 +262,6 @@ module.exports = function (grunt) {
           }
         ]
       },
-
       styles: {
         expand: true,
         cwd: '<%= yeoman.app %>/styles',
@@ -303,6 +302,7 @@ module.exports = function (grunt) {
   grunt.registerTask('serve', function (target) {
     grunt.task.run([
       'clean:server',
+      'copy:styles',
       'stylus',
       'autoprefixer',
       'connect:livereload',
@@ -313,6 +313,7 @@ module.exports = function (grunt) {
   grunt.registerTask('test', function (target) {
     grunt.task.run([
       'clean:server',
+      'copy:styles',
       'stylus',
       'autoprefixer',
       'connect:test',
