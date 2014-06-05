@@ -1,16 +1,49 @@
 .block {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 12px;
+  font-size: 13px;
+  color: #282828;
   text-align: center;
-  border: 1px solid black;
+  border: 1px solid #838486;
   margin-right: 2px;
-  padding-top: 10px;
-  padding-bottom: 10px; 
+  padding-top: 15px;
+  padding-bottom: 15px; 
+}
+
+.grey {
+  background-color: #E5E9EE;
+  border-bottom: none;
+}
+
+.grey button {
+  background-color: #62D8BF;
+  color: white;
+  width: 40%;
+  font-size: 14px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  border: 0;
+  border-radius: 5px;
+  outline: none;
+}
+
+.top-p {
+  margin-bottom: 7px; 
+}
+
+.bottom-p {
+  margin-top: 7px;
+}
+
+.email-box {
+  border-top: none;
+  border-bottom: none;
 }
 
 .email-box input {
-  background-color: rgba(255, 255, 255, 1);
-  opacity: 0;
+  height: 100%;
+  width: 90%;
+  border: none;
+  outline: none;
 }
 
 .owner-message {
@@ -19,5 +52,24 @@
 
 .limitation-message {
   margin-bottom: 0;
+}
+
+.user-message textarea {
+  height: 80px;
+  width: 90%;
+  border: none;
+  outline: none;
+  resize: none;
+}
+
+.submit {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  border-top: none;
+  border-bottom: 1px solid #838486;
+}
+
+.submit button {
+  padding: 10px;
 }
 
