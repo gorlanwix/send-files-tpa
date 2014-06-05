@@ -8,10 +8,11 @@
     <meta name="viewport" content="width=device-width">
     <script type="text/javascript" src="//sslstatic.wix.com/services/js-sdk/1.31.0/js/Wix.js"></script>
     <!-- build:css({.tmp,app}) styles/settings.css -->
+    <link rel="stylesheet" href="bower_components/wix-ui-lib2/ui-lib.css">
     <link rel="stylesheet" href="styles/settings.css">
     <!-- endbuild -->
   </head>
-  <body ng-app="sendFiles">
+  <body wix-ui ng-app="sendFiles">
     <!--[if lt IE 9]>
         <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
@@ -20,11 +21,17 @@
     <div ng-include="'views/settings.html'"></div>
 
     <!-- build:js scripts/plugins.js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>  
     <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/wix-ui-lib2/ui-lib.js"></script>
+
+
     <!-- endbuild -->
 
     <!-- build:js({.tmp,app}) scripts/settings.js -->
     <script src="scripts/app.js"></script>
+    <script src="scripts/controllers/settings.js"></script>
+    <script src="scripts/services/wix.js"></script>
     <!-- endbuild -->
 </body>
 </html>

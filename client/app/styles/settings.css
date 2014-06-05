@@ -1,0 +1,18 @@
+.logo {
+	float: left;
+	margin-right: 15px;
+}
+
+p.description {
+	vertical-align: top;
+	padding-left: 30px;
+}
+
+.description-box {
+	overflow: hidden;
+	padding: 10px;
+}
+
+input[type="text"].uilib-input {
+	width: 210px;
+}
