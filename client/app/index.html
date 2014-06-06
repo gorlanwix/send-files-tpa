@@ -36,5 +36,21 @@
     <!-- build:js({.tmp,app}) scripts/index.js -->
     <script src="scripts/app.js"></script>
     <!-- endbuild -->
+
+    <!-- process:remove -->
+    <script>
+      var testMode = true;
+      var parent = window.parent;
+      try {
+        window.scenario = p && p.angular && p.angular.scenario;
+      } catch (e) {
+      }
+      if (testMode || window.scenario) {
+        document.write('<scr'+'ipt src="bower_components/angular-mocks/angular-mocks.js"></scr'+'ipt>');
+        document.write('<scri' + 'pt src="mock/api.js"></scr' + 'ipt>');
+        angular.module('sendFiles').requires.push('apiMock');
+      }
+    </script>
+    <!-- /process -->
 </body>
 </html>

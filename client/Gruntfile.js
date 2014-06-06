@@ -25,7 +25,10 @@ module.exports = function (grunt) {
         livereload: '<%= connect.options.livereload %>'
       },
       js: {
-        files: ['{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js'],
+        files: [
+          '{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js',
+          'test/mocks/api.js'
+        ],
         tasks: ['newer:jshint:all']
       },
       css: {
@@ -295,6 +298,19 @@ module.exports = function (grunt) {
         autoWatch: true,
         singleRun: false
       }
+    },
+
+    processhtml: {
+      options: {
+        commentMarker: 'process'
+      },
+      dist: {
+        files: [{
+          expand: true,
+          src: '<%= yeoman.dist %>/*.html',
+          dest: '.'
+        }]
+      }
     }
   });
 
@@ -330,6 +346,7 @@ module.exports = function (grunt) {
     'concat',
     'ngmin',
     'copy:dist',
+    'processhtml:dist',
     'cdnify',
     'cssmin',
     'uglify',
