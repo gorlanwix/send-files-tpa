@@ -23,22 +23,24 @@
 	        <h3>Design</h3>
 	        <div class="acc-content">
 	        	<ul class="list">
-		        	<li wix-label="Color & Opacity">
-		        		<div wix-param="colorWOpacity" wix-ctrl="ColorPickerWithOpacity" wix-options="{startWithColor: 'color-3', startWithOpacity:90}"></div>
+		        	<li wix-label="Fill Color">
+		        		<div wix-param="fillColor" wix-ctrl="ColorPickerWithOpacity" wix-options="{startWithColor: 'color-8', startWithOpacity:0}"></div>
 		        	</li>
 		        	<li wix-label="Border & Dividers">
-		        		<div wix-param="bgColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-3'}"></div>
+		        		<div wix-param="borderColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-3'}"></div>
+		        		<div  wix-model="borderWidth" wix-ctrl="Slider" wix=options=="{{ maxValue:500, preLabel:'zero', postLabel:'five hundreds'}"></div>
 		        	</li>
 			        <li wix-label="Headline text">
-			        		<div wix-param="bgColor2" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-3'}"></div>
-			        		<div wix-param="fontStyle" wix-ctrl="FontStylePicker"></div>
+		        		<div wix-param="headlineText" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-15'}"></div>
+			        		<div wix-param="headlineFont" wix-ctrl="FontStylePicker"></div>
 			        </li>
 			        <li wix-label="Button Fill Color">
-		        		<div wix-param="bgColor3" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-3'}"></div>
+		        		<div wix-param="buttonColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-17'}"></div>
+		        		<div  wix-model="buttonCorner" wix-ctrl="Slider" wix=options=="{{ maxValue:20, preLabel:'zero', postLabel:'twenty'}"></div>
 		        	</li>
 			        <li wix-label="Button Text">
-		        		<div wix-param="bgColor4" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-3'}"></div>
-		        		<div wix-param="fontStyle2" wix-ctrl="FontStylePicker"></div>
+		        		<div wix-param="buttonText" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-25'}"></div>
+		        		<div wix-param="buttonFont" wix-ctrl="FontStylePicker"></div>
 		        	</li>
 	        	</ul>
 	        </div>
