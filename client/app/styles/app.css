@@ -4,17 +4,17 @@
   color: #282828;
   text-align: center;
   border: 1px solid #838486;
-  margin-right: 2px;
   padding-top: 15px;
-  padding-bottom: 15px; 
+  padding-bottom: 15px;
+  background-color: white; 
 }
 
-.grey {
+.end-blocks {
   background-color: #E5E9EE;
   border-bottom: none;
 }
 
-.grey button {
+.end-blocks button {
   background-color: #62D8BF;
   color: white;
   width: 40%;
@@ -46,6 +46,10 @@
   outline: none;
 }
 
+.email-box.ng-invalid input {
+  color: black;
+} 
+
 .owner-message {
   margin-top: 0;
 }
@@ -70,6 +74,11 @@
 }
 
 .submit button {
+  padding: 10px;
+}
+
+.submit button[disabled] {
+  background-color: #BCCECE;
   padding: 10px;
 }
 

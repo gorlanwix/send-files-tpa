@@ -1,34 +1,36 @@
-<div class="block grey">
-  <p class="owner-message top-p">
-    Upload the file and send it to us.<br>
-    We will review it as soon as possible.
-  </p>
-  <button>+ Add Files</button>
-  <p class="limitation-message bottom-p">
-    Up to 2GB
-  </p>
+<div ng-controller="WidgetCtrl">
+  <div class="block end-blocks">
+    <p class="owner-message top-p">
+      Upload the file and send it to us.<br>
+      We will review it as soon as possible.
+    </p>
+    <button>+ Add Files</button>
+    <p class="limitation-message bottom-p">
+      Up to 2GB
+    </p>
+  </div>
+
+  <!-- Note: Placeholder attribute is not supported in IE9 or below -->
+  <form name="fileForm" novalidate>
+    <div class="block">
+      <input type="file" placeholder="No file added">
+    </div>
+
+    <div class="block email-box">
+        <input name="email" type="email" placeholder="Your email address" required ng-model="email">
+    </div>
+
+    <!-- div by default is "display: block" which means that it streches to fill while available width -->
+
+    <!-- span by default is ... -->
+
+    <div class="block user-message">
+      <textarea placeholder="You can add a message to site owner"></textarea>
+    </div>
+
+    <div class="block end-blocks submit">
+      <button type="submit" ng-disabled="fileForm.email.$invalid">Submit</button>
+    </div>
+  </form>
 </div>
-
-<!-- Note: Placeholder attribute is not supported in IE9 or below -->
-<form>
-  <div class="block">
-    <input type="file" placeholder="No file added">
-  </div>
-
-  <div class="block email-box">
-      <input type="email" placeholder="Your email address">
-  </div>
-
-  <!-- div by default is "display: block" which means that it streches to fill while available width -->
-
-  <!-- span by default is ... -->
-
-  <div class="block user-message">
-    <textarea placeholder="You can add a message to site owner">
-    </textarea>
-  </div>
-
-  <div class="block grey submit">
-    <button type="submit">Submit</button>
-</form>
 
