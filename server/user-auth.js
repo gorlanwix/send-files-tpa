@@ -1,46 +1,39 @@
 'use strict';
 
-var https = require('https');
+var googleapis = require('googleapis');
+var OAuth2 = googleapis.auth.OAuth2;
+var clientId = require('./client-id.json').web;
+
 
 var hostServer = 'open.ge.tt';
+var oauth2Client = new OAuth2(clientId.client_id, clientId.client_secret, clientId.redirect_uris[0]);
 
-function authenticate(apikey, email, password, callback) {
-  var data = JSON.stringify({
-    apikey: apikey,
-    email: email,
-    password: password
+function getGoogleAuthUrl(callback) {
+
+
+  var scopes = [
+    'https://www.googleapis.com/auth/drive.file',
+    'email'
+  ];
+
+  var url = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: scopes.join(" ") // space delimited string of scopes
   });
 
-  var options = {
-    host: hostServer,
-    path: '/1/users/login',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(data)
-    }
-  };
-
-  var req = https.request(options, function (res) {
-    res.setEncoding('utf8');
-    var recieved = '';
-    res.on('data', function (chunk) {
-      console.log("chunk: " + chunk);
-      recieved += chunk;
-    });
-
-    res.on('end', function () {
-      console.log("body: " + recieved);
-      callback(recieved);
-    })
-  });
-
-  req.on('error', function(e) {
-    console.log('problem with request: ' + e.message);
-  });
-  console.log("sent data :" + data);
-  req.write(data);
-  req.end();
+  callback(url);
 }
 
-module.exports = authenticate;
+function handleGoogleToken(code, callback) {
+  console.log("code: ", code);
+  oauth2Client.getToken(code, function(err, tokens) {
+    callback(tokens);
+  });
+}
+
+
+module.exports = {
+  getGoogleAuthUrl: getGoogleAuthUrl,
+  handleGoogleToken: handleGoogleToken,
+  oauth2Client: oauth2Client
+};
