@@ -12,7 +12,7 @@ angular.module('apiMock', ['ngMockE2E']).run(function ($httpBackend) {
 
   $httpBackend.whenPUT(settingsRE).respond(function (method, url, json) {
     var match = url.match(settingsRE);
-    var compId = match && match[1];
+    var compId = match && match[1]; //compID = Widget ID provided by Wix
     if (compId) {
       settings[compId] = json;
       return [200, settings[compId]];
