@@ -10,7 +10,7 @@ var app = express();
 app.use(multer({ dest: './tmp/'}));
 
 app.use(bodyParser());
-app.use(express.static(__dirname));
+app.use(express.static(__dirname + '/../client/dist'));
 
 var host = 'http://send-files.heroku.com/';
 // var options = {
