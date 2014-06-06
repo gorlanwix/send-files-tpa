@@ -12,6 +12,22 @@
     <link rel="stylesheet" href="bower_components/normalize-css/normalize.css">
     <link rel="stylesheet" href="styles/app.css">
     <!-- endbuild -->
+    <style wix-style>
+      .block {
+        border-color: {{style.borderColor color-3}};
+        color: {{style.headlineText color-15}};
+        {{style.headlineFont Body-M}}
+      }
+      .end-blocks {
+        background-color: {{style.fillColor color-8}};
+      }
+      .end-blocks button {
+        background-color: {{style.buttonColor color-17}};
+        color: {{style.buttonText color-25}};
+        border-radius: {{style.buttonCorner 5px}}
+        {{style.buttonFont Body-M}}
+      }
+    </style>
   </head>
   <body ng-app="sendFiles">
     <!--[if lt IE 8]>
@@ -35,6 +51,8 @@
 
     <!-- build:js({.tmp,app}) scripts/index.js -->
     <script src="scripts/app.js"></script>
+    <script src="scripts/services/api.js"></script>
+    <script src="scripts/controllers/widget.js"></script>
     <!-- endbuild -->
 
     <!-- process:remove -->
