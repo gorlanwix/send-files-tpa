@@ -33,7 +33,7 @@ module.exports = function (grunt) {
       },
       css: {
         files: ['{.tmp,<%= yeoman.app %>}/styles/{,*/}*.css'],
-        tasks: ['autoprefixer']
+        tasks: ['copy:styles', 'autoprefixer']
       },
       stylus: {
         files: ['<%= yeoman.app %>/styles/{,*/}*.styl'],
