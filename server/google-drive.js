@@ -1,27 +1,15 @@
 'use strict';
 
-var oauth2Client = require('./user-auth.js').oauth2Client;
-var googleapis = require('googleapis');
+var fs = require('fs');
 
-
-// Retrieve tokens via token exchange explaind above.
-// Or you can set them.
-oauth2Client.credentials = {
-  access_token: 'ya29.KgCczNJAV9oNWh8AAAD-_Op1DqdPOfPX6oQ5WoBQJ3lFvh9kWVGzJK4TK6Aw3A',
-};
-
-
-function insertFile(title, mimeType, callback) {
-    googleapis
-        .discover('drive', 'v1')
-        .execute(function(err, client) {
-            client.drive.files.insert({ title: title, mimeType: mimeType })
-                //.withMedia(mimeType, )
-                .withAuthClient(oauth2Client)
-                .execute(function(err, result) {
-                    console.log('error:', err);
-                    callback(result);
-                });
+function insertFile(client, oauth2Client, title, mimeType, tmpPath, callback) {
+    client.drive.files.insert({ title: title, mimeType: mimeType, parents: ['Send Files - Wix App']})
+        .withMedia(mimeType, fs.readFileSync(tmpPath))
+        .withAuthClient(oauth2Client)
+        .execute(function(err, result) {
+            if(err)
+                console.error('Inserting to Drive error:', err);
+            callback(result);
         });
 }
 

@@ -5,6 +5,17 @@ var bodyParser = require('body-parser');
 var userAuth = require('./user-auth.js');
 var googleDrive = require('./google-drive.js');
 var multer  = require('multer');
+var googleapis = require('googleapis');
+var OAuth2 = googleapis.auth.OAuth2;
+var clientId = require('./client-id.json').web;
+var oauth2Client = new OAuth2(clientId.client_id, clientId.client_secret, clientId.redirect_uris[0]);
+
+
+var pg = require('pg');
+var database = require('./pg-database.js');
+var connectionString = process.env.DATABASE_URL || require('./pg-connect.json').connectPg;
+
+
 var app = express();
 
 app.use(multer({ dest: './tmp/'}));
@@ -24,31 +35,45 @@ var host = 'http://send-files.heroku.com/';
 //     }
 //   };
 
-// app.get('/', function (req, res) {
-//   res.send(200, 'ok');
-// });
-
 app.get('/oauth2callback', function (req, res) {
-    //console.log("req: ", req);
-    userAuth.handleGoogleToken(req.query.code, function(tokens) {
-        console.log("tokens: ", tokens);
-        res.redirect('/');
+    userAuth.getGoogleTokens(oauth2Client, req.query.code, function(tokens) {
+        console.log('tokens: ', tokens);
+        pg.connect(connectionString, function(err, client, done) {
+            if(err) console.error('db connection error: ', err);
+
+            //TODO: guard against already created widgets doing this again, update instead
+            database.insertWidget(client, 'whatever', 'whatever', function(result) {
+                database.insertTokens(client, result.rows[0].widget_id, tokens, function(result) {
+                    done();
+                    pg.end();
+                    res.redirect('/');
+                });
+            });
+        });
     });
 });
 
 app.get('/login-google', function(req, res) {
-    userAuth.getGoogleAuthUrl(function(url) {
+    userAuth.getGoogleAuthUrl(oauth2Client, function(url) {
         res.redirect(url);
     });
 });
 
 
 app.post('/upload', function (req, res) {
-    console.log("req: ", req.files);
+    console.log('uploaded files: ', req.files);
     var newFile = req.files.sendFile;
-    googleDrive.insertFile(newFile.originalname, newFile.mimetype, function(result) {
-        console.log('inserted file: ', result);
-        res.redirect('/');
+    var oauth2ClientCurr = new OAuth2(clientId.client_id, clientId.client_secret, clientId.redirect_uris[0]);
+
+    userAuth.setInstanceTokens(oauth2ClientCurr, 'whatever', 'whatever', function(result) {
+        googleapis
+            .discover('drive', 'v1')
+            .execute(function(err, client) {
+                googleDrive.insertFile(client, oauth2ClientCurr, newFile.originalname, newFile.mimetype, newFile.path, function(result) {
+                    console.log('inserted file: ', result);
+                    res.redirect('/');
+                });
+            });
     });
 });
 
