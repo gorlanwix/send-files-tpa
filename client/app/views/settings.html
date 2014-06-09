@@ -1,13 +1,18 @@
 <div ng-controller="SettingsCtrl">
 	<div class="box description-box">
 		<img class="logo" width="86" src="images/wix_icon.png">
-		<p class="description">This is the box to contain text to describe what this settings panel does.</p>
+		<p class="description">This is the box to contain text to describe what this settings panel does. </p>
+        <div class="login-panel">
+            <p class="create-account">Don't have an<br/>account? <strong><a href="#" target="_blank">Create
+                one</a></strong></p>
+            <button class="submit uilib-btn connect">Connect account</button>
+        </div>
 		<!-- <p ng-show="isEmailValid && !isEmpty">Your app is active</p>
 		<p ng-hide="isEmailValid">The app will be inactive until a valid email address is entered</p> -->
 	</div>
 	<div wix-ctrl="Accordion">
 	    <div class="acc-pane">
-	        <h3>Settings</h3>
+	        <h3>Content Settings</h3>
 	        <div class="acc-content">
 	        	<ul class="list">
 		        	<li wix-label="Email Address">
@@ -20,7 +25,7 @@
 	        </div>
 	    </div>
 	    <div class="acc-pane">
-	        <h3>Design</h3>
+	        <h3>Design Settings</h3>
 	        <div class="acc-content">
 	        	<ul class="list">
 		        	<li wix-label="Fill Color">
@@ -30,17 +35,43 @@
 		        		<div wix-param="borderColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-3'}"></div>
 		        		<div  wix-model="borderWidth" wix-ctrl="Slider" wix=options=="{{ maxValue:500, preLabel:'zero', postLabel:'five hundreds'}"></div>
 		        	</li>
-			        <li wix-label="Headline text">
-		        		<div wix-param="headlineText" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-15'}"></div>
-			        		<div wix-param="headlineFont" wix-ctrl="FontStylePicker"></div>
+			        <li wix-label="Headline Color & Font">
+		        		<div wix-param="headlineColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-15'}"></div>
+			        	<div wix-param="headlineFont" wix-ctrl="FontStylePicker"></div>
 			        </li>
-			        <li wix-label="Button Fill Color">
-		        		<div wix-param="buttonColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-17'}"></div>
+			        <li wix-label="Headline Text">
+			        	<div wix-model="headlineText" wix-ctrl="Input" wix-options="{placeholder: 'Upload the file and send it to us. We will review it as soon as possible'}"></div>
+			        </li>
+			        <li wix-label="Add Button Text">
+			        	<div wix-model="addButtonText" wix-ctrl="Input" wix-options="{placeholder: 'Submit'}"></div>
+			        </li>
+			        <li wix-label="Add Button Color">
+		        		<div wix-param="addButtonColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-17'}"></div>
+		        		<div  wix-model="addButtonCorner" wix-ctrl="Slider" wix=options=="{{ maxValue:20, preLabel:'zero', postLabel:'twenty'}"></div>
+		        	</li>
+			        <li wix-label="Add Button Text Color">
+		        		<div wix-param="addButtonTextColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-25'}"></div>
+		        		<div wix-param="buttonFont" wix-ctrl="FontStylePicker"></div>
+		        	</li>
+			        <li wix-label="No File Text">
+			        	<div wix-model="noFileText" wix-ctrl="Input" wix-options="{placeholder: 'No File Added'}"></div>
+			        </li>
+			        <li wix-label="Email Address Text">
+			        	<div wix-model="emailAddressText" wix-ctrl="Input" wix-options="{placeholder: 'Your Email Address'}"></div>
+			        </li>
+			        <li wix-label="Message To Recipient">
+			        	<div wix-model="messageText" wix-ctrl="Input" wix-options="{placeholder: 'You can add a message to site owner'}"></div>
+			        </li>
+			        <li wix-label="Submit Button Text">
+			        	<div wix-model="submitButtonText" wix-ctrl="Input" wix-options="{placeholder: 'Submit'}"></div>
+			        </li>
+			        <li wix-label="Submit Button Color">
+		        		<div wix-param="submitButtonColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-17'}"></div>
 		        		<div  wix-model="buttonCorner" wix-ctrl="Slider" wix=options=="{{ maxValue:20, preLabel:'zero', postLabel:'twenty'}"></div>
 		        	</li>
-			        <li wix-label="Button Text">
-		        		<div wix-param="buttonText" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-25'}"></div>
-		        		<div wix-param="buttonFont" wix-ctrl="FontStylePicker"></div>
+			        <li wix-label="Submit Color & Font">
+		        		<div wix-param="submitButtonTextColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-25'}"></div>
+		        		<div wix-param="submitButtonFont" wix-ctrl="FontStylePicker"></div>
 		        	</li>
 	        	</ul>
 	        </div>
