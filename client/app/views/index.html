@@ -17,7 +17,10 @@
     </div>
 
     <div class="block email-box">
-        <input name="email" type="email" placeholder="Your email address" required ng-model="email">
+        <input name="email" type="email" class="email" placeholder="Your email address" required ng-model="email" ng-pattern="emailRegex">
+      <div class="tool-tip-container">
+          <span class="tool-tip">Please enter a valid email address</span>
+      </div>
     </div>
 
     <!-- div by default is "display: block" which means that it streches to fill while available width -->
