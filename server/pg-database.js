@@ -1,74 +1,143 @@
 'use strict';
 
-var handleError = function(client, done, err) {
-    // no error occurred, continue with the request
-    if(!err) return false;
+// var handleError = function (client, done, err) {
+//     // no error occurred, continue with the request
+//     if (!err) { return false; }
 
-    done(client);
-    console.error('query error: ', err);
-    return true;
-};
+//     done(client);
+//     console.error('query error: ', err);
+//     return true;
+// };
 
-function insertTokens(client, widgetId, tokens, callback) {
-    client.query('INSERT INTO oauth_token (widget_id, access_token, refresh_token, token_type, expires, created) \
-        VALUES ($1, $2, $3, $4, $5, NOW())',
-        [widgetId, tokens.access_token, tokens.refresh_token, tokens.token_type, getExpiresDate(tokens.expires_in)],
-        function (err, result) {
-            if(err) console.error('tokens insert error: ', err);
+function calcTokenExpiresDate(expiresIn) {
+  var date = new Date();
+  return new Date(date.getTime() + (expiresIn - 60) * 1000);
+}
 
-            callback(result);
-        });
+function insertToken(client, widgetId, tokens, callback) {
+  var query = 'INSERT INTO oauth_token (widget_id, id_token, access_token, refresh_token, token_type, expires, created) \
+               VALUES ($1, $2, $3, $4, $5, $6, NOW())';
+  var values = [
+    widgetId,
+    tokens.id_token,
+    tokens.access_token,
+    tokens.refresh_token,
+    tokens.token_type,
+    calcTokenExpiresDate(tokens.expires_in)
+  ];
+
+  client.query(query, values, function (err, result) {
+    if (err) { console.error('tokens insert error: ', err); }
+
+    callback(result);
+  });
 }
 
 function insertWidget(client, instanceId, componentId, callback) {
-    client.query(
-        'INSERT INTO widget (instance_id, component_id, created) VALUES ($1, $2, NOW()) RETURNING widget_id',
-        [instanceId, componentId],
-        function(err, result) {
-            if(err) console.error('widget insert error: ', err);
+  var query = 'INSERT INTO widget (instance_id, component_id, created) VALUES ($1, $2, NOW()) \
+               RETURNING widget_id';
+  var values = [
+    instanceId,
+    componentId,
+  ];
 
-            callback(result);
-        });
+  client.query(query, values, function (err, result) {
+    if (err) { console.error('widget insert error: ', err); }
+
+    callback(result.rows[0].widget_id);
+  });
 }
 
-function getAccessToken(client, instanceId, componentId, callback) {
-    client.query(
-        'SELECT access_token, refresh_token, expires \
-         FROM widget, oauth_token \
-         WHERE widget.widget_id = oauth_token.widget_id AND instance_id = $1 AND component_id = $2 LIMIT 1',
-        [instanceId, componentId],
-        function(err, result) {
-            if(err) console.error('token get error: ', err);
+function getToken(client, instanceId, componentId, callback) {
+  var query = 'SELECT access_token, refresh_token, expires, id_token \
+               FROM widget, oauth_token \
+               WHERE widget.widget_id = oauth_token.widget_id \
+               AND instance_id = $1 \
+               AND component_id = $2 LIMIT 1';
+  var values = [
+    instanceId,
+    componentId
+  ];
 
-            callback(result);
-        });
-}
+  client.query(query, values, function (err, result) {
+    if (err) { console.error('get token error: ', err); }
 
-
-function updateAccessToken(client, accessToken, instanceId, componentId, callback) {
-    client.query(
-        'UPDATE oauth_token \
-         SET access_token = $1 \
-         FROM widget \
-         WHERE widget.widget_id = oauth_token.widget_id AND instance_id = $2 AND component_id = $3',
-        [accessToken, instanceId, componentId],
-        function(err, result) {
-            if(err) console.error('token update error: ', err);
-
-            callback(result);
-        });
+    callback(result.rows[0]);
+  });
 }
 
 
-function getExpiresDate(expires_in) {
-    var date = new Date();
-    var dateMillis = date.getTime();
-    return new Date(dateMillis + (expires_in - 60) * 1000);
+function updateToken(client, tokens, instanceId, componentId, callback) {
+  var query = 'UPDATE oauth_token, id_token \
+               SET access_token =  $1, refresh_token = $2, id_token = $3, expires = $4 \
+               FROM widget \
+               WHERE widget.widget_id = oauth_token.widget_id \
+               AND instance_id = $5 \
+               AND component_id = $6';
+  var values = [
+    tokens.access_token,
+    tokens.refresh_token,
+    tokens.id_token,
+    calcTokenExpiresDate(tokens.expires_in),
+    instanceId,
+    componentId
+  ];
+
+  client.query(query, values, function (err, result) {
+    if (err) { console.error('token update error: ', err); }
+
+    callback(result);
+  });
+}
+
+function deleteToken(client, instanceId, componentId, callback) {
+  var query = 'DELETE FROM oauth_token \
+               USING widget \
+               WHERE widget.widget_id = oauth_token.widget_id \
+               AND instance_id = $1 \
+               AND component_id = $2 \
+               RETURNING *';
+  var values = [
+    instanceId,
+    componentId
+  ];
+
+  client.query(query, values, function (err, result) {
+    if (err) { console.error('delete token error: ', err); }
+    if (err) {
+      callback(undefined);
+    } else {
+      callback(result.rows[0])
+    }
+  });
+}
+
+
+function getWidgetId(client, instanceId, componentId, callback) {
+  var query = 'SELECT widget_id \
+               FROM widget \
+               WHERE instance_id = $1 AND component_id = $2 LIMIT 1';
+  var values = [
+    instanceId,
+    componentId
+  ];
+
+  client.query(query, values, function (err, result) {
+    if (err) { console.error('get widget error: ', err); }
+
+    if(result.rows[0] === undefined) {
+      callback(undefined);
+    } else {
+      callback(result.rows[0].widget_id);
+    }
+  });
 }
 
 module.exports = {
-    insertWidget: insertWidget,
-    insertTokens: insertTokens,
-    getAccessToken: getAccessToken,
-    updateAccessToken: updateAccessToken
-}
+  insertWidget: insertWidget,
+  getToken: getToken,
+  insertToken: insertToken,
+  updateToken: updateToken,
+  deleteToken: deleteToken,
+  getWidgetId: getWidgetId
+};
