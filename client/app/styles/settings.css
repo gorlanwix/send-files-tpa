@@ -1,6 +1,8 @@
 .logo {
 	float: left;
 	margin-right: 15px;
+	border-right: 1px solid #ccc;
+	padding-right: 15px;
 }
 
 p.description {
