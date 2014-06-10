@@ -52,7 +52,7 @@ function getInstanceTokens(instance, callback) {
     if (err) { console.error('db connection error: ', err); }
     database.getToken(client, instance, 'google', function (tokens) {
 
-      if (database.isAccessTokenExpired()) {
+      if (database.isAccessTokenExpired(tokens)) {
         console.log('Got valid token from database: ', tokens.access_token);
         done();
         pg.end();

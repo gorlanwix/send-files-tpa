@@ -27,6 +27,7 @@ SELECT access_token, refresh_token, expires, auth_provider \
 FROM oauth_token \
 WHERE instance_id = $1 \
 AND component_id = $2 \
+AND auth_provider = $3 \
 LIMIT 1
 
 UPDATE oauth_token \
