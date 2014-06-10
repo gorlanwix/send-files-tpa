@@ -40,6 +40,7 @@ app.get('/oauth2callback', function (req, res) {
           };
           database.updateWidgetSettings(client, currInstance, widgetSettings, function (widgetSettingsFromDb) {
             if (widgetSettingsFromDb === undefined) {
+              widgetSettings.settings = '{}';
               database.insertWidgetSettings(client, currInstance, widgetSettings, function (widgetSettings) {
                 done();
                 pg.end();
@@ -68,10 +69,14 @@ app.get('/login/auth/google', function (req, res) {
     database.getToken(client, currInstance, 'google', function (tokensFromDb) {
       if (tokensFromDb === undefined) {
         userAuth.getGoogleAuthUrl(instance, function (url) {
+          done();
+          pg.end();
           res.redirect(url);
         });
       } else {
         console.error('You are still signed in with Google.');
+        done();
+        pg.end();
         res.redirect('/logout/auth/google');
       }
     });
@@ -85,27 +90,35 @@ app.get('/logout/auth/google', function (req, res) {
     instanceId: ids[0],
     compId: ids[1]
   };
+
+  var widgetSettings = {
+    userEmail: null,
+    provider: '',
+    settings: null  // won't reset anything because there is a COALESCE condition in query
+  };
   pg.connect(connectionString, function (err, client, done) {
     if (err) { console.error('db connection error: ', err); }
 
     database.deleteToken(client, currInstance, 'google', function (tokensFromDb) {
-      if (tokensFromDb !== undefined) {
-        var oauth2Client = userAuth.createOauth2Client();
-        oauth2Client.revokeToken(tokensFromDb.refresh_token, function (err, result) {
-          if (err) { console.error('token revoking error', err); }
+      database.updateWidgetSettings(client, currInstance, widgetSettings, function (updatedWidgetSettings) {
+        if (tokensFromDb !== undefined) {
+          var oauth2Client = userAuth.createOauth2Client();
+          oauth2Client.revokeToken(tokensFromDb.refresh_token, function (err, result) {
+            if (err) { console.error('token revoking error', err); }
 
-          console.log('revoking token');
+            console.log('revoking token');
+            done();
+            pg.end();
+            res.redirect('/');
+
+          });
+        } else {
           done();
           pg.end();
+          console.error('Your are not signed with Google');
           res.redirect('/');
-
-        });
-      } else {
-        done();
-        pg.end();
-        console.error('Your are not signed with Google');
-        res.redirect('/');
-      }
+        }
+      });
     });
   });
 });
@@ -163,9 +176,13 @@ app.get('/widget-settings', function (req, res) {
         settingsResponse.provider = widgetSettings.curr_provider;
         settingsResponse.settings = widgetSettings.settings;
       }
-      res.json(settingsResponse);
+      done();
+      pg.end();
+      res.json({widgetSettings: settingsResponse});
     });
   });
 });
+
+
 
 module.exports = app;

@@ -13,9 +13,9 @@ CREATE TABLE oauth_token (
 CREATE TABLE widget_settings (
     instance_id text NOT NULL,
     component_id text NOT NULL,
-    settings text,
-    user_email text,
-    curr_provider text,
+    settings text DEFAULT '{}',
+    user_email text DEFAULT '',
+    curr_provider text DEFAULT '',
     updated timestamp NOT NULL,
     created timestamp NOT NULL,
     PRIMARY KEY (instance_id, component_id)
@@ -51,10 +51,24 @@ WHERE instance_id = $4 \
 AND component_id = $5 \
 RETURNING *
 
-SELECT settings, user_email, curr_provider
-FROM widget_settings
+UPDATE widget_settings \
+SET curr_provider = '' \
 WHERE instance_id = $1 \
 AND component_id = $2 \
+RETURNING *
+
+SELECT settings, user_email, curr_provider \
+FROM widget_settings \
+WHERE instance_id = $1 \
+AND component_id = $2 \
+
+UPDATE widget_settings
+SET settings = COALESCE(null, settings),
+   user_email = COALESCE(null, user_email),
+   curr_provider = COALESCE('', curr_provider),
+   updated = NOW()
+WHERE instance_id = 'whatever'
+AND component_id = 'however'
 
 -- SELECT *
 -- FROM widget_settings AS l

@@ -124,9 +124,10 @@ function insertWidgetSettings(client, instance, widgetSettings, callback) {
 
 function updateWidgetSettings(client, instance, widgetSettings, callback) {
   var query = 'UPDATE widget_settings \
-               SET user_email = COALESCE($1, user_email), \
-                   settings = COALESCE($2, settings), \
-                   curr_provider = COALESCE($3, curr_provider) \
+               SET settings = COALESCE($1, settings), \
+                   user_email = COALESCE($2, user_email), \
+                   curr_provider = COALESCE($3, curr_provider), \
+                   updated = NOW() \
                WHERE instance_id = $4 \
                AND component_id = $5 \
                RETURNING *';
@@ -163,6 +164,7 @@ function getWidgetSettings(client, instance, callback) {
     callback(result.rows[0]);
   });
 }
+
 
 module.exports = {
   getToken: getToken,
