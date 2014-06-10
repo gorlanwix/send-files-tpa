@@ -6,13 +6,16 @@ angular.module('sendFiles')
 
     $scope.showInvalidEmail = false;
 
-    $scope.mouseover = function() {
-      console.log('why?');
-      if ($scope.fileForm.email.$invalid) {
+    $scope.enableMessage = function() {
+      if ($scope.fileForm.$invalid) {
         $scope.showInvalidEmail = true;
-        console.log('but');
       }
     };
+
+    $scope.disableMessage = function() {
+      $scope.showInvalidEmail = false;
+    };
+
     //Pseudocode for getting settings to appear
     $scope.headlineText = 'Upload the file and send it to us. We will review it as soon as possible.';
     $scope.addButtonText = '+ Add Files';
@@ -25,7 +28,7 @@ angular.module('sendFiles')
     //$scope.cool = false;
     $scope.setSettings = function() {
       console.log('hi');
-      $wix.Settings.refreshApp({submitButtonText3: 'hello'});
+      $wix.Settings.refreshApp();
       console.log($scope.submitButtonText);
       console.log('but');
     };
