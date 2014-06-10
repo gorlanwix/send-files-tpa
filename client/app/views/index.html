@@ -1,24 +1,23 @@
 <div ng-controller="WidgetCtrl">
   <div class="block end-blocks">
     <p class="owner-message top-p">
-      Upload the file and send it to us.<br>
-      We will review it as soon as possible.
+      {{headlineText}}
     </p>
-    <button>+ Add Files</button>
+    <button>{{addButtonText}}</button>
     <p class="limitation-message bottom-p">
       Up to 2GB
     </p>
   </div>
 
   <!-- Note: Placeholder attribute is not supported in IE9 or below -->
-  <form name="fileForm" novalidate>
+  <form name="fileForm" novalidate ng-model="fileForm">
     <div class="block">
       <input type="file" placeholder="No file added">
     </div>
 
     <div class="block email-box">
-        <input name="email" type="email" class="email" placeholder="Your email address" required ng-model="email" ng-pattern="emailRegex">
-      <div class="tool-tip-container">
+        <input name="email" type="email" class="email" placeholder= {{emailAddressText}} required ng-model="email" ng-pattern="emailRegex">
+      <div class="tool-tip-container" ng-show="showInvalidEmail">
           <span class="tool-tip">Please enter a valid email address</span>
       </div>
     </div>
@@ -28,11 +27,11 @@
     <!-- span by default is ... -->
 
     <div class="block user-message">
-      <textarea placeholder="You can add a message to site owner"></textarea>
+      <textarea placeholder={{messageText}}></textarea>
     </div>
 
     <div class="block end-blocks submit">
-      <button type="submit" ng-disabled="fileForm.email.$invalid">Submit</button>
+      <button type="submit" ng-disabled="fileForm.email.$invalid" ng-mouseover="mouseover()">{{submitButtonText}}</button>
     </div>
   </form>
 </div>

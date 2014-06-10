@@ -29,5 +29,6 @@ angular.module('sendFiles').controller('SettingsCtrl', function($wix, api) {
  //  // api.saveSettings(compId, {});
 
 
+
   $wix.UI.initialize();
 });
