@@ -27,14 +27,20 @@ app.get('/oauth2callback', function (req, res) {
       instanceId: ids[0],
       compId: ids[1]
     };
+    var provider = 'google';
     pg.connect(connectionString, function (err, client, done) {
       if (err) { console.error('db connection error: ', err); }
 
-      database.insertToken(client, currInstance, tokens, 'google', function (result) {
+      database.insertToken(client, currInstance, tokens, provider, function (result) {
         userAuth.getWidgetEmail(tokens, function (widgetEmail) {
-          database.updateWidgetEmail(client, currInstance, widgetEmail, function (widgetSettings) {
-            if (widgetSettings === undefined) {
-              database.insertWidgetEmail(client, currInstance, widgetEmail, function (widgetSettings) {
+          var widgetSettings = {
+            userEmail: widgetEmail,
+            provider: provider,
+            settings: null  // won't reset anything because there is a COALESCE condition in query
+          };
+          database.updateWidgetSettings(client, currInstance, widgetSettings, function (widgetSettingsFromDb) {
+            if (widgetSettingsFromDb === undefined) {
+              database.insertWidgetSettings(client, currInstance, widgetSettings, function (widgetSettings) {
                 done();
                 pg.end();
                 res.redirect('/');
@@ -135,7 +141,7 @@ app.post('/upload', function (req, res) {
 
 
 app.get('/widget-settings', function (req, res) {
-  var instance = 'hatever+however';
+  var instance = 'whatever+however';
   var ids = instance.split('+');
   var currInstance = {
     instanceId: ids[0],
@@ -154,7 +160,7 @@ app.get('/widget-settings', function (req, res) {
 
       if (widgetSettings !== undefined) {
         settingsResponse.userEmail = widgetSettings.user_email;
-        settingsResponse.provider = widgetSettings.auth_provider;
+        settingsResponse.provider = widgetSettings.curr_provider;
         settingsResponse.settings = widgetSettings.settings;
       }
       res.json(settingsResponse);
