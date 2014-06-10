@@ -16,12 +16,24 @@
 		        <h3>Content Settings</h3>
 		        <div class="acc-content">
 		        	<ul class="list">
-			        	<li wix-label="Email Address">
-			        		<div wix-model="myEmail" wix-ctrl="Input" wix-options="{placeholder:'John@example.com'}"></div>
-			        	</li>
-			        	<li wix-label="App Name">
-			        		<div wix-model="myAppName" wix-ctrl="Input" wix-options="{placeholder:'My App Name'}"></div>
-			        	</li>
+			        	<li wix-label="Email Address Text">
+				        	<div wix-model="emailAddressText" wix-ctrl="Input" wix-options="{placeholder: 'Your Email Address'}"></div>
+				        </li>
+			        	<li wix-label="Headline Text">
+				        	<div wix-model="headlineText" wix-ctrl="Input" wix-options="{placeholder: 'Upload the file and send it to us. We will review it as soon as possible'}"></div>
+				        </li>
+				        <li wix-label="Add Button Text">
+				        	<div wix-model="addButtonText" wix-ctrl="Input" wix-options="{placeholder: 'Submit'}"></div>
+				        </li>
+				        <li wix-label="No File Text">
+				        	<div wix-model="noFileText" wix-ctrl="Input" wix-options="{placeholder: 'No File Added'}"></div>
+				        </li>
+				        <li wix-label="Message To Recipient">
+				        	<div wix-model="messageText" wix-ctrl="Input" wix-options="{placeholder: 'You can add a message to site owner'}"></div>
+				        </li>
+				        <li wix-label="Submit Button Text">
+				        	<div wix-model="submitButtonText" wix-ctrl="Input" wix-options="{placeholder: 'Submit'}" ng-model="submitButtonText" ng-mouseleave='setSettings()'></div>
+				        </li>
 			        </ul>
 		        </div>
 		    </div>
@@ -40,12 +52,6 @@
 			        		<div wix-param="headlineColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-15'}"></div>
 				        	<div wix-param="headlineFont" wix-ctrl="FontStylePicker"></div>
 				        </li>
-				        <li wix-label="Headline Text">
-				        	<div wix-model="headlineText" wix-ctrl="Input" wix-options="{placeholder: 'Upload the file and send it to us. We will review it as soon as possible'}"></div>
-				        </li>
-				        <li wix-label="Add Button Text">
-				        	<div wix-model="addButtonText" wix-ctrl="Input" wix-options="{placeholder: 'Submit'}"></div>
-				        </li>
 				        <li wix-label="Add Button Color">
 			        		<div wix-param="addButtonColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-17'}"></div>
 			        		<div  wix-model="addButtonCorner" wix-ctrl="Slider" wix=options=="{{ maxValue:20, preLabel:'zero', postLabel:'twenty'}"></div>
@@ -54,18 +60,6 @@
 			        		<div wix-param="addButtonTextColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-25'}"></div>
 			        		<div wix-param="buttonFont" wix-ctrl="FontStylePicker"></div>
 			        	</li>
-				        <li wix-label="No File Text">
-				        	<div wix-model="noFileText" wix-ctrl="Input" wix-options="{placeholder: 'No File Added'}"></div>
-				        </li>
-				        <li wix-label="Email Address Text">
-				        	<div wix-model="emailAddressText" wix-ctrl="Input" wix-options="{placeholder: 'Your Email Address'}"></div>
-				        </li>
-				        <li wix-label="Message To Recipient">
-				        	<div wix-model="messageText" wix-ctrl="Input" wix-options="{placeholder: 'You can add a message to site owner'}"></div>
-				        </li>
-				        <li wix-label="Submit Button Text">
-				        	<div wix-model="submitButtonText" wix-ctrl="Input" wix-options="{placeholder: 'Submit'}" ng-model="submitButtonText" ng-mouseleave='setSettings()'></div>
-				        </li>
 				        <li wix-label="Submit Button Color">
 			        		<div wix-param="submitButtonColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-17'}"></div>
 			        		<div  wix-model="buttonCorner" wix-ctrl="Slider" wix=options=="{{ maxValue:20, preLabel:'zero', postLabel:'twenty'}"></div>
