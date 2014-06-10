@@ -46,32 +46,53 @@ function exchangeCodeForTokens(code, callback) {
   });
 }
 
-function getInstanceTokens(instanceId, componentId, callback) {
-  var oauth2Client = createOauth2Client();
+function getInstanceTokens(instance, callback) {
 
   pg.connect(connectionString, function (err, client, done) {
     if (err) { console.error('db connection error: ', err); }
-    database.getToken(client, instanceId, componentId, function (tokens) {
-      var expiresOn = +new Date(tokens.expires);
-      var now = +new Date();
-      if (expiresOn > now) {
+    database.getToken(client, instance, 'google', function (tokens) {
+
+      if (database.isAccessTokenExpired()) {
         console.log('Got valid token from database: ', tokens.access_token);
         done();
         pg.end();
         callback(tokens);
       } else {
+        var oauth2Client = createOauth2Client();
         oauth2Client.credentials = {refresh_token: tokens.refresh_token};
+
         oauth2Client.refreshAccessToken(function (err, refreshedTokens) {
           if (err) { console.error('token refreshing error: ', err); }
           console.log('Got new token from google: ', refreshedTokens);
-          refreshedTokens.refresh_token = tokens.refresh_token;
-          database.updateToken(client, refreshedTokens, instanceId, componentId, function (result) {
+
+          database.updateToken(client, instance, refreshedTokens, 'google', function (result) {
             done();
             pg.end();
-            callback(refreshedTokens);
+            callback(result);
           });
         });
       }
+    });
+  });
+}
+
+
+
+function getWidgetEmail(tokens, callback) {
+  var oauth2Client = createOauth2Client(tokens);
+  googleapis
+    .discover('oauth2', 'v2')
+    .execute(function (error, client) {
+      client
+        .oauth2
+        .userinfo
+        .get()
+        .withAuthClient(oauth2Client)
+        .execute(function(err, results){
+          if (err) { console.error('profile info retrieving error: ', err); }
+          // Shows user email
+          console.log(results);
+          callback(results.email);
     });
   });
 }
@@ -81,5 +102,6 @@ module.exports = {
   getGoogleAuthUrl: getGoogleAuthUrl,
   exchangeCodeForTokens: exchangeCodeForTokens,
   getInstanceTokens: getInstanceTokens,
-  createOauth2Client: createOauth2Client
+  createOauth2Client: createOauth2Client,
+  getWidgetEmail: getWidgetEmail
 };
