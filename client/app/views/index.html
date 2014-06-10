@@ -31,7 +31,12 @@
     </div>
 
     <div class="block end-blocks submit">
-      <button type="submit" ng-disabled="fileForm.email.$invalid" ng-mouseover="mouseover()">{{submitButtonText}}</button>
+      <div class="submit-button" >
+        <button type="submit" ng-disabled="fileForm.$invalid">{{submitButtonText}}</button>
+      </div>
+      <div class="submit-container" ng-mouseover="enableMessage()" ng-mouseleave="disableMessage()" ng-show="fileForm.$invalid"> 
+        <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
+      </div>
     </div>
   </form>
 </div>
