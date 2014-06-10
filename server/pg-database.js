@@ -25,7 +25,7 @@ function insertToken(client, instance, tokens, provider, callback) {
                VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())';
   var values = [
     instance.instanceId,
-    instance.componentId,
+    instance.compId,
     tokens.access_token,
     tokens.refresh_token,
     tokens.token_type,
@@ -49,7 +49,7 @@ function getToken(client, instance, provider, callback) {
                LIMIT 1';
   var values = [
     instance.instanceId,
-    instance.componentId,
+    instance.compId,
     provider
   ];
 
@@ -72,7 +72,7 @@ function updateToken(client, instance, tokens, provider, callback) {
     tokens.access_token,
     calcTokenExpiresDate(tokens.expires_in),
     instance.instanceId,
-    instance.componentId,
+    instance.compId,
     provider
   ];
 
@@ -91,7 +91,7 @@ function deleteToken(client, instance, provider, callback) {
                RETURNING *';
   var values = [
     instance.instanceId,
-    instance.componentId,
+    instance.compId,
     provider
   ];
 
@@ -110,7 +110,7 @@ function insertWidgetEmail(client, instance, email, callback) {
                VALUES ($1, $2, $3, NOW(), NOW())';
   var values = [
     instance.instanceId,
-    instance.componentId,
+    instance.compId,
     email
   ];
   client.query(query, values, function (err, result) {
@@ -120,11 +120,94 @@ function insertWidgetEmail(client, instance, email, callback) {
   });
 }
 
+function updateWidgetEmail(client, instance, email, callback) {
+  var query = 'UPDATE widget_settings \
+               SET user_email =  $1 \
+               WHERE instance_id = $2 \
+               AND component_id = $3 \
+               RETURNING *';
+  var values = [
+    email,
+    instance.instanceId,
+    instance.compId
+  ];
+  client.query(query, values, function (err, result) {
+    if (err) { console.error('email update error: ', err); }
+
+    if (err) {
+      callback(undefined);
+    } else {
+      callback(result.rows[0]);
+    }
+  });
+}
+
+function insertWidgetSettings(client, instance, widgetSettings, callback) {
+  var query = 'INSERT INTO widget_settings (instance_id, component_id, settings, user_email, updated, created) \
+               VALUES ($1, $2, $3, $4, NOW(), NOW())';
+  var values = [
+    instance.instanceId,
+    instance.compId,
+    widgetSettings.settings,
+    widgetSettings.userEmail,
+  ];
+  client.query(query, values, function (err, result) {
+    if (err) { console.error('settings insert error: ', err); }
+
+    callback(result);
+  });
+}
+
+function updateWidgetSettings(client, instance, widgetSettings, callback) {
+  var query = 'UPDATE widget_settings \
+               SET settings = $1, user_email =  $2 \
+               WHERE instance_id = $3 \
+               AND component_id = $4 \
+               RETURNING *';
+  var values = [
+    widgetSettings.settings,
+    widgetSettings.userEmail,
+    instance.instanceId,
+    instance.compId
+  ];
+  client.query(query, values, function (err, result) {
+    if (err) { console.error('settings update error: ', err); }
+
+    if (err) {
+      callback(undefined);
+    } else {
+      callback(result.rows[0]);
+    }
+  });
+}
+
+function getWidgetSettings(client, instance, callback) {
+  var query = 'SELECT l.settings, l.user_email, r.auth_provider \
+               FROM widget_settings AS l \
+               FULL JOIN oauth_token AS r \
+               ON l.instance_id = $1 \
+               AND l.component_id = $2 \
+               AND l.instance_id = r.instance_id \
+               AND l.component_id = r.component_id \
+               LIMIT 1';
+  var values = [
+    instance.instanceId,
+    instance.compId
+  ];
+  client.query(query, values, function (err, result) {
+    if (err) { console.error('get settings error: ', err); }
+    callback(result.rows[0]);
+  });
+}
+
 module.exports = {
   getToken: getToken,
   insertToken: insertToken,
   updateToken: updateToken,
   deleteToken: deleteToken,
   insertWidgetEmail: insertWidgetEmail,
+  updateWidgetEmail: updateWidgetEmail,
+  updateWidgetSettings: updateWidgetSettings,
+  getWidgetSettings: getWidgetSettings,
   isAccessTokenExpired: isAccessTokenExpired
 };

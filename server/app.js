@@ -25,17 +25,25 @@ app.get('/oauth2callback', function (req, res) {
     var ids = instance.split('+');
     var currInstance = {
       instanceId: ids[0],
-      componentId: ids[1]
+      compId: ids[1]
     };
     pg.connect(connectionString, function (err, client, done) {
       if (err) { console.error('db connection error: ', err); }
 
       database.insertToken(client, currInstance, tokens, 'google', function (result) {
         userAuth.getWidgetEmail(tokens, function (widgetEmail) {
-          database.insertWidgetEmail(client, currInstance, widgetEmail, function () {
-            done();
-            pg.end();
-            res.redirect('/');
+          database.updateWidgetEmail(client, currInstance, widgetEmail, function (widgetSettings) {
+            if (widgetSettings === undefined) {
+              database.insertWidgetEmail(client, currInstance, widgetEmail, function (widgetSettings) {
+                done();
+                pg.end();
+                res.redirect('/');
+              });
+            } else {
+              done();
+              pg.end();
+              res.redirect('/');
+            }
           });
         });
       });
@@ -48,7 +56,7 @@ app.get('/login/auth/google', function (req, res) {
   var ids = instance.split('+');
   var currInstance = {
     instanceId: ids[0],
-    componentId: ids[1]
+    compId: ids[1]
   };
   pg.connect(connectionString, function (err, client, done) {
     database.getToken(client, currInstance, 'google', function (tokensFromDb) {
@@ -69,7 +77,7 @@ app.get('/logout/auth/google', function (req, res) {
   var ids = instance.split('+');
   var currInstance = {
     instanceId: ids[0],
-    componentId: ids[1]
+    compId: ids[1]
   };
   pg.connect(connectionString, function (err, client, done) {
     if (err) { console.error('db connection error: ', err); }
@@ -107,7 +115,7 @@ app.post('/upload', function (req, res) {
   var ids = instance.split('+');
   var currInstance = {
     instanceId: ids[0],
-    componentId: ids[1]
+    compId: ids[1]
   };
 
   console.log('uploaded files: ', req.files);
@@ -121,6 +129,35 @@ app.post('/upload', function (req, res) {
         console.log('inserted file: ', result);
         res.redirect('/');
       });
+    });
+  });
+});
+
+
+app.get('/widget-settings', function (req, res) {
+  var instance = 'hatever+however';
+  var ids = instance.split('+');
+  var currInstance = {
+    instanceId: ids[0],
+    compId: ids[1]
+  };
+
+  pg.connect(connectionString, function (err, client, done) {
+    if (err) { console.error('db connection error: ', err); }
+
+    database.getWidgetSettings(client, currInstance, function (widgetSettings) {
+      var settingsResponse = {
+        userEmail: null,
+        provider: null,
+        settings: null
+      };
+
+      if (widgetSettings !== undefined) {
+        settingsResponse.userEmail = widgetSettings.user_email;
+        settingsResponse.provider = widgetSettings.auth_provider;
+        settingsResponse.settings = widgetSettings.settings;
+      }
+      res.json(settingsResponse);
     });
   });
 });
