@@ -1,18 +1,19 @@
 <div ng-controller="WidgetCtrl">
-  <div class="block end-blocks">
-    <p class="owner-message top-p">
-      {{settings.headlineText}}
-    </p>
-    <button>{{settings.addButtonText}}</button>
-    <p class="limitation-message bottom-p">
-      Up to 2GB
-    </p>
-  </div>
+  <form name="fileForm" novalidate ng-model="fileForm">
+    <div class="block end-blocks file-upload">
+      <p class="owner-message top-p">
+        {{settings.headlineText}}
+      </p>
+      <button disabled>{{settings.addButtonText}}</button>
+      <input type="file" class= "upload">
+      <p class="limitation-message bottom-p">
+        Only files up to 1GB will be uploaded
+      </p>
+    </div>
 
   <!-- Note: Placeholder attribute is not supported in IE9 or below -->
-  <form name="fileForm" novalidate ng-model="fileForm">
     <div class="block">
-      <input type="file" placeholder="No file added">
+      <!-- Show uploading files here -->
     </div>
 
     <div class="block email-box">
@@ -27,16 +28,18 @@
     <!-- span by default is ... -->
 
     <div class="block user-message">
-      <textarea placeholder="{{settings.messageText}}"></textarea>
+      <textarea name="message" placeholder={{settings.messageText}} required ng-model="message"></textarea>
     </div>
 
     <div class="block end-blocks submit">
-      <div class="submit-button" >
         <button type="submit" ng-disabled="fileForm.$invalid">{{settings.submitButtonText}}</button>
-      </div>
-      <div class="submit-container" ng-mouseover="enableMessage()" ng-mouseleave="disableMessage()" ng-show="fileForm.$invalid"> 
+      <div class="submit-container" ng-mouseover="enableErrorMessage()" ng-mouseleave="disableErrorMessage()" ng-show="fileForm.$invalid"> 
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
       </div>
+    </div>
+    <div class="failure-end end-blocks" ng-show="uploadFailed">
+      <button type="button" >Retry</button>
+      <button type="reset" ng-click="reset()">Cancel</button>
     </div>
   </form>
 </div>
