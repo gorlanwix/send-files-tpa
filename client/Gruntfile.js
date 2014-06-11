@@ -27,7 +27,8 @@ module.exports = function (grunt) {
       js: {
         files: [
           '{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js',
-          'test/mocks/api.js'
+          'test/mock/api.js',
+          'test/mock/wix.js'
         ],
         tasks: ['newer:jshint:all']
       },
