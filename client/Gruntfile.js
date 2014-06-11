@@ -315,7 +315,7 @@ module.exports = function (grunt) {
   });
 
 
-  grunt.registerTask('serve', function (target) {
+  grunt.registerTask('serve', function () {
     grunt.task.run([
       'clean:server',
       'copy:styles',
@@ -326,7 +326,7 @@ module.exports = function (grunt) {
     ]);
   });
 
-  grunt.registerTask('test', function (target) {
+  grunt.registerTask('test', function () {
     grunt.task.run([
       'clean:server',
       'copy:styles',
