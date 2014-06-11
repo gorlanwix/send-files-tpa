@@ -5,7 +5,7 @@ var bodyParser = require('body-parser');
 var userAuth = require('./user-auth.js');
 var googleDrive = require('./google-drive.js');
 var multer  = require('multer');
-
+var validator = require('validator');
 
 var pg = require('pg');
 var database = require('./pg-database.js');
@@ -166,21 +166,54 @@ app.get('/widget-settings', function (req, res) {
 
     database.getWidgetSettings(client, currInstance, function (widgetSettings) {
       var settingsResponse = {
-        userEmail: null,
-        provider: null,
-        settings: null
+        userEmail: '',
+        provider: '',
+        settings: {}
       };
 
       if (widgetSettings !== undefined) {
         settingsResponse.userEmail = widgetSettings.user_email;
         settingsResponse.provider = widgetSettings.curr_provider;
-        settingsResponse.settings = widgetSettings.settings;
+        settingsResponse.settings = JSON.parse(widgetSettings.settings);
       }
       done();
       pg.end();
       res.json({widgetSettings: settingsResponse});
     });
   });
+});
+
+
+app.put('/widget-settings', function (req, res) {
+  var instance = 'whatever+however';
+  var ids = instance.split('+');
+  var currInstance = {
+    instanceId: ids[0],
+    compId: ids[1]
+  };
+
+  var widgetSettings = req.body.widgetSettings;
+  var isValidSettings = widgetSettings &&
+                        validator.isEmail(widgetSettings.userEmail) &&
+                        validator.isJSON(widgetSettings.settings);
+
+  if(isValidSettings) {
+    var settingsRecieved = {
+      userEmail: widgetSettings.userEmail,
+      provider: '',
+      settings: JSON.stringfy(widgetSettings.settings)
+    };
+    pg.connect(connectionString, function (err, client, done) {
+      if (err) { console.error('db connection error: ', err); }
+      database.updateWidgetSettings(client, currInstance, widgetSettings, function (updatedWidgetSettings) {
+        done();
+        pg.end();
+        res.json({code: 200});
+      });
+    });
+  } else {
+    res.json({error: 'invalid request format'});
+  }
 });
 
 
