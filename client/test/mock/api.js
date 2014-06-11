@@ -4,7 +4,12 @@ angular.module('apiMock', ['ngMockE2E']).run(function ($httpBackend) {
 
   var settings = {
     demo: {
-      submitButtonText: 'Send!'
+      headlineText: 'Upload the file and send it to us. We will review it as soon as possible.',
+      addButtonText: '+ Add Files',
+      noFileText: '',
+      emailAddressText: 'Your email address',
+      messageText: 'You can add a message to site owner',
+      submitButtonText: 'Submit'
     }
   }; //email:"jeffre@fsnlkf.com"}; - put fake settings here - also use fake compID until backend ready
   var settingsRE = /\/api\/settings\/([^\/]+)$/;
