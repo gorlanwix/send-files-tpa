@@ -1,7 +1,11 @@
+server/client-id.json
+server/pg-connect.json
+server/tmp/
 node_modules
 bower_components
 client/dist
 client/test/coverage
 .tmp
 *.log
+
 

@@ -25,7 +25,7 @@ function insertToken(client, instance, tokens, provider, callback) {
                VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())';
   var values = [
     instance.instanceId,
-    instance.componentId,
+    instance.compId,
     tokens.access_token,
     tokens.refresh_token,
     tokens.token_type,
@@ -36,7 +36,7 @@ function insertToken(client, instance, tokens, provider, callback) {
   client.query(query, values, function (err, result) {
     if (err) { console.error('tokens insert error: ', err); }
 
-    callback(result);
+    callback(err, result);
   });
 }
 
@@ -49,13 +49,13 @@ function getToken(client, instance, provider, callback) {
                LIMIT 1';
   var values = [
     instance.instanceId,
-    instance.componentId,
+    instance.compId,
     provider
   ];
 
   client.query(query, values, function (err, result) {
     if (err) { console.error('get token error: ', err); }
-    callback(result.rows[0]);
+    callback(err, result.rows[0]);
   });
 }
 
@@ -72,14 +72,14 @@ function updateToken(client, instance, tokens, provider, callback) {
     tokens.access_token,
     calcTokenExpiresDate(tokens.expires_in),
     instance.instanceId,
-    instance.componentId,
+    instance.compId,
     provider
   ];
 
   client.query(query, values, function (err, result) {
     if (err) { console.error('token update error: ', err); }
 
-    callback(result.rows[0]);
+    callback(err, result.rows[0]);
   });
 }
 
@@ -91,40 +91,88 @@ function deleteToken(client, instance, provider, callback) {
                RETURNING *';
   var values = [
     instance.instanceId,
-    instance.componentId,
+    instance.compId,
     provider
   ];
 
   client.query(query, values, function (err, result) {
     if (err) { console.error('delete token error: ', err); }
     if (err) {
-      callback(undefined);
+      callback(err, undefined);
     } else {
-      callback(result.rows[0]);
+      callback(err, result.rows[0]);
     }
   });
 }
 
-function insertWidgetEmail(client, instance, email, callback) {
-  var query = 'INSERT INTO widget_settings (instance_id, component_id, user_email, updated, created) \
-               VALUES ($1, $2, $3, NOW(), NOW())';
+function insertWidgetSettings(client, instance, widgetSettings, callback) {
+  var query = 'INSERT INTO widget_settings (instance_id, component_id, settings, user_email, curr_provider, updated, created) \
+               VALUES ($1, $2, $3, $4, $5, NOW(), NOW())';
   var values = [
     instance.instanceId,
-    instance.componentId,
-    email
+    instance.compId,
+    widgetSettings.settings,
+    widgetSettings.userEmail,
+    widgetSettings.provider
   ];
   client.query(query, values, function (err, result) {
-    if (err) { console.error('email insert error: ', err); }
+    if (err) { console.error('settings insert error: ', err); }
 
-    callback(result);
+    callback(err, result);
   });
 }
+
+function updateWidgetSettings(client, instance, widgetSettings, callback) {
+  var query = 'UPDATE widget_settings \
+               SET settings = COALESCE($1, settings), \
+                   user_email = COALESCE($2, user_email), \
+                   curr_provider = COALESCE($3, curr_provider), \
+                   updated = NOW() \
+               WHERE instance_id = $4 \
+               AND component_id = $5 \
+               RETURNING *';
+  var values = [
+    widgetSettings.settings,
+    widgetSettings.userEmail,
+    widgetSettings.provider,
+    instance.instanceId,
+    instance.compId
+  ];
+  client.query(query, values, function (err, result) {
+    if (err) { console.error('settings update error: ', err); }
+
+    if (err) {
+      callback(err, undefined);
+    } else {
+      callback(err, result.rows[0]);
+    }
+  });
+}
+
+function getWidgetSettings(client, instance, callback) {
+  var query = 'SELECT settings, user_email, curr_provider \
+               FROM widget_settings \
+               WHERE instance_id = $1 \
+               AND component_id = $2 \
+               LIMIT 1';
+  var values = [
+    instance.instanceId,
+    instance.compId
+  ];
+  client.query(query, values, function (err, result) {
+    if (err) { console.error('get settings error: ', err); }
+    callback(err, result.rows[0]);
+  });
+}
+
 
 module.exports = {
   getToken: getToken,
   insertToken: insertToken,
   updateToken: updateToken,
   deleteToken: deleteToken,
-  insertWidgetEmail: insertWidgetEmail,
+  insertWidgetSettings: insertWidgetSettings,
+  updateWidgetSettings: updateWidgetSettings,
+  getWidgetSettings: getWidgetSettings,
   isAccessTokenExpired: isAccessTokenExpired
 };

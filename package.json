@@ -42,7 +42,8 @@
     "multer": "^0.1.0",
     "pg": "^3.3.0",
     "refresh-token": "0.0.2",
-    "time-grunt": "~0.3.2"
+    "time-grunt": "~0.3.2",
+    "validator": "^3.14.1"
   },
   "devDependencies": {
     "chai": "~1.9.1",

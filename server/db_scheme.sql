@@ -13,8 +13,9 @@ CREATE TABLE oauth_token (
 CREATE TABLE widget_settings (
     instance_id text NOT NULL,
     component_id text NOT NULL,
-    settings text,
-    user_email text,
+    settings text DEFAULT '{}',
+    user_email text DEFAULT '',
+    curr_provider text DEFAULT '',
     updated timestamp NOT NULL,
     created timestamp NOT NULL,
     PRIMARY KEY (instance_id, component_id)
@@ -38,8 +39,48 @@ AND auth_provider = $4 \
 RETURNING *
 
 
-INSERT INTO widget_settings (instance_id, component_id, user_email, updated, created) \
-VALUES ($1, $2, $3, NOW(), NOW())
+INSERT INTO widget_settings (instance_id, component_id, settings, user_email, curr_provider, updated, created) \
+VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+
+
+UPDATE widget_settings \
+SET user_email = COALESCE($1, user_email), \
+    settings = COALESCE($2, settings), \
+    curr_provider = COALESCE($3, curr_provider) \
+WHERE instance_id = $4 \
+AND component_id = $5 \
+RETURNING *
+
+UPDATE widget_settings \
+SET curr_provider = '' \
+WHERE instance_id = $1 \
+AND component_id = $2 \
+RETURNING *
+
+SELECT settings, user_email, curr_provider \
+FROM widget_settings \
+WHERE instance_id = $1 \
+AND component_id = $2 \
+
+UPDATE widget_settings
+SET settings = COALESCE(null, settings),
+   user_email = COALESCE(null, user_email),
+   curr_provider = COALESCE('', curr_provider),
+   updated = NOW()
+WHERE instance_id = 'whatever'
+AND component_id = 'however'
+
+-- SELECT *
+-- FROM widget_settings AS l
+-- FULL JOIN oauth_token AS r
+-- ON l.instance_id = 'hatever'
+-- AND l.component_id = 'however'
+-- AND r.instance_id = 'hatever'
+-- AND r.component_id = 'however'
+-- AND l.instance_id = r.instance_id
+-- AND l.component_id = r.component_id
+-- LIMIT 1
+-- ;
 
 
 DELETE FROM oauth_token \

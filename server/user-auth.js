@@ -42,7 +42,7 @@ function exchangeCodeForTokens(code, callback) {
   console.log("code: ", code);
   oauth2Client.getToken(code, function (err, tokens) {
     if (err) { console.error('Retrieving token error: ', err); }
-    callback(tokens);
+    callback(err, tokens);
   });
 }
 
@@ -50,25 +50,24 @@ function getInstanceTokens(instance, callback) {
 
   pg.connect(connectionString, function (err, client, done) {
     if (err) { console.error('db connection error: ', err); }
-    database.getToken(client, instance, 'google', function (tokens) {
+    database.getToken(client, instance, 'google', function (err, tokens) {
 
       if (database.isAccessTokenExpired(tokens)) {
         console.log('Got valid token from database: ', tokens.access_token);
         done();
         pg.end();
-        callback(tokens);
+        callback(err, tokens);
       } else {
-        var oauth2Client = createOauth2Client();
-        oauth2Client.credentials = {refresh_token: tokens.refresh_token};
+        var oauth2Client = createOauth2Client(tokens);
 
         oauth2Client.refreshAccessToken(function (err, refreshedTokens) {
           if (err) { console.error('token refreshing error: ', err); }
           console.log('Got new token from google: ', refreshedTokens);
 
-          database.updateToken(client, instance, refreshedTokens, 'google', function (result) {
+          database.updateToken(client, instance, refreshedTokens, 'google', function (err, result) {
             done();
             pg.end();
-            callback(result);
+            callback(err, result);
           });
         });
       }
@@ -82,19 +81,20 @@ function getWidgetEmail(tokens, callback) {
   var oauth2Client = createOauth2Client(tokens);
   googleapis
     .discover('oauth2', 'v2')
-    .execute(function (error, client) {
+    .execute(function (err, client) {
+      if (err) { console.error('connection to google error: ', err); }
       client
         .oauth2
         .userinfo
         .get()
         .withAuthClient(oauth2Client)
-        .execute(function(err, results){
+        .execute(function (err, results) {
           if (err) { console.error('profile info retrieving error: ', err); }
           // Shows user email
           console.log(results);
-          callback(results.email);
+          callback(err, results.email);
+        });
     });
-  });
 }
 
 
