@@ -28,7 +28,7 @@ function getGoogleAuthUrl(instance, callback) {
   // generate consent page url
   var url = oauth2Client.generateAuthUrl({
     access_type: 'offline', // will return a refresh token
-    state: instance,
+    state: instance.instanceId + '+' + instance.compId,
     display: 'popup',
     scope: scopes.join(" ")
   });

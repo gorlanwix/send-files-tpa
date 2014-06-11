@@ -8,10 +8,11 @@ var multer  = require('multer');
 var validator = require('validator');
 var pg = require('pg');
 var database = require('./pg-database.js');
+var wix = require('wix');
 var connectionString = process.env.DATABASE_URL || require('./pg-connect.json').connectPg;
-
 var app = express();
 
+wix.secret(require('./wix-key.json').secret);
 app.use(bodyParser());
 app.use(express.static(__dirname));
 app.use(multer({
@@ -19,16 +20,22 @@ app.use(multer({
 }));
 
 
+// parse instance and sets parsed insatnceId
+function WixWidget(instance, compId)
+{
+    this.instanceId = wix.parse(instance).instanceId,
+    this.compId = compId
+}
+
+
 app.get('/oauth2callback', function (req, res) {
   userAuth.exchangeCodeForTokens(req.query.code, function (err, tokens) {
     console.log('tokens from google: ', tokens);
     console.log('oauth2callback state: ', req.query.state);
-    var instance = req.query.state;
-    var ids = instance.split('+');
-    var currInstance = {
-      instanceId: ids[0],
-      compId: ids[1]
-    };
+
+    var wixIds = req.query.state.split('+');
+    var currInstance = new WixWidget(wixIds[0], wixIds[1]);
+
     var provider = 'google';
     pg.connect(connectionString, function (err, client, done) {
       if (err) { console.error('db connection error: ', err); }
@@ -66,17 +73,14 @@ app.get('/oauth2callback', function (req, res) {
   });
 });
 
-app.get('/login/auth/google', function (req, res) {
-  var instance = 'whatever+however';
-  var ids = instance.split('+');
-  var currInstance = {
-    instanceId: ids[0],
-    compId: ids[1]
-  };
+app.get('/login/auth/google/:compId', function (req, res) {
+  var instance = req.header('X-Wix-Instance');
+  var currInstance = new WixWidget(instance, req.params.compId);
+
   pg.connect(connectionString, function (err, client, done) {
     database.getToken(client, currInstance, 'google', function (err, tokensFromDb) {
       if (tokensFromDb === undefined) {
-        userAuth.getGoogleAuthUrl(instance, function (url) {
+        userAuth.getGoogleAuthUrl(currInstance, function (url) {
           done();
           pg.end();
           res.redirect(url);
@@ -91,13 +95,9 @@ app.get('/login/auth/google', function (req, res) {
   });
 });
 
-app.get('/logout/auth/google', function (req, res) {
-  var instance = 'whatever+however';
-  var ids = instance.split('+');
-  var currInstance = {
-    instanceId: ids[0],
-    compId: ids[1]
-  };
+app.get('/logout/auth/google/:compId', function (req, res) {
+  var instance = req.header('X-Wix-Instance');
+  var currInstance = new WixWidget(instance, req.params.compId);
 
   var widgetSettings = {
     userEmail: null,
@@ -138,13 +138,9 @@ app.get('/login', function (req, res) {
 
 
 
-app.post('/upload', function (req, res) {
-  var instance = 'whatever+however';
-  var ids = instance.split('+');
-  var currInstance = {
-    instanceId: ids[0],
-    compId: ids[1]
-  };
+app.post('/upload/:compId', function (req, res) {
+  var instance = req.header('X-Wix-Instance');
+  var currInstance = new WixWidget(instance, req.params.compId)
 
   console.log('uploaded files: ', req.files);
   var newFile = req.files.sendFile;
@@ -162,13 +158,10 @@ app.post('/upload', function (req, res) {
 });
 
 
-app.get('/widget-settings', function (req, res) {
-  var instance = 'whatever+however';
-  var ids = instance.split('+');
-  var currInstance = {
-    instanceId: ids[0],
-    compId: ids[1]
-  };
+app.get('/api/settings/:compId', function (req, res) {
+
+  var instance = req.header('X-Wix-Instance');
+  var currInstance = new WixWidget(instance, req.params.compId);
 
   pg.connect(connectionString, function (err, client, done) {
     if (err) { console.error('db connection error: ', err); }
@@ -193,13 +186,9 @@ app.get('/widget-settings', function (req, res) {
 });
 
 
-app.put('/widget-settings', function (req, res) {
-  var instance = 'whatever+however';
-  var ids = instance.split('+');
-  var currInstance = {
-    instanceId: ids[0],
-    compId: ids[1]
-  };
+app.put('/widget-settings/:compId', function (req, res) {
+  var instance = req.header('X-Wix-Instance');
+  var currInstance = new WixWidget(instance, req.params.compId);
 
   var widgetSettings = req.body.widgetSettings;
   var isValidSettings = widgetSettings &&
