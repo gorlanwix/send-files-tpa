@@ -36,7 +36,7 @@ function insertToken(client, instance, tokens, provider, callback) {
   client.query(query, values, function (err, result) {
     if (err) { console.error('tokens insert error: ', err); }
 
-    callback(result);
+    callback(err, result);
   });
 }
 
@@ -55,7 +55,7 @@ function getToken(client, instance, provider, callback) {
 
   client.query(query, values, function (err, result) {
     if (err) { console.error('get token error: ', err); }
-    callback(result.rows[0]);
+    callback(err, result.rows[0]);
   });
 }
 
@@ -79,7 +79,7 @@ function updateToken(client, instance, tokens, provider, callback) {
   client.query(query, values, function (err, result) {
     if (err) { console.error('token update error: ', err); }
 
-    callback(result.rows[0]);
+    callback(err, result.rows[0]);
   });
 }
 
@@ -98,9 +98,9 @@ function deleteToken(client, instance, provider, callback) {
   client.query(query, values, function (err, result) {
     if (err) { console.error('delete token error: ', err); }
     if (err) {
-      callback(undefined);
+      callback(err, undefined);
     } else {
-      callback(result.rows[0]);
+      callback(err, result.rows[0]);
     }
   });
 }
@@ -118,7 +118,7 @@ function insertWidgetSettings(client, instance, widgetSettings, callback) {
   client.query(query, values, function (err, result) {
     if (err) { console.error('settings insert error: ', err); }
 
-    callback(result);
+    callback(err, result);
   });
 }
 
@@ -142,9 +142,9 @@ function updateWidgetSettings(client, instance, widgetSettings, callback) {
     if (err) { console.error('settings update error: ', err); }
 
     if (err) {
-      callback(undefined);
+      callback(err, undefined);
     } else {
-      callback(result.rows[0]);
+      callback(err, result.rows[0]);
     }
   });
 }
@@ -161,7 +161,7 @@ function getWidgetSettings(client, instance, callback) {
   ];
   client.query(query, values, function (err, result) {
     if (err) { console.error('get settings error: ', err); }
-    callback(result.rows[0]);
+    callback(err, result.rows[0]);
   });
 }
 
