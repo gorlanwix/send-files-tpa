@@ -21,10 +21,9 @@ app.use(multer({
 
 
 // parse instance and sets parsed insatnceId
-function WixWidget(instance, compId)
-{
-    this.instanceId = wix.parse(instance).instanceId,
-    this.compId = compId
+function WixWidget(instance, compId) {
+  this.instanceId = wix.parse(instance).instanceId;
+  this.compId = compId;
 }
 
 
@@ -74,8 +73,11 @@ app.get('/oauth2callback', function (req, res) {
 });
 
 app.get('/login/auth/google/:compId', function (req, res) {
-  var instance = req.header('X-Wix-Instance');
-  var currInstance = new WixWidget(instance, req.params.compId);
+  // var instance = req.header('X-Wix-Instance');
+  var currInstance = {
+    instanceId: 'whatever',
+    compId: 'however'
+  }; //new WixWidget(instance, req.params.compId);
 
   pg.connect(connectionString, function (err, client, done) {
     database.getToken(client, currInstance, 'google', function (err, tokensFromDb) {
@@ -96,8 +98,11 @@ app.get('/login/auth/google/:compId', function (req, res) {
 });
 
 app.get('/logout/auth/google/:compId', function (req, res) {
-  var instance = req.header('X-Wix-Instance');
-  var currInstance = new WixWidget(instance, req.params.compId);
+  // var instance = req.header('X-Wix-Instance');
+  var currInstance = {
+    instanceId: 'whatever',
+    compId: 'however'
+  }; //new WixWidget(instance, req.params.compId);
 
   var widgetSettings = {
     userEmail: null,
@@ -139,19 +144,22 @@ app.get('/login', function (req, res) {
 
 
 app.post('/upload/:compId', function (req, res) {
-  var instance = req.header('X-Wix-Instance');
-  var currInstance = new WixWidget(instance, req.params.compId)
+  // var instance = req.header('X-Wix-Instance');
+  var currInstance = {
+    instanceId: 'whatever',
+    compId: 'however'
+  }; //new WixWidget(instance, req.params.compId)
 
   console.log('uploaded files: ', req.files);
   var newFile = req.files.sendFile;
+  res.redirect('/');
 
   userAuth.getInstanceTokens(currInstance, function (err, tokens) {
     var oauth2Client = userAuth.createOauth2Client(tokens);
     googleDrive.connect(function (err, client) {
       if (err) { console.error('connecting to google error: ', err); }
-      googleDrive.insertFile(client, oauth2Client, newFile, function (err, result) {
+      googleDrive.insertFileAsync(newFile, oauth2Client, function (err, result) {
         console.log('inserted file: ', result);
-        res.redirect('/');
       });
     });
   });
@@ -160,8 +168,11 @@ app.post('/upload/:compId', function (req, res) {
 
 app.get('/api/settings/:compId', function (req, res) {
 
-  var instance = req.header('X-Wix-Instance');
-  var currInstance = new WixWidget(instance, req.params.compId);
+  // var instance = req.header('X-Wix-Instance');
+  var currInstance = {
+    instanceId: 'whatever',
+    compId: 'however'
+  }; //new WixWidget(instance, req.params.compId);
 
   pg.connect(connectionString, function (err, client, done) {
     if (err) { console.error('db connection error: ', err); }
@@ -187,8 +198,11 @@ app.get('/api/settings/:compId', function (req, res) {
 
 
 app.put('/widget-settings/:compId', function (req, res) {
-  var instance = req.header('X-Wix-Instance');
-  var currInstance = new WixWidget(instance, req.params.compId);
+  // var instance = req.header('X-Wix-Instance');
+  var currInstance = {
+    instanceId: 'whatever',
+    compId: 'however'
+  }; //new WixWidget(instance, req.params.compId);
 
   var widgetSettings = req.body.widgetSettings;
   var isValidSettings = widgetSettings &&
