@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('sendFiles').controller('SettingsCtrl', function($wix, api) {
+angular.module('sendFiles').controller('SettingsCtrl', function($scope, $wix, api) {
  //  var compId = 'abc';//temporary fake ID we can use while backend is broken 
  //  //how to actually get widget compID//var compId = $wix.Utils.getOrigCompId(); 
  //  //Original because more IDs are generated as settings are updated
@@ -28,7 +28,8 @@ angular.module('sendFiles').controller('SettingsCtrl', function($wix, api) {
 
  //  // api.saveSettings(compId, {});
 
-
-
-  $wix.UI.initialize();
+  $scope.settings = api.getSettings();
+  $scope.settings.$promise.then(function () {
+    $wix.UI.initialize($scope.settings);
+  });
 });

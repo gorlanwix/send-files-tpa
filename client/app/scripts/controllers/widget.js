@@ -16,14 +16,6 @@ angular.module('sendFiles')
       $scope.showInvalidEmail = false;
     };
 
-    //Pseudocode for getting settings to appear
-    $scope.headlineText = 'Upload the file and send it to us. We will review it as soon as possible.';
-    $scope.addButtonText = '+ Add Files';
-    $scope.noFileText = '';
-    $scope.emailAddressText = 'Your email address';
-    $scope.messageText = 'You can add a message to site owner';
-    $scope.submitButtonText = 'Submit';
-
     $scope.email = 'hello';
     //$scope.cool = false;
     $scope.setSettings = function() {
@@ -33,5 +25,5 @@ angular.module('sendFiles')
       console.log('but');
     };
 
-
+    $scope.settings = api.getSettings(true);
   });

@@ -1,3 +1,3 @@
 'use strict';
 
-angular.module('sendFiles', []);
+angular.module('sendFiles', ['ngResource']);

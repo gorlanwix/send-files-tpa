@@ -1,9 +1,9 @@
 <div ng-controller="WidgetCtrl">
   <div class="block end-blocks">
     <p class="owner-message top-p">
-      {{headlineText}}
+      {{settings.headlineText}}
     </p>
-    <button>{{addButtonText}}</button>
+    <button>{{settings.addButtonText}}</button>
     <p class="limitation-message bottom-p">
       Up to 2GB
     </p>
@@ -16,7 +16,7 @@
     </div>
 
     <div class="block email-box">
-        <input name="email" type="email" class="email" placeholder= {{emailAddressText}} required ng-model="email" ng-pattern="emailRegex">
+        <input name="email" type="email" class="email" placeholder="{{settings.emailAddressText}}" required ng-model="email" ng-pattern="emailRegex">
       <div class="tool-tip-container" ng-show="showInvalidEmail">
           <span class="tool-tip">Please enter a valid email address</span>
       </div>
@@ -27,12 +27,12 @@
     <!-- span by default is ... -->
 
     <div class="block user-message">
-      <textarea placeholder={{messageText}}></textarea>
+      <textarea placeholder="{{settings.messageText}}"></textarea>
     </div>
 
     <div class="block end-blocks submit">
       <div class="submit-button" >
-        <button type="submit" ng-disabled="fileForm.$invalid">{{submitButtonText}}</button>
+        <button type="submit" ng-disabled="fileForm.$invalid">{{settings.submitButtonText}}</button>
       </div>
       <div class="submit-container" ng-mouseover="enableMessage()" ng-mouseleave="disableMessage()" ng-show="fileForm.$invalid"> 
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
