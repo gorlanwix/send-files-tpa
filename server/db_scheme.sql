@@ -21,6 +21,36 @@ CREATE TABLE widget_settings (
     PRIMARY KEY (instance_id, component_id)
 )
 
+CREATE TABLE session (
+    session_id bigserial PRIMARY KEY,
+    instance_id text NOT NULL,
+    component_id text NOT NULL,
+    last_access timestamp NOT NULL,
+    created timestamp NOT NULL
+)
+
+INSERT INTO session (instance_id, component_id, last_access, created) \
+VALUES ($1, $2, NOW(), NOW())
+
+UPDATE session \
+SET last_access = NOW() \
+WHERE session_id = $1 \
+AND component_id = $2 \
+AND instance_id = $3
+
+SELECT \
+exists(SELECT 1 \
+    FROM session \
+    WHERE session_id = $1 \
+    AND component_id = $2 \
+    AND instance_id = $3)
+
+DELETE FROM session \
+WHERE session_id = $1 \
+AND component_id = $2 \
+AND instance_id = $3
+
+
 INSERT INTO oauth_token (instance_id, component_id, access_token, refresh_token, token_type, expires, auth_provider, created) \
 VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
 
