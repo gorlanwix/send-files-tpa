@@ -1,3 +1,5 @@
+var session = require('./sessions.js');
+
 'use strict';
 
 // var handleError = function (client, done, err) {
@@ -174,5 +176,6 @@ module.exports = {
   insertWidgetSettings: insertWidgetSettings,
   updateWidgetSettings: updateWidgetSettings,
   getWidgetSettings: getWidgetSettings,
-  isAccessTokenExpired: isAccessTokenExpired
+  isAccessTokenExpired: isAccessTokenExpired,
+  session: session
 };
