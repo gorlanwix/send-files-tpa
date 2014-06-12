@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('sendFiles')
-  .controller('WidgetCtrl', function ($scope, api, $wix) {
+  .controller('WidgetCtrl', function ($scope, api, $wix, $upload) {
 
      /* Regular expression used to determine if user input is a valid email. */
     $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
@@ -14,6 +14,12 @@ angular.module('sendFiles')
     
     /* If true, upload failure messages are shown. */
     $scope.uploadFailed = false;
+
+    /* List of files. Initalized as empty list. */
+    $scope.fileList = [];
+
+    /* List of files that are too large for uploading. */
+    $scope.tooLargeList = [];
 
         /* Call this to get error messages to show up if the form
      * is filled out incorrectly. */
@@ -41,13 +47,43 @@ angular.module('sendFiles')
       console.log('but');
     };
 
-    /* Call this when the user clicks submit to begin file upload. */
-    $scope.startUpload = function() {
-      // do files need to do be an argument to this function?
-
-      //upload the files 
-      //call backend 
+    /* Call this when the user selects file(s) to begin file upload.
+     * 1GB = 1073741824 bytes
+     * 1MB = 1048576 bytes
+     */
+    $scope.onFileSelect = function($files) {
+      for(var i = 0; i < $files.length; i++) {
+        var file = $files[i];
+        if (file.size > 1073741824) { //Test with files almost 1GB
+          file.newSize = (Math.floor(file.size / 1073741824 * 100) / 100).toString() + 'GB';
+          $scope.tooLargeList.push(file);
+          console.log(file.size);
+        } else {
+          var sizeInMB = Math.floor(file.size / 1048576);
+          if (sizeInMB === 0) {
+            file.newSize = '< 1MB';
+          } else {
+            file.newSize = sizeInMB.toString() + 'MB';
+          }
+          $scope.fileList.push(file);
+        }
+      }
     };
+
+    /* Call this when user wants to remove file from list. */
+    $scope.removeFile = function(file) { /* TODO: Pass in file in HTML somehow! */
+      var index = fileList.indexOf(file);
+      if (index > -1) {
+        $scope.fileList.splice()
+        console.log(fileList); // for verification - remove later
+      } else {
+        console.log('ERROR - NO FILE FOUND');
+      }
+    }
+
+    $scope.submit = function() {
+      //send fileList to server
+    }
 
     /* Call this function when the file has failed to upload. Changes
      * widget to show error messages to the site visitor and gives

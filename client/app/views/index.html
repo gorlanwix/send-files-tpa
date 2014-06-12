@@ -5,15 +5,23 @@
         {{settings.headlineText}}
       </p>
       <button disabled>{{settings.addButtonText}}</button>
-      <input type="file" class= "upload">
+      <input type="file" class= "upload" title={{settings.addButtonText}} ng-file-select="onFileSelect($files)" multiple>
+      <div class="drop" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="optional-css-class">Drop files here</div> <!-- give user option to have drag or drop or not -->
       <p class="limitation-message bottom-p">
-        Only files up to 1GB will be uploaded
+        Drag and drop of files is supported. &otimes; <br>
+        Only files up to 1GB will be uploaded.
       </p>
     </div>
 
   <!-- Note: Placeholder attribute is not supported in IE9 or below -->
     <div class="block">
       <!-- Show uploading files here -->
+      <li ng-repeat="file in tooLargeList">
+        {{file.name}} - {{file.newSize}} - File is too large!
+      </li>
+      <li ng-repeat="file in fileList">
+        {{file.name}} - {{file.newSize}}
+      </li> 
     </div>
 
     <div class="block email-box">

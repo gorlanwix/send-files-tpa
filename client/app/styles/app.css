@@ -10,9 +10,24 @@
   z-index: 0;
 }
 
+.block li {
+  list-style-type: none;
+  padding: 0;
+  margin-left: 25px;
+  text-align: left;
+}
+
 .end-blocks {
   background-color: #E5E9EE;
   border-bottom: none;
+}
+
+.drop {
+  background-color: red;
+}
+
+.optional-css-class {
+  background-color: green;
 }
 
 .end-blocks button {
@@ -39,12 +54,15 @@
   left: 0;
   bottom: 2px;
   cursor: pointer;
+  cursor: hand;
   opacity: 0;
   width: 40%;
   margin: 0 auto;
   margin-bottom: 35px;
   text-align: center;
-  background-color: red;
+  filter: alpha(opacity=0);
+  /* For IE8 Compatibility */
+  filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0);
 }
 
 .top-p {
