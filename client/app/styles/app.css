@@ -10,24 +10,37 @@
   z-index: 0;
 }
 
-.block li {
-  list-style-type: none;
-  padding: 0;
-  margin-left: 25px;
-  text-align: left;
-}
-
 .end-blocks {
   background-color: #E5E9EE;
   border-bottom: none;
 }
 
-.drop {
-  background-color: red;
+.dropper {
+  position: relative;
 }
 
-.optional-css-class {
-  background-color: green;
+.dropee {
+  position: absolute;
+  vertical-align: middle;
+  line-height: 110px;
+  font-size: 14px;
+  background-color: #62D8BF;
+  color: white;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  /* IE compatibility */
+  filter: alpha(opacity=0);
+  bottom: 0px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.dropping {
+  background-color: #62D8BF;
+  opacity: 1;
+  /* IE compatibility */
+  filter: alpha(opacity=1);
 }
 
 .end-blocks button {
@@ -60,9 +73,8 @@
   margin: 0 auto;
   margin-bottom: 35px;
   text-align: center;
+  /* For IE Compatibility */
   filter: alpha(opacity=0);
-  /* For IE8 Compatibility */
-  filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0);
 }
 
 .top-p {
@@ -71,6 +83,27 @@
 
 .bottom-p {
   margin-top: 7px;
+}
+
+.files {
+  height: 70px;
+  padding-top: 0;
+  padding-bottom: 5px;
+  overflow: scroll;
+  max-height: 70px;
+}
+
+.files li {
+  list-style-type: none;
+  padding: 0;
+  margin-left: 25px;
+  text-align: left;
+}
+
+.files p {
+  margin-top: 2px;
+  margin-left: 25px;
+  text-align: left;
 }
 
 .email-box {
@@ -141,6 +174,10 @@
   margin-bottom: 0;
 }
 
+.user-message {
+  padding-top: 17px;
+}
+
 .user-message textarea {
   height: 80px;
   width: 90%;
@@ -148,6 +185,10 @@
   outline: none;
   resize: none;
   overflow: auto;
+}
+
+.message.ng-invalid {
+  color: red;
 }
 
 .submit {

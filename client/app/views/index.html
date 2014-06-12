@@ -1,20 +1,20 @@
 <div ng-controller="WidgetCtrl">
   <form name="fileForm" novalidate ng-model="fileForm">
-    <div class="block end-blocks file-upload">
+    <div class="block end-blocks file-upload dropper">
+      <div class="dropee" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">Drop files here</div>
       <p class="owner-message top-p">
         {{settings.headlineText}}
       </p>
       <button disabled>{{settings.addButtonText}}</button>
       <input type="file" class= "upload" title={{settings.addButtonText}} ng-file-select="onFileSelect($files)" multiple>
-      <div class="drop" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="optional-css-class">Drop files here</div> <!-- give user option to have drag or drop or not -->
       <p class="limitation-message bottom-p">
-        Drag and drop of files is supported. &otimes; <br>
-        Only files up to 1GB will be uploaded.
+        Or just drop files here. <br>
+        You can upload up to 1GB of files.
       </p>
     </div>
-
   <!-- Note: Placeholder attribute is not supported in IE9 or below -->
-    <div class="block">
+    <div class="block files">
+      <p >Space Remaining: {{totalGBLeft}} GB</p>
       <!-- Show uploading files here -->
       <li ng-repeat="file in tooLargeList">
         {{file.name}} - {{file.newSize}} - File is too large!
@@ -36,11 +36,11 @@
     <!-- span by default is ... -->
 
     <div class="block user-message">
-      <textarea name="message" placeholder={{settings.messageText}} required ng-model="message"></textarea>
+      <textarea name="message" placeholder={{settings.messageText}} required ng-model="message" class="message"></textarea>
     </div>
 
     <div class="block end-blocks submit">
-        <button type="submit" ng-disabled="fileForm.$invalid">{{settings.submitButtonText}}</button>
+        <button type="submit" ng-disabled="fileForm.$invalid" ng-click="submit()">{{settings.submitButtonText}}</button>
       <div class="submit-container" ng-mouseover="enableErrorMessage()" ng-mouseleave="disableErrorMessage()" ng-show="fileForm.$invalid"> 
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
       </div>
