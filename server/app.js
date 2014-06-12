@@ -143,7 +143,7 @@ app.get('/login', function (req, res) {
 
 
 
-app.post('/upload/:compId', function (req, res) {
+app.post('/api/files/upload/:compId', function (req, res) {
   // var instance = req.header('X-Wix-Instance');
   var currInstance = {
     instanceId: 'whatever',
@@ -155,13 +155,10 @@ app.post('/upload/:compId', function (req, res) {
   res.redirect('/');
 
   userAuth.getInstanceTokens(currInstance, function (err, tokens) {
-    var oauth2Client = userAuth.createOauth2Client(tokens);
-    googleDrive.connect(function (err, client) {
-      if (err) { console.error('connecting to google error: ', err); }
-      googleDrive.insertFileAsync(newFile, oauth2Client, function (err, result) {
-        if (err) { console.error('uploading to google error', err); }
-        console.log('inserted file: ', result);
-      });
+    if (err) { console.error('getting instance tokens error', err); }
+    googleDrive.insertFileAsync(newFile, tokenst.access_token, function (err, result) {
+      if (err) { console.error('uploading to google error', err); }
+      console.log('inserted file: ', result);
     });
   });
 });

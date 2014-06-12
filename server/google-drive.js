@@ -6,41 +6,9 @@ var qs = require('querystring');
 var request = require('request');
 var async = require('async');
 
-function constructUrl(root, path, params) {
-  var paramsString = '';
-  if (params !== undefined) {
-    paramsString = '?' + qs.stringify(params);
-  }
-  path = (path.charAt(0) === '/') ? path.substr(1) : path;
-  return root + path + paramsString;
-}
-
-function connect(callback) {
-  googleapis
-      .discover('drive', 'v2')
-      .execute(callback);
-}
 
 
-function insertFile(client, oauth2Client, file, callback) {
-
-  var fileDesc = {
-    title: file.originalname,
-    mimeType: file.mimetype,
-  };
-
-  console.log('insering file to google');
-
-  client.drive.files.insert(fileDesc)
-    .withMedia(file.mimetype, fs.readFileSync())
-    .withAuthClient(oauth2Client)
-    .execute(function (err, result) {
-      if (err) { console.error('Inserting to Drive error:', err); }
-      callback(err, result);
-    });
-}
-
-function getGoogleUploadUrl(file, oauth2Client, callback) {
+function getGoogleUploadUrl(file, accessToken, callback) {
   var ROOT_URL = 'https://www.googleapis.com/';
   var DRIVE_API_PATH = 'upload/drive/v2/files';
   var fileDesc = {
@@ -56,7 +24,7 @@ function getGoogleUploadUrl(file, oauth2Client, callback) {
     headers: {
       'X-Upload-Content-Type': file.mimetype,
       'X-Upload-Content-Length': file.size,
-      'Authorization': 'Bearer ' + oauth2Client.credentials.access_token
+      'Authorization': 'Bearer ' + accessToken
     },
     body: fileDesc,
     json: true
@@ -81,12 +49,12 @@ function getGoogleUploadUrl(file, oauth2Client, callback) {
   });
 }
 
-function requestUploadStatus(file, uploadUrl, oauth2Client, waitFor, callback) {
+function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
   var options = {
     url: uploadUrl,
     method: 'PUT',
     headers: {
-      'Authorization': 'Bearer ' + oauth2Client.credentials.access_token,
+      'Authorization': 'Bearer ' + accessToken,
       'Content-Range': 'bytes */' + file.size
     }
   };
@@ -106,7 +74,7 @@ function requestUploadStatus(file, uploadUrl, oauth2Client, waitFor, callback) {
 }
 
 
-function recoverUploadToGoogle(file, uploadUrl, oauth2Client, callback) {
+function recoverUploadToGoogle(file, uploadUrl, accessToken, callback) {
   var watingTimes = [0, 1000, 2000, 4000, 8000, 16000];
   var startFrom = 0;
   var recoverCount = 0;
@@ -116,7 +84,7 @@ function recoverUploadToGoogle(file, uploadUrl, oauth2Client, callback) {
       return statusCode !== 308 && recoverCount < watingTimes.length;
     },
     function (callback) {
-      requestUploadStatus(file, uploadUrl, oauth2Client, watingTimes[recoverCount], function (err, startUploadFrom, newStatusCode) {
+      requestUploadStatus(file, uploadUrl, accessToken, watingTimes[recoverCount], function (err, startUploadFrom, newStatusCode) {
         startFrom = startUploadFrom;
         statusCode = newStatusCode;
         recoverCount++;
@@ -137,13 +105,13 @@ function recoverUploadToGoogle(file, uploadUrl, oauth2Client, callback) {
 
 
 // todo set a limit to a number of recovers
-function uploadFileToGoogle(file, uploadUrl, oauth2Client, start, callback) {
+function uploadFileToGoogle(file, uploadUrl, accessToken, start, callback) {
 
   var options = {
     url: uploadUrl,
     method: 'PUT',
     headers: {
-      'Authorization': 'Bearer ' + oauth2Client.credentials.access_token,
+      'Authorization': 'Bearer ' + accessToken,
     }
   };
 
@@ -166,12 +134,12 @@ function uploadFileToGoogle(file, uploadUrl, oauth2Client, start, callback) {
       var recoverWhenStatus = [500, 501, 502, 503];
 
       if (recoverWhenStatus.indexOf(res.statusCode) > -1) {
-        recoverUploadToGoogle(file, uploadUrl, oauth2Client, function (err, startUploadFrom) {
+        recoverUploadToGoogle(file, uploadUrl, accessToken, function (err, startUploadFrom) {
           if (err) {
             console.error('google upload recover error: ', err);
             callback(err, null);
           } else {
-            uploadFileToGoogle(file, uploadUrl, oauth2Client, startUploadFrom, function (err, result) {
+            uploadFileToGoogle(file, uploadUrl, accessToken, startUploadFrom, function (err, result) {
               callback(err, result);
             });
           }
@@ -189,12 +157,12 @@ function uploadFileToGoogle(file, uploadUrl, oauth2Client, start, callback) {
 
 
 
-function insertFileAsync(file, oauth2Client, callback) {
+function insertFileAsync(file, accessToken, callback) {
   console.log('insering file to google');
-  getGoogleUploadUrl(file, oauth2Client, function (err, uploadUrl) {
+  getGoogleUploadUrl(file, accessToken, function (err, uploadUrl) {
     if (err) { console.error('google request error: ', err); }
     console.log('google file upload url: ', uploadUrl);
-    uploadFileToGoogle(file, uploadUrl, oauth2Client, 0, function (err, result) {
+    uploadFileToGoogle(file, uploadUrl, accessToken, 0, function (err, result) {
       if (err) { console.error('upload error: ', err); }
       callback(err, result);
     });
@@ -203,7 +171,5 @@ function insertFileAsync(file, oauth2Client, callback) {
 
 
 module.exports = {
-  insertFile: insertFile,
-  insertFileAsync: insertFileAsync,
-  connect: connect
+  insertFileAsync: insertFileAsync
 };
