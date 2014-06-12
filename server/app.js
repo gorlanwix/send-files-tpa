@@ -159,6 +159,7 @@ app.post('/upload/:compId', function (req, res) {
     googleDrive.connect(function (err, client) {
       if (err) { console.error('connecting to google error: ', err); }
       googleDrive.insertFileAsync(newFile, oauth2Client, function (err, result) {
+        if (err) { console.error('uploading to google error', err); }
         console.log('inserted file: ', result);
       });
     });
