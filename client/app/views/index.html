@@ -3,6 +3,7 @@
     
     <div class="block end-blocks file-upload dropper">
       <div class="dropee" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">Drop files here</div>
+      <!-- Make sure drag and drop is only shown on good browsers -->
       <p class="owner-message top-p">
         {{settings.headlineText}}
       </p>
@@ -17,7 +18,7 @@
   <!-- Note: Placeholder attribute is not supported in IE9 or below -->
 
     <div class="block files">
-      <p >Space Remaining: {{totalGBLeft}} GB</p>
+      <p ng-style=increaseMargin()>Space Remaining: {{totalGBLeft}} GB</p>
       <div class="tool-tip-container" ng-show="showNoFile">
           <span class="tool-tip">Please add a file</span>
       </div>

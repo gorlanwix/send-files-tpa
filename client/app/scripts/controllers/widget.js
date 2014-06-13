@@ -31,14 +31,29 @@ angular.module('sendFiles')
     /* Total space left for user to upload files in GB. */
     $scope.totalGBLeft = (GBbytes - totalBytes) / GBbytes;
 
+    /* Used to keep track of the number of files uploaded and their
+     * place in various arrays. */
+    var fileIndex = 0;
+
     /* List of files. Initalized as empty list. */
     $scope.fileList = [];
 
     /* List of files that are too large for uploading. */
     $scope.tooLargeList = [];
 
+    /* A list of files that have gone through the upload process.
+     * This list is used for keeping track of files. Used for when
+     * the user chooses to remove a file from the list. */
+     $scope.upload = [];
+
+     /* A list of numbers representing the progress of each file's
+      * upload process. */
+      $scope.progress = [];
+
     /* A list used to tell what files have been successfully uploaded. It is 
-     * sent to the backend for verification when the user hits submit.
+     * sent to the backend for verification when the user hits submit. The
+     * objects in the array are carrying a fileID given by the backend when
+     * the upload has been completed successfully.
      */
     $scope.uploadedFiles = [];
 
@@ -63,6 +78,15 @@ angular.module('sendFiles')
       $scope.showNoFile = false;
     };
 
+    /* Used to make sure error message for no file is placed
+     * in the right spot.
+     */
+    $scope.increaseMargin = function() {
+      if ($scope.showNoFile) {
+        return '{margin-bottom: 0}';
+      }
+    };
+
     /* Call this function after the user has changed their settings
      * to initiate changes in the widget. */
     $scope.setSettings = function() {
@@ -75,54 +99,59 @@ angular.module('sendFiles')
      * Use this if users can upload unlimited files as long as they don't
      * exceed 1GB.
      */
-    $scope.onFileSelectUnlimited = function($files) {
-      filesChosen = true;
-      // add some total bytes display
-      var instanceID = $wix.Utils.getInstanceId();
-      for(var i = 0; i < $files.length; i++) {
-        var file = $files[i];
-        if (file.size > GBbytes) { //Test with files almost 1GB
-          file.newSize = (Math.floor(file.size / GBbytes * 100) / 100).toString() + 'GB';
-          $scope.tooLargeList.push(file);
-          console.log(file.size);
-        } else {
-          var sizeInMB = Math.floor(file.size / MBbytes);
-          if (sizeInMB === 0) {
-            file.newSize = ' <1 MB';
-          } else {
-            file.newSize = sizeInMB.toString() + ' MB';
-          }
-          $scope.fileList.push(file);
-          $scope.upload = $upload.upload({
-            url: '/api/files/upload?sessionId=', //finish this!
-            method: 'POST',
-            headers: {'x-wix-instance' : instanceID},
-            file: file, //could technically upload all files - but only supported in HTML 5
-          }).progress(function(evt) {
-            console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total, 10));
-            /* Use this data to implment progress bar */
-          }).success(function(data, status, headers, config) {
-              //assuming data is the temp ID
-              console.log(data);
-              if (status === 200) {
-                var uploadVerified = {fileId : data};
-                $scope.uploadedFiles.push(uploadVerified);
-              } else {
-                console.log('ERROR ERROR ERROR: success failed!');
-              }
-          }).error(function(data, status, headers, config) {
-              console.log('ERROR ERROR ERROR');
-              console.log(data);
-              //give try again error to user
-          });
-        } // use this symbol with a button for aborting - &otimes;
-      }
-    };
+    // $scope.onFileSelectUnlimited = function($files) {
+    //   filesChosen = true;
+    //   // add some total bytes display
+    //   var instanceID = $wix.Utils.getInstanceId();
+    //   for(var i = 0; i < $files.length; i++) {
+    //     var file = $files[i];
+    //     if (file.size > GBbytes) { //Test with files almost 1GB
+    //       file.newSize = (Math.floor(file.size / GBbytes * 100) / 100).toString() + 'GB';
+    //       $scope.tooLargeList.push(file);
+    //       console.log(file.size);
+    //     } else {
+    //       var sizeInMB = Math.floor(file.size / MBbytes);
+    //       if (sizeInMB === 0) {
+    //         file.newSize = ' <1 MB';
+    //       } else {
+    //         file.newSize = sizeInMB.toString() + ' MB';
+    //       }
+    //       $scope.fileList.push(file);
+    //       console.log(fileIndex); //error checking purposes
+    //       $scope.upload[fileIndex] = $upload.upload({
+    //         url: '/api/files/upload?sessionId=', //finish this!
+    //         method: 'POST',
+    //         headers: {'x-wix-instance' : instanceID},
+    //         file: file, //could technically upload all files - but only supported in HTML 5
+    //       }).progress(function(evt) {
+    //         console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total, 10));
+    //         /* Use this data to implment progress bar */
+    //       }).success(function(data, status, headers, config) {
+    //           //assuming data is the temp ID
+    //           console.log(data);
+    //           if (status === 200) {
+    //             var uploadVerified = {'fileId' : data};
+    //             $scope.uploadedFiles.push(uploadVerified);
+    //           } else {
+    //             console.log('ERROR ERROR ERROR: success failed!');
+    //           }
+    //       }).error(function(data, status, headers, config) {
+    //           console.log('ERROR ERROR ERROR');
+    //           console.log(data);
+    //           //give try again error to user
+    //       });
+    //       fileIndex += 1;
+    //       console.log(fileIndex); //for error checking;
+    //     } // use this symbol with a button for aborting - &otimes;
+    //   }
+    // };
 
     /* Call this  when users select file(s) to begin file upload.
      * Use this when we only want users to upload up to 1GB of files total.
      */
     $scope.onFileSelect = function($files) {
+      filesChosen = true;
+      var instanceID = $wix.Utils.getInstanceId();
       for (var i = 0; i < $files.length; i++) {
         var file = $files[i];
         if (totalBytes + file.size > GBbytes) {
@@ -138,54 +167,64 @@ angular.module('sendFiles')
           }
           $scope.fileList.push(file);
           totalBytes += file.size;
-          // $scope.upload = $upload.upload({
-          //   url: '/api/files/upload?sessionId=', //finish this!
-          //   method: 'PUT',
-          //   headers: {'x-wix-instance' : instanceID},
-          //   file: file, //could technically upload all files - but only supported in HTML 5
-          // }).progress(function(evt) {
-          //   console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total, 10));
-          //   /* Use this data to implment progress bar */
-          // }).success(function(data, status, headers, config) {
-          //     //assuming data is the temp ID
-          //     console.log(data);
-          //     if (status === 200) {
-          //       var uploadVerified = {fileId : data, originalName : file.name};
-          //       $scope.uploadedFiles.push(uploadVerified);
-          //     } else {
-          //       console.log('ERROR ERROR ERROR: success failed!');
-          //     }
-          // }).error(function(data, status, headers, config) {
-          //     console.log('ERROR ERROR ERROR');
-          //     console.log(data);
-          //     //give try again error to user
-          // });
+
+          $scope.progress[fileIndex] = 0;
+
+          console.log(fileIndex);
+          $scope.upload[fileIndex] = $upload.upload({
+            url: '/api/files/upload?sessionId=', //finish this!
+            method: 'PUT',
+            headers: {'x-wix-instance' : instanceID},
+            file: file, //could technically upload all files - but only supported in HTML 5
+          }).progress(function(evt) {
+            console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total, 10));
+            $scope.progress[fileIndex] = Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10));
+            //fill in other 100 when sucess
+            /* Use this data to implment progress bar */
+          }).success(function(data, status, headers, config) {
+              //assuming data is the temp ID
+              console.log(data);
+              if (status === 200) {
+                var uploadVerified = {'fileId' : data};
+                $scope.uploadedFiles.push(uploadVerified);
+                $scope.progress[fileIndex] = 100;
+              } else {
+                console.log('ERROR ERROR ERROR: success failed!');
+              }
+          }).error(function(data, status, headers, config) {
+              console.log('ERROR ERROR ERROR');
+              console.log(data);
+              //give try again error to user
+          }).xhr( function(xhr){
+              xhr.upload.addEventListener('abort', function() {
+                console.log('abort complete');
+              }, false); //check if this is necessary
+          });
         }
         $scope.totalGBLeft = (GBbytes - totalBytes) / GBbytes;
         $scope.totalGBLeft -= $scope.totalGBLeft%0.01;
+        fileIndex += 1;
+        console.log(fileIndex); //for error checking;
       }
     };
 
     /* Call this when user wants to remove file from list. */
-    $scope.removeFile = function(file) { /* TODO: Pass in file in HTML somehow! */
-      var index = $scope.fileList.indexOf(file);
-      if (index > -1) {
-        $scope.fileList = $scope.fileList.splice(index, 1);
-        console.log($scope.fileList); // for verification - remove later
-      } else {
-        console.log('ERROR - NO FILE FOUND');
-      }
+    $scope.abort = function(index) { /* TODO: Pass in file in HTML somehow! */
+      $scope.upload[index].abort();
+      $scope.upload[index] = null;
+      $scope.uploadedList[index] = null;
     };
-
     /* Call this when user submits form with files, email, and message */
     $scope.submit = function() {
-      //send fileList to server
+      //rebuild uploadedList, get rid of null values
+      //send $scope.uploadedList to server
     };
 
     /* Call this function when the file has failed to upload. Changes
      * widget to show error messages to the site visitor and gives
      * opportunity to try to upload again. */
     $scope.initiateFailure = function() {
+      //call this only if submit fails
       $scope.uploadFailed = true;
     };
 
