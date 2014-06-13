@@ -27,6 +27,12 @@
         border-radius: {{style.buttonCorner 5px}}
         {{style.buttonFont Body-M}}
       }
+      .failure-end button {
+        background-color: {{style.buttonColor color-17}};
+        color: {{style.buttonText color-25}};
+        border-radius: {{style.buttonCorner 5px}}
+        {{style.buttonFont Body-M}}
+      }
     </style>
   </head>
   <body ng-app="sendFiles">
@@ -46,8 +52,11 @@
     <div ng-include="'views/index.html'"></div>
 
     <!-- build:js scripts/plugins.js -->
+    <script src="bower_components/ng-file-upload-shim/angular-file-upload-shim.js"></script>
     <script src="bower_components/angular/angular.js"></script>
     <script src="bower_components/angular-resource/angular-resource.js"></script>
+    <script src="bower_components/ng-file-upload/angular-file-upload.js"></script>
+
     <!-- endbuild -->
 
     <!-- build:js({.tmp,app}) scripts/index.js -->
