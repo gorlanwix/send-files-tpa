@@ -156,7 +156,7 @@ angular.module('sendFiles')
       console.log(index);
       $scope.upload[index] = $upload.upload({
         url: '/api/files/upload?sessionId=', //finish this!
-        method: 'PUT',
+        method: 'POST',
         headers: {'x-wix-instance' : instanceID},
         file: $scope.fileList[index], //could technically upload all files - but only supported in HTML 5
       }).progress(function(evt) {

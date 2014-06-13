@@ -1,4 +1,4 @@
-<div ng-controller="WidgetCtrl">
+<div style="min-width: 250px;"ng-controller="WidgetCtrl">
   <form name="fileForm" novalidate ng-model="fileForm">
     
     <div class="block end-blocks file-upload dropper">
@@ -25,12 +25,19 @@
           <span class="tool-tip">Please add a file</span>
       </div>
       <!-- Show uploading files here -->
-      <li ng-repeat="file in tooLargeList">
-        {{file.name}} - {{file.newSize}} - File is too large!
-      </li>
-      <li ng-repeat="file in fileList">
-        {{file.name}} - {{file.newSize}}
-      </li> 
+      <ul>
+        <li ng-repeat="file in tooLargeList">
+          {{file.name}} - {{file.newSize}} - File is too large!
+        </li>
+      </ul>
+      <ul>
+        <li class="display-files"ng-repeat="file in fileList">
+          <span class="file-text">{{file.name}} - {{file.newSize}}</span>
+          <a class="remove" href="#">.</a>
+          <span class="status-text">&#10008; &#10004;</span>
+          <div style="clear: both;"></div>
+        </li>
+      </ul> 
     </div>
 
     <div class="block email-box">
