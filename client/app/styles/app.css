@@ -104,6 +104,7 @@
   margin-top: 2px;
   margin-left: 25px;
   text-align: left;
+  margin-bottom: 0;
 }
 
 .email-box {
@@ -189,6 +190,51 @@
 
 .message.ng-invalid {
   color: red;
+}
+
+.tool-tip-container-message {
+  width: 90%;
+  margin: 0 auto;
+  position: relative;
+}
+
+.tool-tip-message {
+  display: block;
+  float: left;
+  clear: both;
+  border: 1px solid red;
+  padding: 3px;
+  padding-left: 4px;
+  padding-right: 4px;
+  z-index: 1;
+  background-color: white;
+  color: red;
+  position: absolute;
+  bottom: 36px;
+}
+.tool-tip-message::before {
+  z-index: 2;
+  content: '';
+  position: absolute;
+  left: 4px;
+  bottom: 22px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 10px solid red; 
+}
+.tool-tip-message::after {
+  z-index: 3;
+  content: '';
+  position: absolute;
+  left: 4px;
+  bottom: 20px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 10px solid white; 
 }
 
 .submit {

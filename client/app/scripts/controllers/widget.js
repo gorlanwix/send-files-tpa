@@ -60,7 +60,7 @@ angular.module('sendFiles')
     $scope.disableErrorMessage = function() {
       $scope.showInvalidEmail = false;
       $scope.showNoMessage = false;
-      $scope.showNoFiles = false;
+      $scope.showNoFile = false;
     };
 
     /* Call this function after the user has changed their settings
