@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('sendFiles')
-  .controller('WidgetCtrl', function ($scope, api, $wix, $upload) {
+  .controller('WidgetCtrl', function ($scope, api, $wix, $upload, $http) {
 
      /* Regular expression used to determine if user input is a valid email. */
     $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
@@ -222,4 +222,24 @@ angular.module('sendFiles')
     };
 
     $scope.settings = api.getSettings(true);
+    // if (window.location.host === "editor.wix.com") {
+    //   $scope.settings = api.getSettings(true);
+    // } else {
+    //   var instanceID = $wix.Utils.getInstanceId();
+    //   var compID = $wix.Utils.getOrigCompId();
+    //   var urlDatabase = '/api/settings/' + compID;
+    //   $http({method: 'GET', 
+    //          url: urlDatabase,
+    //          headers: {'x-wix-instance' : instanceID}
+    // }).success(function(data, status, headers, config) {
+    //       if (status === 200) {
+    //         $scope.settings = data.widgetSettings.settings;
+    //       } else {
+    //         console.log("WHAT. THIS ERROR SHOULD NEVER OCCUR.");
+    //       }
+    //     }).error(function(data, status, headers, config) {
+    //       //deal with errors
+    //     });
+    // }
   });
+
