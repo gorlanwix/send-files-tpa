@@ -1,6 +1,7 @@
-var session = require('./sessions.js');
-
 'use strict';
+
+var session = require('./sessions.js');
+var files = require('./files-db.js');
 
 // var handleError = function (client, done, err) {
 //     // no error occurred, continue with the request
@@ -177,5 +178,6 @@ module.exports = {
   updateWidgetSettings: updateWidgetSettings,
   getWidgetSettings: getWidgetSettings,
   isAccessTokenExpired: isAccessTokenExpired,
-  session: session
+  session: session,
+  files: files
 };

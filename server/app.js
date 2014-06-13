@@ -142,21 +142,74 @@ app.get('/login', function (req, res) {
 });
 
 
+function setError(res, message, statusCode) {
+  resJson = {
+    code: statusCode,
+    error: message
+  }
+  res.status(statusCode);
+  return resJson;
+}
 
-app.put('/api/files/upload/:compId', function (req, res) {
+
+
+app.post('/api/files/upload/:compId', function (req, res) {
   // var instance = req.header('X-Wix-Instance');
   var currInstance = {
     instanceId: 'whatever',
     compId: 'however'
   }; //new WixWidget(instance, req.params.compId)
 
-  console.log('uploaded files: ', req.files);
+  var MAX_FILE_SIZE = 1073741824;
+
+  console.log('uploaded file: ', req);
   var newFile = req.files.sendFile;
-  res.redirect('/');
+  var sessionId = req.query.sessionId;
+  var resJson;
+
+  if (!isNumeric(sessionId)) {
+    return res.json(setError(res, 'session is not numeric', 400));
+  }
+
+  if (newFile.size >= MAX_FILE_SIZE) {
+    return res.json(setError(res, 'file is too large', 413));
+  }
+
+  pg.connect(connectionString, function (err, client, done) {
+    if (err) { console.error('db connection error: ', err); }
+    db.session.update(client, sessionId, currInstance, function (err, result) {
+
+      if (err) {
+        return res.json(setError(res, 'session is not found', 400));
+      }
+
+      db.files.insert(client, sessionId, newFile, function (err, fileId) {
+        if (fileId !== undefined) {
+          resJson = {
+            code: 200,
+            fileId: fileId
+          }
+          res.status(200);
+          res.json(resJson);
+        }
+      });
+    });
+  });
+});
+
+
+app.post('/api/files/send/:compId', function (req, res) {
+  // var instance = req.header('X-Wix-Instance');
+  var currInstance = {
+    instanceId: 'whatever',
+    compId: 'however'
+  }; //new WixWidget(instance, req.params.compId)
 
   userAuth.getInstanceTokens(currInstance, function (err, tokens) {
     if (err) { console.error('getting instance tokens error', err); }
-    googleDrive.insertFileAsync(newFile, tokenst.access_token, function (err, result) {
+
+    // TODO: zip files into a single archive
+    googleDrive.insertFileAsync(newFile, tokens.access_token, function (err, result) {
       if (err) { console.error('uploading to google error', err); }
       console.log('inserted file: ', result);
     });
@@ -231,6 +284,7 @@ app.put('/api/settings/:compId', function (req, res) {
       db.updateWidgetSettings(client, currInstance, settingsRecieved, function (err, updatedWidgetSettings) {
         done();
         pg.end();
+        req.status(200);
         res.json({code: 200});
       });
     });

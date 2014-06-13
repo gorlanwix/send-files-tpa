@@ -16,7 +16,7 @@ function open(client, instance, callback) {
   });
 }
 
-
+// prolongs session by updating lastest access to current time
 function update(client, sessionId, instance, callback) {
   var query = 'UPDATE session \
                SET last_access = NOW() \
