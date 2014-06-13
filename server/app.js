@@ -3,6 +3,7 @@
 var userAuth = require('./modules/user-auth.js');
 var googleDrive = require('./modules/google-drive.js');
 var db = require('./modules/pg-database.js');
+var upload = require('./modules/upload-files.js');
 var express = require('express');
 var bodyParser = require('body-parser');
 var multer  = require('multer');
@@ -113,7 +114,8 @@ app.get('/logout/auth/google/:compId', function (req, res) {
         done();
         pg.end();
         console.error('Your are not signed with Google');
-        return res.redirect('/');
+        res.redirect('/');
+        return;
       }
 
       var widgetSettings = {
@@ -169,11 +171,13 @@ app.post('/api/files/upload/:compId', function (req, res) {
   var sessionId = req.query.sessionId;
 
   if (!validator.isNumeric(sessionId)) {
-    return res.json(setError(res, 'invalid session format', httpStatus.BAD_REQUEST));
+    res.json(setError(res, 'invalid session format', httpStatus.BAD_REQUEST));
+    return;
   }
 
   if (newFile.size >= MAX_FILE_SIZE) {
-    return res.json(setError(res, 'file is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
+    res.json(setError(res, 'file is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
+    return;
   }
 
   pg.connect(connectionString, function (err, client, done) {
@@ -182,10 +186,15 @@ app.post('/api/files/upload/:compId', function (req, res) {
 
       if (err) {
         // expired session or non-existing session or mistyped sessionId
-        return res.json(setError(res, 'session is not found', httpStatus.UNAUTHORIZED));
+        res.json(setError(res, 'session is not found', httpStatus.UNAUTHORIZED));
+        return;
       }
 
       db.files.insert(client, sessionId, newFile, function (err, fileId) {
+        done();
+        pg.end();
+
+
         if (fileId !== null) {
           var resJson = {
             code: httpStatus.OK,
@@ -215,11 +224,13 @@ app.post('/api/files/send/:compId', function (req, res) {
   var sessionId = req.query.sessionId;
 
   if (!validator.isNumeric(sessionId)) {
-    return res.json(setError(res, 'invalid session format', httpStatus.BAD_REQUEST));
+    res.json(setError(res, 'invalid session format', httpStatus.BAD_REQUEST));
+    return;
   }
 
   if (!validator.isJSON(recievedJson)) {
-    return res.json(setError(res, 'request body is not JSON', httpStatus.BAD_REQUEST));
+    res.json(setError(res, 'request body is not JSON', httpStatus.BAD_REQUEST));
+    return;
   }
 
   var visitorEmail = recievedJson.email.trim();
@@ -233,7 +244,8 @@ app.post('/api/files/send/:compId', function (req, res) {
                       !validator.isNull(visitorMessage);
 
   if (!isValidFormat) {
-    return res.json(setError(res, 'invalid request format', httpStatus.BAD_REQUEST));
+    res.json(setError(res, 'invalid request format', httpStatus.BAD_REQUEST));
+    return;
   }
 
   pg.connect(connectionString, function (err, client, done) {
@@ -244,34 +256,37 @@ app.post('/api/files/send/:compId', function (req, res) {
         done();
         pg.end();
         console.error('getting instance tokens error', err);
-        return res.json(setError(res, 'widget is not signed in', httpStatus.BAD_REQUEST));
+        res.json(setError(res, 'widget is not signed in', httpStatus.BAD_REQUEST));
+        return;
       }
       db.files.getByIds(client, sessionId, toUploadFileIds, function (err, files) {
         if (err) {
           done();
           pg.end();
           console.error('cannot find files', err);
-          return res.json(setError(res, 'cannot find files', httpStatus.BAD_REQUEST));
+          res.json(setError(res, 'cannot find files', httpStatus.BAD_REQUEST));
+          return;
         }
 
         if (files[0].total_size > MAX_FILE_SIZE) {
           done();
           pg.end();
           console.error('cannot find files', err);
-          return res.json(setError(res, 'total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
-        }
-
-        console.log('files to be zipped: ', files);
-        // TODO: abstract file uploading to serices: get provider
-        // TODO: zip files into a single archive
-        // googleDrive.insertFile(newFile, tokens.access_token, function (err, result) {
-        //   if (err) { console.error('uploading to google error', err); }
-        //   console.log('inserted file: ', result);
-          done();
-          pg.end();
-          req.status(httpStatus.ACCEPTED);
+          res.json(setError(res, 'total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
+        } else {
+          res.status(httpStatus.ACCEPTED);
           res.json({code: httpStatus.ACCEPTED});
-        // });
+
+          console.log('files to be zipped: ', files);
+          upload.zip(files, function (err, archive) {
+            upload.insertFile(client, archive, sessionId, currInstance, tokens, function (err, result) {
+              if (err) { console.error('uploading to google error', err); }
+              console.log('inserted file: ', result);
+              done();
+              pg.end();
+            });
+          });
+        }
       });
     });
   });
@@ -310,15 +325,17 @@ app.get('/api/settings/:compId', function (req, res) {
           settingsResponse.sessionId = sessionId;
           done();
           pg.end();
-          req.status(httpStatus.OK);
-          return res.json({widgetSettings: settingsResponse});
+          res.status(httpStatus.OK);
+          res.json({widgetSettings: settingsResponse});
+          return;
         });
+      } else {
+        done();
+        pg.end();
+        res.status(httpStatus.OK);
+        res.json({widgetSettings: settingsResponse});
       }
 
-      done();
-      pg.end();
-      req.status(httpStatus.OK);
-      res.json({widgetSettings: settingsResponse});
     });
   });
 });
@@ -339,7 +356,8 @@ app.put('/api/settings/:compId', function (req, res) {
                         validator.isJSON(widgetSettings.settings);
 
   if (!isValidSettings) {
-    return res.json(setError(res, 'invalid request format', httpStatus.BAD_REQUEST));
+    res.json(setError(res, 'invalid request format', httpStatus.BAD_REQUEST));
+    return;
   }
 
   var settingsRecieved = {
@@ -348,6 +366,7 @@ app.put('/api/settings/:compId', function (req, res) {
     settings: JSON.stringfy(widgetSettings.settings)
   };
   pg.connect(connectionString, function (err, client, done) {
+    console.log('/api/settings/:compId connected to db');
     if (err) { console.error('db connection error: ', err); }
     db.widget.updateSettings(client, currInstance, settingsRecieved, function (err, updatedWidgetSettings) {
 
@@ -355,14 +374,15 @@ app.put('/api/settings/:compId', function (req, res) {
         db.widget.insertSettings(client, currInstance, settingsRecieved, function (err) {
           done();
           pg.end();
-          req.status(httpStatus.OK);
-          return res.json({code: httpStatus.OK});
+          res.status(httpStatus.OK);
+          res.json({code: httpStatus.OK});
         });
+      } else {
+        done();
+        pg.end();
+        res.status(httpStatus.OK);
+        res.json({code: httpStatus.OK});
       }
-      done();
-      pg.end();
-      req.status(httpStatus.OK);
-      res.json({code: httpStatus.OK});
     });
   });
 });

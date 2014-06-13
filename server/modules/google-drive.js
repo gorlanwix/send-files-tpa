@@ -156,7 +156,6 @@ function uploadFileToGoogle(file, uploadUrl, accessToken, start, callback) {
 }
 
 
-
 function insertFile(file, accessToken, callback) {
   console.log('insering file to google');
   getGoogleUploadUrl(file, accessToken, function (err, uploadUrl) {
@@ -171,5 +170,5 @@ function insertFile(file, accessToken, callback) {
 
 
 module.exports = {
-  insertFile: insertFile
+  insertFile: insertFile,
 };
