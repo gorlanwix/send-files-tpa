@@ -14,12 +14,16 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
     'X-Wix-Instance': $wix.Utils.getInstanceId()
   };
 
+  // console.log(headers); //for testing
+
   var Settings = $resource('/api/settings/:compId', {
     compId: $wix.Utils.getOrigCompId() || $wix.Utils.getCompId()
   }, {
     get: { method: 'GET', headers: headers },
     save: { method: 'PUT', headers: headers }
   });
+
+  // console.log(Settings.compId); //for testing --> returns undefined
 
   return {
     defaults: defaults,
@@ -37,6 +41,7 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
           });
         });
       }
+      console.log(settings);
       return settings;
     }
   };
