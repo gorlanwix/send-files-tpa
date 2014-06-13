@@ -11,9 +11,12 @@ function insertSettings(client, instance, widgetSettings, callback) {
     widgetSettings.provider
   ];
   client.query(query, values, function (err, result) {
-    if (err) { console.error('settings insert error: ', err); }
+    if (err) {
+      console.error('settings insert error: ', err);
+      return callback(err);
+    }
 
-    callback(err, result);
+    callback(null);
   });
 }
 
@@ -34,13 +37,13 @@ function updateSettings(client, instance, widgetSettings, callback) {
     instance.compId
   ];
   client.query(query, values, function (err, result) {
-    if (err) { console.error('settings update error: ', err); }
 
     if (err) {
-      callback(err, undefined);
-    } else {
-      callback(err, result.rows[0]);
+      console.error('settings update error: ', err);
+      return callback(err, null);
     }
+
+    callback(null, result.rows[0]);
   });
 }
 
@@ -55,8 +58,16 @@ function getSettings(client, instance, callback) {
     instance.compId
   ];
   client.query(query, values, function (err, result) {
-    if (err) { console.error('get settings error: ', err); }
-    callback(err, result.rows[0]);
+    if (err) {
+      console.error('settings update error: ', err);
+      return callback(err, null);
+    }
+
+    if (result.rows.length === 0) {
+      return callback(new Error('Widget settings not found'), null);
+    }
+
+    callback(null, result.rows[0]);
   });
 }
 

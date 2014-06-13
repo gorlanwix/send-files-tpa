@@ -24,10 +24,13 @@ function insert(client, instance, tokens, provider, callback) {
     provider
   ];
 
-  client.query(query, values, function (err, result) {
-    if (err) { console.error('tokens insert error: ', err); }
+  client.query(query, values, function (err) {
+    if (err) {
+      console.error('tokens insert error: ', err);
+      return callback(err);
+    }
 
-    callback(err, result);
+    callback(null);
   });
 }
 
@@ -45,8 +48,16 @@ function get(client, instance, provider, callback) {
   ];
 
   client.query(query, values, function (err, result) {
-    if (err) { console.error('get token error: ', err); }
-    callback(err, result.rows[0]);
+    if (err) {
+      console.error('get token error: ', err);
+      return callback(err, null);
+    }
+
+    if (result.rows.length === 0) {
+      return callback(new Error('Tokens not found'), null);
+    }
+
+    callback(null, result.rows[0]);
   });
 }
 
@@ -68,9 +79,12 @@ function update(client, instance, tokens, provider, callback) {
   ];
 
   client.query(query, values, function (err, result) {
-    if (err) { console.error('token update error: ', err); }
+    if (err) {
+      console.error('update token error: ', err);
+      return callback(err, null);
+    }
 
-    callback(err, result.rows[0]);
+    callback(null, result.rows[0]);
   });
 }
 
@@ -87,12 +101,12 @@ function remove(client, instance, provider, callback) {
   ];
 
   client.query(query, values, function (err, result) {
-    if (err) { console.error('delete token error: ', err); }
     if (err) {
-      callback(err, undefined);
-    } else {
-      callback(err, result.rows[0]);
+      console.error('delete token error: ', err);
+      return callback(err, null);
     }
+
+    callback(null, result.rows[0]);
   });
 }
 

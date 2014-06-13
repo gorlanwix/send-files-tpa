@@ -26,10 +26,10 @@ function insert(client, sessionId, file, callback) {
   client.query(query, values, function (err, result) {
     if (err) {
       console.error('file insert error: ', err);
-      return callback(err, undefined);
+      return callback(err, null);
     }
 
-    callback(err, result.rows[0].file_id);
+    callback(null, result.rows[0].file_id);
   });
 }
 
@@ -50,10 +50,10 @@ function setUploadReady(client, sessionId, fileIds, callback) {
   client.query(query, values, function (err, result) {
     if (err) {
       console.error('file setUploadReady error: ', err);
-      return callback(err, undefined);
+      return callback(err, null);
     }
 
-    callback(err, result.rows);
+    callback(null, result.rows);
   });
 }
 
@@ -66,10 +66,13 @@ function setDeleteReady(client, sessionId, callback) {
 
   var values = [sessionId];
 
-  client.query(query, values, function (err, result) {
-    if (err) { console.error('file setDeleteReady error: ', err); }
+  client.query(query, values, function (err) {
+    if (err) {
+      console.error('file setDeleteReady error: ', err);
+      return callback(err);
+    }
 
-    callback(err, result);
+    callback(null);
   });
 }
 

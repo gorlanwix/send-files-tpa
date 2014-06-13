@@ -157,7 +157,7 @@ function uploadFileToGoogle(file, uploadUrl, accessToken, start, callback) {
 
 
 
-function insertFileAsync(file, accessToken, callback) {
+function insertFile(file, accessToken, callback) {
   console.log('insering file to google');
   getGoogleUploadUrl(file, accessToken, function (err, uploadUrl) {
     if (err) { console.error('google request error: ', err); }
@@ -171,5 +171,5 @@ function insertFileAsync(file, accessToken, callback) {
 
 
 module.exports = {
-  insertFileAsync: insertFileAsync
+  insertFile: insertFile
 };
