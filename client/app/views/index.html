@@ -9,8 +9,10 @@
       </p>
       <button disabled>{{settings.addButtonText}}</button>
       <input type="file" class= "upload" title={{settings.addButtonText}} ng-file-select="onFileSelect($files)" multiple name="sendFile"> <!-- make sure name is working properly when sending to backend. -->
+      <p class="drag-drop-message" ng-file-drop-available="dropSupported=true" ng-show="dropSupported">
+        Or just drop files here.
+      </p>
       <p class="limitation-message bottom-p">
-        Or just drop files here. <br>
         You can upload up to 1GB of files.
       </p>
     </div>

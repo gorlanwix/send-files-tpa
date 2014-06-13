@@ -170,7 +170,12 @@
   margin-top: 0;
 }
 
+.drag-drop-message {
+  margin-bottom: 0;
+}
+
 .limitation-message {
+  margin-top: 0;
   margin-bottom: 0;
 }
 
