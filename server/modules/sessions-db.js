@@ -10,13 +10,16 @@ function open(client, instance, callback) {
   ];
 
   client.query(query, values, function (err, result) {
-    if (err) { console.error('session insert error: ', err); }
+    if (err) {
+      console.error('session insert error: ', err);
+      return callback(err, null);
+    }
 
-    callback(err, result.rows[0].session_id);
+    callback(null, result.rows[0].session_id);
   });
 }
 
-
+// prolongs session by updating lastest access to current time
 function update(client, sessionId, instance, callback) {
   var query = 'UPDATE session \
                SET last_access = NOW() \
@@ -32,10 +35,10 @@ function update(client, sessionId, instance, callback) {
   client.query(query, values, function (err, result) {
     if (err) {
       console.error('session update error: ', err);
-      return callback(err, undefined);
+      return callback(err);
     }
 
-    callback(err, result);
+    callback(null);
   });
 }
 
@@ -53,10 +56,10 @@ function destroy(client, sessionId, instance, callback) {
   client.query(query, values, function (err, result) {
     if (err) {
       console.error('session delete error: ', err);
-      return callback(err, result);
+      return callback(err);
     }
 
-    callback(err, result);
+    callback(null);
   });
 }
 

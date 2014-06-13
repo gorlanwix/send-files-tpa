@@ -29,6 +29,32 @@ CREATE TABLE session (
     created timestamp NOT NULL
 )
 
+CREATE TABLE file (
+    file_id bigserial PRIMARY KEY,
+    session_id bigint REFERENCES session ON DELETE RESTRICT,
+    temp_name text NOT NULL,
+    original_name text NOT NULL,
+    size bigint NOT NULL,
+    delete_ready boolean NOT NULL DEFAULT false,
+    created timestamp NOT NULL
+)
+
+INSERT INTO file (session_id, temp_name, original_name, created) \
+VALUES ($1, $2, $3, NOW())
+
+
+UPDATE file
+SET upload_ready = true
+FROM
+(
+  VALUES
+  ($2),
+  ($3),
+  ...
+) AS ready(id)
+WHERE file_id = ready.id
+AND sessionId = $1
+
 INSERT INTO session (instance_id, component_id, last_access, created) \
 VALUES ($1, $2, NOW(), NOW())
 

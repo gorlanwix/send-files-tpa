@@ -1,11 +1,11 @@
 'use strict';
 
 var pg = require('pg');
-var database = require('./pg-database.js');
-var connectionString = process.env.DATABASE_URL || require('./pg-connect.json').connectPg;
+var db = require('./pg-database.js');
+var connectionString = process.env.DATABASE_URL || require('../connect-keys/pg-connect.json').connectPg;
 var googleapis = require('googleapis');
 var OAuth2 = googleapis.auth.OAuth2;
-var clientId = require('./client-id.json').web;
+var clientId = require('../connect-keys/client-id.json').web;
 
 
 function createOauth2Client(tokens) {
@@ -41,37 +41,51 @@ function exchangeCodeForTokens(code, callback) {
 
   console.log("code: ", code);
   oauth2Client.getToken(code, function (err, tokens) {
-    if (err) { console.error('Retrieving token error: ', err); }
-    callback(err, tokens);
+    if (err) {
+      console.error('Retrieving token error: ', err);
+      return callback(err, null);
+    }
+
+    callback(null, tokens);
   });
 }
 
-function getInstanceTokens(instance, callback) {
+function getInstanceTokens(client, instance, callback) {
 
-  pg.connect(connectionString, function (err, client, done) {
-    if (err) { console.error('db connection error: ', err); }
-    database.getToken(client, instance, 'google', function (err, tokens) {
+  db.token.get(client, instance, function (err, tokens) {
 
-      if (database.isAccessTokenExpired(tokens)) {
-        console.log('Got valid token from database: ', tokens.access_token);
-        done();
-        pg.end();
-        callback(err, tokens);
-      } else {
-        var oauth2Client = createOauth2Client(tokens);
+    if (err) {
+      return callback(err, null);
+    }
 
-        oauth2Client.refreshAccessToken(function (err, refreshedTokens) {
-          if (err) { console.error('token refreshing error: ', err); }
-          console.log('Got new token from google: ', refreshedTokens);
+    if (!db.token.isAccessTokenExpired(tokens)) {
+      done();
+      pg.end();
+      console.log('Got valid token from database: ', tokens.access_token);
+      return callback(null, tokens);
+    }
 
-          database.updateToken(client, instance, refreshedTokens, 'google', function (err, result) {
-            done();
-            pg.end();
-            callback(err, result);
-          });
+
+    if (tokens.auth_provider === 'google') {
+      var oauth2Client = createOauth2Client(tokens);
+      oauth2Client.refreshAccessToken(function (err, refreshedTokens) {
+        if (err) { console.error('token refreshing error: ', err); }
+        console.log('Got new token from google: ', refreshedTokens);
+
+        db.token.update(client, instance, refreshedTokens, 'google', function (err, result) {
+          done();
+          pg.end();
+
+          if (err) {
+            return callback(err, null);
+          }
+
+          return callback(null, result);
         });
-      }
-    });
+      });
+    }
+
+    callback(new Error('Unable to get tokens'), null);
   });
 }
 
@@ -88,11 +102,15 @@ function getWidgetEmail(tokens, callback) {
         .userinfo
         .get()
         .withAuthClient(oauth2Client)
-        .execute(function (err, results) {
-          if (err) { console.error('profile info retrieving error: ', err); }
+        .execute(function (err, result) {
+
+          if (err) {
+            console.error('profile info retrieving error: ', err);
+            return callback(err, null);
+          }
           // Shows user email
-          console.log(results);
-          callback(err, results.email);
+          console.log(result);
+          callback(null, result.email);
         });
     });
 }
