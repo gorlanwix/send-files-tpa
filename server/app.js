@@ -9,6 +9,7 @@ var multer  = require('multer');
 var validator = require('validator');
 var pg = require('pg');
 var wix = require('wix');
+var httpStatus = require('http-status');
 var connectionString = process.env.DATABASE_URL || require('./connect-keys/pg-connect.json').connectPg;
 var app = express();
 
@@ -42,7 +43,7 @@ app.get('/oauth2callback', function (req, res) {
       db.token.insert(client, currInstance, tokens, provider, function (err) {
         userAuth.getWidgetEmail(tokens, function (err, widgetEmail) {
           var widgetSettings = {
-            userEmail: (widgetEmail) ? widgetEmail : '',
+            userEmail: widgetEmail || '',
             provider: provider,
             settings: null  // won't reset anything because there is a COALESCE condition in query
           };
@@ -166,14 +167,13 @@ app.post('/api/files/upload/:compId', function (req, res) {
   console.log('uploaded file: ', req);
   var newFile = req.files.sendFile;
   var sessionId = req.query.sessionId;
-  var resJson;
 
   if (!validator.isNumeric(sessionId)) {
-    return res.json(setError(res, 'invalid session format', 400));
+    return res.json(setError(res, 'invalid session format', httpStatus.BAD_REQUEST));
   }
 
   if (newFile.size >= MAX_FILE_SIZE) {
-    return res.json(setError(res, 'file is too large', 413));
+    return res.json(setError(res, 'file is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
   }
 
   pg.connect(connectionString, function (err, client, done) {
@@ -182,16 +182,16 @@ app.post('/api/files/upload/:compId', function (req, res) {
 
       if (err) {
         // expired session or non-existing session or mistyped sessionId
-        return res.json(setError(res, 'session is not found', 401));
+        return res.json(setError(res, 'session is not found', httpStatus.UNAUTHORIZED));
       }
 
       db.files.insert(client, sessionId, newFile, function (err, fileId) {
         if (fileId !== null) {
-          resJson = {
-            code: 200,
+          var resJson = {
+            code: httpStatus.OK,
             fileId: fileId
           };
-          res.status(200);
+          res.status(httpStatus.OK);
           res.json(resJson);
         }
       });
@@ -201,19 +201,78 @@ app.post('/api/files/upload/:compId', function (req, res) {
 
 
 app.post('/api/files/send/:compId', function (req, res) {
+
+  var MAX_FILE_SIZE = 1073741824;
   // var instance = req.header('X-Wix-Instance');
   var currInstance = {
     instanceId: 'whatever',
     compId: 'however'
   }; //new WixWidget(instance, req.params.compId)
 
-  userAuth.getInstanceTokens(currInstance, function (err, tokens) {
-    if (err) { console.error('getting instance tokens error', err); }
-    // TODO: get provider
-    // TODO: zip files into a single archive
-    googleDrive.insertFile(newFile, tokens.access_token, function (err, result) {
-      if (err) { console.error('uploading to google error', err); }
-      console.log('inserted file: ', result);
+  // parse the request
+
+  var recievedJson = req.body;
+  var sessionId = req.query.sessionId;
+
+  if (!validator.isNumeric(sessionId)) {
+    return res.json(setError(res, 'invalid session format', httpStatus.BAD_REQUEST));
+  }
+
+  if (!validator.isJSON(recievedJson)) {
+    return res.json(setError(res, 'request body is not JSON', httpStatus.BAD_REQUEST));
+  }
+
+  var visitorEmail = recievedJson.email.trim();
+  var visitorName = recievedJson.name.trim();
+  var toUploadFileIds = recievedJson.toUpload;
+  var visitorMessage = recievedJson.message.trim();
+
+  var isValidFormat = validator.isEmail(visitorEmail) &&
+                      toUploadFileIds.isArray() &&
+                      !validator.isNull(visitorName) &&
+                      !validator.isNull(visitorMessage);
+
+  if (!isValidFormat) {
+    return res.json(setError(res, 'invalid request format', httpStatus.BAD_REQUEST));
+  }
+
+  pg.connect(connectionString, function (err, client, done) {
+    if (err) { console.error('db connection error: ', err); }
+    userAuth.getInstanceTokens(client, currInstance, function (err, tokens) {
+
+      if (err) {
+        done();
+        pg.end();
+        console.error('getting instance tokens error', err);
+        return res.json(setError(res, 'widget is not signed in', httpStatus.BAD_REQUEST));
+      }
+      db.files.getByIds(client, sessionId, toUploadFileIds, function (err, files) {
+        if (err) {
+          done();
+          pg.end();
+          console.error('cannot find files', err);
+          return res.json(setError(res, 'cannot find files', httpStatus.BAD_REQUEST));
+        }
+
+        if (files[0].total_size > MAX_FILE_SIZE) {
+          done();
+          pg.end();
+          console.error('cannot find files', err);
+          return res.json(setError(res, 'total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
+        }
+
+        console.log('files to be zipped: ', files);
+        // TODO: abstract file uploading to serices: get provider
+        // TODO: zip files into a single archive
+        // googleDrive.insertFile(newFile, tokens.access_token, function (err, result) {
+        //   if (err) { console.error('uploading to google error', err); }
+        //   console.log('inserted file: ', result);
+          done();
+          pg.end();
+          req.status(httpStatus.ACCEPTED);
+          res.json({code: httpStatus.ACCEPTED});
+        // });
+      });
     });
   });
 });
@@ -234,7 +293,7 @@ app.get('/api/settings/:compId', function (req, res) {
 
     db.widget.getSettings(client, currInstance, function (err, widgetSettings) {
       var settingsResponse = {
-        code: 200,
+        code: httpStatus.OK,
         userEmail: '',
         provider: '',
         settings: {}
@@ -251,14 +310,14 @@ app.get('/api/settings/:compId', function (req, res) {
           settingsResponse.sessionId = sessionId;
           done();
           pg.end();
-          req.status(200);
+          req.status(httpStatus.OK);
           return res.json({widgetSettings: settingsResponse});
         });
       }
 
       done();
       pg.end();
-      req.status(200);
+      req.status(httpStatus.OK);
       res.json({widgetSettings: settingsResponse});
     });
   });
@@ -280,7 +339,7 @@ app.put('/api/settings/:compId', function (req, res) {
                         validator.isJSON(widgetSettings.settings);
 
   if (!isValidSettings) {
-    return res.json(setError(res, 'invalid request format', 400));
+    return res.json(setError(res, 'invalid request format', httpStatus.BAD_REQUEST));
   }
 
   var settingsRecieved = {
@@ -296,14 +355,14 @@ app.put('/api/settings/:compId', function (req, res) {
         db.widget.insertSettings(client, currInstance, settingsRecieved, function (err) {
           done();
           pg.end();
-          req.status(200);
-          return res.json({code: 200});
+          req.status(httpStatus.OK);
+          return res.json({code: httpStatus.OK});
         });
       }
       done();
       pg.end();
-      req.status(200);
-      res.json({code: 200});
+      req.status(httpStatus.OK);
+      res.json({code: httpStatus.OK});
     });
   });
 });

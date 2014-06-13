@@ -35,7 +35,6 @@ CREATE TABLE file (
     temp_name text NOT NULL,
     original_name text NOT NULL,
     size bigint NOT NULL,
-    upload_ready boolean NOT NULL DEFAULT false,
     delete_ready boolean NOT NULL DEFAULT false,
     created timestamp NOT NULL
 )

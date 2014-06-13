@@ -50,25 +50,24 @@ function exchangeCodeForTokens(code, callback) {
   });
 }
 
-function getInstanceTokens(instance, callback) {
+function getInstanceTokens(client, instance, callback) {
 
-  pg.connect(connectionString, function (err, client, done) {
-    if (err) { console.error('db connection error: ', err); }
-    db.token.get(client, instance, 'google', function (err, tokens) {
+  db.token.get(client, instance, function (err, tokens) {
 
-      if (err) {
-        return callback(err, null);
-      }
+    if (err) {
+      return callback(err, null);
+    }
 
-      if (!db.token.isAccessTokenExpired(tokens)) {
-        done();
-        pg.end();
-        console.log('Got valid token from database: ', tokens.access_token);
-        return callback(null, tokens);
-      }
+    if (!db.token.isAccessTokenExpired(tokens)) {
+      done();
+      pg.end();
+      console.log('Got valid token from database: ', tokens.access_token);
+      return callback(null, tokens);
+    }
 
+
+    if (tokens.auth_provider === 'google') {
       var oauth2Client = createOauth2Client(tokens);
-
       oauth2Client.refreshAccessToken(function (err, refreshedTokens) {
         if (err) { console.error('token refreshing error: ', err); }
         console.log('Got new token from google: ', refreshedTokens);
@@ -81,10 +80,12 @@ function getInstanceTokens(instance, callback) {
             return callback(err, null);
           }
 
-          callback(null, result);
+          return callback(null, result);
         });
       });
-    });
+    }
+
+    callback(new Error('Unable to get tokens'), null);
   });
 }
 

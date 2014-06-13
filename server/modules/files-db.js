@@ -1,12 +1,13 @@
 'use strict';
 
-function createFileIdsValuesQuery(valLength) {
+
+function createFileIdsValuesSelectQuery(valLength) {
 
   // laziness and reduce where are you when you are needed???
-  var query = 'VALUES ';
+  var query = '';
   var i;
   for (i = 2; i < valLength + 2; i++) {
-    query += '($' + i + '),';
+    query += '$' + i + ',';
   }
 
   return query.substring(0, query.length - 1);
@@ -34,16 +35,14 @@ function insert(client, sessionId, file, callback) {
 }
 
 
-function setUploadReady(client, sessionId, fileIds, callback) {
-  var queryValues = createFileIdsValuesQuery(fileIds.length);
+function getByIds(client, sessionId, fileIds, callback) {
+  var queryValues = createFileIdsValuesSelectQuery(fileIds.length);
 
-  var query = 'UPDATE file \
-               SET upload_ready = true \
-               FROM (' + queryValues + ') \
-               AS ready(id) \
-               WHERE file_id = ready.id \
-               AND sessionId = $1 \
-               RETURNING *';
+  var query = 'SELECT *, SUM(size) AS total_size \
+               OVER (PARTITION BY session_id) \
+               FROM file \
+               WHERE file_id IN (' + queryValues + ') \
+               AND session_id = $1';
 
   var values = [sessionId].concat(fileIds);
 
@@ -57,12 +56,12 @@ function setUploadReady(client, sessionId, fileIds, callback) {
   });
 }
 
-
+// once done with upload, set all files from the session ready to delete
 function setDeleteReady(client, sessionId, callback) {
 
   var query = 'UPDATE file \
                SET delete_ready = true \
-               WHERE sessionId = $1';
+               WHERE session_id = $1';
 
   var values = [sessionId];
 
@@ -78,6 +77,6 @@ function setDeleteReady(client, sessionId, callback) {
 
 module.exports = {
   insert: insert,
-  setUploadReady: setUploadReady,
+  getByIds: getByIds,
   setDeleteReady: setDeleteReady
 };
