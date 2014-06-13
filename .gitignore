@@ -1,6 +1,4 @@
-server/wix-key.json
-server/client-id.json
-server/pg-connect.json
+server/connect-keys
 server/tmp/
 node_modules
 bower_components

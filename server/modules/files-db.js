@@ -1,5 +1,17 @@
 'use strict';
 
+function createFileIdsValuesQuery(valLength) {
+
+  // laziness and reduce where are you when you are needed???
+  var query = 'VALUES ';
+  var i;
+  for (i = 2; i < valLength + 2; i++) {
+    query += '($' + i + '),';
+  }
+
+  return query.substring(0, query.length - 1);
+}
+
 function insert(client, sessionId, file, callback) {
   var query = 'INSERT INTO file (session_id, temp_name, original_name, size, created) \
                VALUES ($1, $2, $3, $4, NOW()) \
@@ -19,18 +31,6 @@ function insert(client, sessionId, file, callback) {
 
     callback(err, result.rows[0].file_id);
   });
-}
-
-function createFileIdsValuesQuery(valLength) {
-
-  // laziness and reduce where are you when you are needed???
-  var query = 'VALUES ';
-  var i;
-  for (i = 2; i < valLength + 2; i++) {
-    query += '($' + i + '),';
-  }
-
-  return query.substring(0, query.length - 1);
 }
 
 

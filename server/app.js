@@ -1,18 +1,18 @@
 'use strict';
 
+var userAuth = require('./modules/user-auth.js');
+var googleDrive = require('./modules/google-drive.js');
+var db = require('./modules/pg-database.js');
 var express = require('express');
 var bodyParser = require('body-parser');
-var userAuth = require('./user-auth.js');
-var googleDrive = require('./google-drive.js');
 var multer  = require('multer');
 var validator = require('validator');
 var pg = require('pg');
-var db = require('./pg-database.js');
 var wix = require('wix');
-var connectionString = process.env.DATABASE_URL || require('./pg-connect.json').connectPg;
+var connectionString = process.env.DATABASE_URL || require('./connect-keys/pg-connect.json').connectPg;
 var app = express();
 
-wix.secret(require('./wix-key.json').secret);
+wix.secret(require('./connect-keys/wix-key.json').secret);
 app.use(bodyParser());
 app.use(express.static(__dirname));
 app.use(multer({
@@ -39,10 +39,10 @@ app.get('/oauth2callback', function (req, res) {
     pg.connect(connectionString, function (err, client, done) {
       if (err) { console.error('db connection error: ', err); }
 
-      db.insertToken(client, currInstance, tokens, provider, function (err, result) {
+      db.token.insert(client, currInstance, tokens, provider, function (err, result) {
         userAuth.getWidgetEmail(tokens, function (err, widgetEmail) {
 
-          db.getWidgetSettings(client, currInstance, function (err, widgetSettingsFromDb) {
+          db.widget.getSettings(client, currInstance, function (err, widgetSettingsFromDb) {
             var widgetSettings = {
               userEmail: widgetEmail,
               provider: provider,
@@ -59,7 +59,7 @@ app.get('/oauth2callback', function (req, res) {
               // do not update if email already set
               var isEmailSet = widgetSettingsFromDb.user_email !== '';
               if (isEmailSet) { widgetSettings.userEmail = null; }
-              db.updateWidgetSettings(client, currInstance, widgetSettings, function (err) {
+              db.widget.updateSettings(client, currInstance, widgetSettings, function (err) {
                 done();
                 pg.end();
                 res.redirect('/');
@@ -80,7 +80,7 @@ app.get('/login/auth/google/:compId', function (req, res) {
   }; //new WixWidget(instance, req.params.compId);
 
   pg.connect(connectionString, function (err, client, done) {
-    db.getToken(client, currInstance, 'google', function (err, tokensFromDb) {
+    db.token.get(client, currInstance, 'google', function (err, tokensFromDb) {
       if (tokensFromDb === undefined) {
         userAuth.getGoogleAuthUrl(currInstance, function (url) {
           done();
@@ -112,8 +112,8 @@ app.get('/logout/auth/google/:compId', function (req, res) {
   pg.connect(connectionString, function (err, client, done) {
     if (err) { console.error('db connection error: ', err); }
 
-    db.deleteToken(client, currInstance, 'google', function (err, tokensFromDb) {
-      db.updateWidgetSettings(client, currInstance, widgetSettings, function (err, updatedWidgetSettings) {
+    db.token.remove(client, currInstance, 'google', function (err, tokensFromDb) {
+      db.widget.updateSettings(client, currInstance, widgetSettings, function (err, updatedWidgetSettings) {
         if (tokensFromDb !== undefined) {
           var oauth2Client = userAuth.createOauth2Client();
           oauth2Client.revokeToken(tokensFromDb.refresh_token, function (err, result) {
@@ -168,7 +168,7 @@ app.post('/api/files/upload/:compId', function (req, res) {
   var resJson;
 
   if (!isNumeric(sessionId)) {
-    return res.json(setError(res, 'session is not numeric', 400));
+    return res.json(setError(res, 'invalid session format', 400));
   }
 
   if (newFile.size >= MAX_FILE_SIZE) {
@@ -180,7 +180,8 @@ app.post('/api/files/upload/:compId', function (req, res) {
     db.session.update(client, sessionId, currInstance, function (err, result) {
 
       if (err) {
-        return res.json(setError(res, 'session is not found', 400));
+        // expired session or non-existing session or mistyped sessionId
+        return res.json(setError(res, 'session is not found', 401));
       }
 
       db.files.insert(client, sessionId, newFile, function (err, fileId) {
@@ -230,8 +231,9 @@ app.get('/api/settings/:compId', function (req, res) {
   pg.connect(connectionString, function (err, client, done) {
     if (err) { console.error('db connection error: ', err); }
 
-    db.getWidgetSettings(client, currInstance, function (err, widgetSettings) {
+    db.widget.getSettings(client, currInstance, function (err, widgetSettings) {
       var settingsResponse = {
+        code: 200,
         userEmail: '',
         provider: '',
         settings: {}
@@ -248,11 +250,13 @@ app.get('/api/settings/:compId', function (req, res) {
           settingsResponse.sessionId = sessionId;
           done();
           pg.end();
+          req.status(200);
           res.json({widgetSettings: settingsResponse});
           });
       } else {
         done();
         pg.end();
+        req.status(200);
         res.json({widgetSettings: settingsResponse});
       }
     });
@@ -273,24 +277,24 @@ app.put('/api/settings/:compId', function (req, res) {
                          validator.isEmail(widgetSettings.userEmail)) &&
                         validator.isJSON(widgetSettings.settings);
 
-  if (isValidSettings) {
-    var settingsRecieved = {
-      userEmail: widgetSettings.userEmail,
-      provider: null, // do not update provider
-      settings: JSON.stringfy(widgetSettings.settings)
-    };
-    pg.connect(connectionString, function (err, client, done) {
-      if (err) { console.error('db connection error: ', err); }
-      db.updateWidgetSettings(client, currInstance, settingsRecieved, function (err, updatedWidgetSettings) {
-        done();
-        pg.end();
-        req.status(200);
-        res.json({code: 200});
-      });
-    });
-  } else {
-    res.json({error: 'invalid request format'});
+  if (!isValidSettings) {
+    return res.json(setError(res, 'invalid request format', 400));
   }
+
+  var settingsRecieved = {
+    userEmail: widgetSettings.userEmail,
+    provider: null, // do not update provider
+    settings: JSON.stringfy(widgetSettings.settings)
+  };
+  pg.connect(connectionString, function (err, client, done) {
+    if (err) { console.error('db connection error: ', err); }
+    db.widget.updateSettings(client, currInstance, settingsRecieved, function (err, updatedWidgetSettings) {
+      done();
+      pg.end();
+      req.status(200);
+      res.json({code: 200});
+    });
+  });
 });
 
 

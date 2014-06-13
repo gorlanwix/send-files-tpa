@@ -1,11 +1,11 @@
 'use strict';
 
 var pg = require('pg');
-var database = require('./pg-database.js');
-var connectionString = process.env.DATABASE_URL || require('./pg-connect.json').connectPg;
+var db = require('./pg-database.js');
+var connectionString = process.env.DATABASE_URL || require('../connect-keys/pg-connect.json').connectPg;
 var googleapis = require('googleapis');
 var OAuth2 = googleapis.auth.OAuth2;
-var clientId = require('./client-id.json').web;
+var clientId = require('../connect-keys/client-id.json').web;
 
 
 function createOauth2Client(tokens) {
@@ -50,9 +50,9 @@ function getInstanceTokens(instance, callback) {
 
   pg.connect(connectionString, function (err, client, done) {
     if (err) { console.error('db connection error: ', err); }
-    database.getToken(client, instance, 'google', function (err, tokens) {
+    db.token.get(client, instance, 'google', function (err, tokens) {
 
-      if (database.isAccessTokenExpired(tokens)) {
+      if (db.token.isAccessTokenExpired(tokens)) {
         console.log('Got valid token from database: ', tokens.access_token);
         done();
         pg.end();
@@ -64,7 +64,7 @@ function getInstanceTokens(instance, callback) {
           if (err) { console.error('token refreshing error: ', err); }
           console.log('Got new token from google: ', refreshedTokens);
 
-          database.updateToken(client, instance, refreshedTokens, 'google', function (err, result) {
+          db.token.update(client, instance, refreshedTokens, 'google', function (err, result) {
             done();
             pg.end();
             callback(err, result);
