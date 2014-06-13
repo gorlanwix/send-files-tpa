@@ -8,7 +8,7 @@
         {{settings.headlineText}}
       </p>
       <button disabled>{{settings.addButtonText}}</button>
-      <input type="file" class= "upload" title={{settings.addButtonText}} ng-file-select="onFileSelect($files)" multiple>
+      <input type="file" class= "upload" title={{settings.addButtonText}} ng-file-select="onFileSelect($files)" multiple name="sendFile"> <!-- make sure name is working properly when sending to backend. -->
       <p class="limitation-message bottom-p">
         Or just drop files here. <br>
         You can upload up to 1GB of files.
@@ -18,7 +18,7 @@
   <!-- Note: Placeholder attribute is not supported in IE9 or below -->
 
     <div class="block files">
-      <p ng-style=increaseMargin()>Space Remaining: {{totalGBLeft}} GB</p>
+      <p ng-style="marginStyle">Space Remaining: {{totalGBLeft}} GB</p>
       <div class="tool-tip-container" ng-show="showNoFile">
           <span class="tool-tip">Please add a file</span>
       </div>
