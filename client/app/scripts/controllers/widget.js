@@ -167,7 +167,7 @@ angular.module('sendFiles')
       }).success(function(data, status, headers, config) {
           //assuming data is the temp ID
           console.log(data);
-          if (status === 200) {
+          if (status === 201) {
             var uploadVerified = {'fileId' : data};
             $scope.uploadedFiles.push(uploadVerified);
             $scope.progress[index] = 100;
@@ -195,6 +195,8 @@ angular.module('sendFiles')
     $scope.submit = function() {
       //rebuild uploadedList, get rid of null values
       //send $scope.uploadedList to server
+
+      //wait for status 202
     };
 
     /* Call this function when the file has failed to upload. Changes
