@@ -6,11 +6,26 @@ angular.module('sendFiles')
      /* Regular expression used to determine if user input is a valid email. */
     $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
 
+    /* Regular expression used to verify user input is a full name. */
+    $scope.mailRegex = ''; //figure this out - just check for first name and last name but allow for middle or other names
+
     /* Constants used for byte conversion. */
     var GBbytes = 1073741824;
     var MBbytes = 1048576;
 
-    /* If true, invalid email messages are shown. */
+    /* Represents the Instance ID of this widget. */
+    var instanceID = $wix.Utils.getInstanceId();
+
+    /* Represents the user settings for the widget. */
+    $scope.settings = {};
+
+    /* Represents the current session ID of this widget. */
+    $scope.sessionId = '';
+
+    /* If true, invalid name message is shown. */
+    $scope.showInvalidName = false;
+
+    /* If true, invalid email message is shown. */
     $scope.showInvalidEmail = false;
 
     /* If true, "no message written" message is shown. */
@@ -57,9 +72,35 @@ angular.module('sendFiles')
      */
     $scope.uploadedFiles = [];
 
-        /* Call this to get error messages to show up if the form
+    /* Data to be sent to server when the user submits. */
+    var finalSubmission = {'name': '',
+                           'email': '',
+                           'message': '',
+                           'toUpload': $scope.uploadedFiles
+                          };
+
+    /* Records the visitor's name and updates final message to server. */
+    $scope.$watch('name', function(visitorName) {
+      finalSubmission.name = visitorName;
+    });
+
+    /* Records the visitor's email and updates final message to server. */
+    $scope.$watch('email', function(visitorEmail) {
+      finalSubmission.email = visitorEmail;
+    });
+
+    /* Records the visitor's message and updates final message to server. */
+    $scope.$watch('message', function(visitorMessage) {
+      finalSubmission.message = visitorMessage;
+    });
+
+    /* Call this to get error messages to show up if the form
      * is filled out incorrectly. */
     $scope.enableErrorMessage = function() {
+      if ($scope.fileForm.name.$invalid) {
+        $scope.showInvalidName = true;
+      }
+
       if ($scope.fileForm.email.$invalid) {
         $scope.showInvalidEmail = true;
       }
@@ -74,6 +115,7 @@ angular.module('sendFiles')
 
     /* Call this to get error messages to disappear. */
     $scope.disableErrorMessage = function() {
+      $scope.showInvalidName = false;
       $scope.showInvalidEmail = false;
       $scope.showNoMessage = false;
       $scope.marginStyle = {};
@@ -95,7 +137,6 @@ angular.module('sendFiles')
     $scope.onFileSelectUnlimited = function($files) {
       filesChosen = true;
       // add some total bytes display
-      var instanceID = $wix.Utils.getInstanceId();
       for(var i = 0; i < $files.length; i++) {
         var file = $files[i];
         if (file.size > GBbytes) { //Test with files almost 1GB
@@ -123,7 +164,6 @@ angular.module('sendFiles')
      */
     $scope.onFileSelect = function($files) {
       filesChosen = true;
-      var instanceID = $wix.Utils.getInstanceId();
       for (var i = 0; i < $files.length; i++) {
         var file = $files[i];
         if (totalBytes + file.size > GBbytes) {
@@ -143,19 +183,24 @@ angular.module('sendFiles')
           $scope.totalGBLeft = (GBbytes - totalBytes) / GBbytes;
           $scope.totalGBLeft -= $scope.totalGBLeft%0.01;
           
-          $scope.start(fileIndex, instanceID);
+          $scope.start(fileIndex);
           fileIndex += 1;
         }
         console.log(fileIndex); //for error checking;
       }
     };
 
-    $scope.start = function(index, instanceID) {
+    /* Call this when the file at INDEX of fileList is ready 
+     * to be sent to the server.
+     */
+    $scope.start = function(index) {
       $scope.progress[index] = 0;
 
       console.log(index);
+      var uploadURL = '/api/files/upload?sessionId=' + $scope.sessionId;
+      //verify the URL
       $scope.upload[index] = $upload.upload({
-        url: '/api/files/upload?sessionId=', //finish this!
+        url: uploadURL,
         method: 'POST',
         headers: {'x-wix-instance' : instanceID},
         file: $scope.fileList[index], //could technically upload all files - but only supported in HTML 5
@@ -168,7 +213,7 @@ angular.module('sendFiles')
           //assuming data is the temp ID
           console.log(data);
           if (status === 201) {
-            var uploadVerified = {'fileId' : data};
+            var uploadVerified = {'fileId' : data}; //make sure this the actual format
             $scope.uploadedFiles.push(uploadVerified);
             $scope.progress[index] = 100;
           } else {
@@ -193,6 +238,30 @@ angular.module('sendFiles')
     };
     /* Call this when user submits form with files, email, and message */
     $scope.submit = function() {
+      var uploadedFileTemp = [];
+      var j = 0;
+      for (var i = 0; i < $scope.uploadedFiles.length; i++) {
+        if ($scope.uploadedFiles[i] !== null) {//check if it should be !=
+          uploadedFileTemp[j] = $scope.uploadedFiles[i];
+          j += 1;
+        }
+      }
+      finalSubmission.toUpload = uploadedFileTemp;
+      var uploadURL = '/api/files/upload?sessionId=' + $scope.sessionId;
+      $http({method: 'POST',
+             url: uploadURL,
+             headers: {'x-wix-instance' : instanceID},
+             data: finalSubmission
+             // timeout: in milliseconds
+      }).success(function(data, status, headers, config) {
+          if (status === 202) {
+            $scope.success();
+          } else {
+            console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
+          }
+        }).error(function(data, status, headers, config) {
+          $scope.uploadFailed();
+      });
       //rebuild uploadedList, get rid of null values
       //send $scope.uploadedList to server
 
@@ -221,25 +290,33 @@ angular.module('sendFiles')
       $scope.success = true;
     };
 
-    $scope.settings = api.getSettings(true);
-    // if (window.location.host === "editor.wix.com") {
-    //   $scope.settings = api.getSettings(true);
-    // } else {
-    //   var instanceID = $wix.Utils.getInstanceId();
-    //   var compID = $wix.Utils.getOrigCompId();
-    //   var urlDatabase = '/api/settings/' + compID;
-    //   $http({method: 'GET', 
-    //          url: urlDatabase,
-    //          headers: {'x-wix-instance' : instanceID}
-    // }).success(function(data, status, headers, config) {
-    //       if (status === 200) {
-    //         $scope.settings = data.widgetSettings.settings;
-    //       } else {
-    //         console.log("WHAT. THIS ERROR SHOULD NEVER OCCUR.");
-    //       }
-    //     }).error(function(data, status, headers, config) {
-    //       //deal with errors
-    //     });
-    // }
-  });
+    /* This setting makes a call to the backend database to get the
+     * latest user settings. */
+    $scope.getDatabaseSettings = function() {
+      var compID = $wix.Utils.getOrigCompId();
+      var urlDatabase = '/api/settings/' + compID;
+      $http({method: 'GET',
+             url: urlDatabase,
+             headers: {'x-wix-instance' : instanceID}
+             // timeout: in milliseconds
+      }).success(function(data, status, headers, config) {
+          if (status === 200) { //check if this is right status code
+            $scope.settings = data.widgetSettings.settings;
+            $scope.sessionId = data.widgetSettings.sessionId; //make sure this is the correct format
+          } else {
+            console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
+          }
+        }).error(function(data, status, headers, config) {
+          //deal with errors
+      });
+    };
 
+    $scope.settings = api.getSettings(true); //remove this eventually
+    
+    if (window.location.host === "editor.wix.com") {
+      $scope.settings = api.getSettings(true);
+    } else {
+      $scope.getDatabaseSettings();
+    }
+
+  });

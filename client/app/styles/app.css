@@ -153,16 +153,20 @@
   border-top: 0;
 }
 
-.email-box {
+.input-block {
   border-top: none;
   border-bottom: none;
 }
 
-.email-box input {
+.input-block input {
   height: 100%;
   width: 90%;
   border: none;
   outline: none;
+}
+
+.name.ng-invalid {
+  color: red;
 }
 
 .email.ng-invalid {
