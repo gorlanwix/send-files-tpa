@@ -11,13 +11,13 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
   };
 
   var headers = {
-    'X-Wix-Instance': $wix.Utils.getInstanceId()
+    'X-Wix-Instance': $wix.Utils.getInstanceId() //instance ID is is the ID of each unique website
   };
 
   // console.log(headers); //for testing
 
   var Settings = $resource('/api/settings/:compId', {
-    compId: $wix.Utils.getOrigCompId() || $wix.Utils.getCompId()
+    compId: $wix.Utils.getOrigCompId() || $wix.Utils.getCompId() //compID is the ID of each individual widget
   }, {
     get: { method: 'GET', headers: headers },
     save: { method: 'PUT', headers: headers }

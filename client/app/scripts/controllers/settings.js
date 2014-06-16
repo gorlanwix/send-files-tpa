@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('sendFiles').controller('SettingsCtrl', function($scope, $wix, api) {
+angular.module('sendFiles').controller('SettingsCtrl', function ($scope, $wix, api) {
  //  var compId = 'abc';//temporary fake ID we can use while backend is broken 
  //  //how to actually get widget compID//var compId = $wix.Utils.getOrigCompId(); 
  //  //Original because more IDs are generated as settings are updated
@@ -29,21 +29,23 @@ angular.module('sendFiles').controller('SettingsCtrl', function($scope, $wix, ap
     // });
     //then save here with debounce
     var compId = $wix.Utils.getOrigCompId();
-    api.saveSettings(compId, {});
+    // api.saveSettings(compId, {});
+    api.saveSettings(compId, $scope.settings);
   });
 
-  var compId = $wix.Utils.getOrigCompId();
-  api.saveSettings(compId, {});
+  // var compId = $wix.Utils.getOrigCompId();
+  // api.saveSettings(compId, {});
 
   // $scope.$watch('settings', function() {
   //   console.log($scope.settings);
   // }, true);  // this block may be unnecessary
 
 
-  // $scope.settings = api.getSettings();
+  $scope.settings = api.getSettings();
 
 
   // uncomment the block below when app is ready to be connected to a backend database
+  // actually might be unnecessary. code in api.js seems to already do that
   // $http({ method: 'GET',
   //         URL: '/api/settings/' + compId,
   //         headers: api.headers
@@ -57,6 +59,8 @@ angular.module('sendFiles').controller('SettingsCtrl', function($scope, $wix, ap
   // }).error(function(data, status, headers, config) {
   //       console.log("There was an error obtaining your saved settings from the database.");
   // });
+
+  // $http()
 
 
   // console.log($scope.settings);
