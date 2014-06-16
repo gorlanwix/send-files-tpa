@@ -1,9 +1,8 @@
 'use strict';
 
-var userAuth = require('./modules/user-auth.js');
-var googleDrive = require('./modules/google-drive.js');
-var db = require('./modules/pg-database.js');
-var upload = require('./modules/upload-files.js');
+var userAuth = require('./controllers/user-auth.js');
+var db = require('./controllers/pg-database.js');
+var upload = require('./controllers/upload-files.js');
 var express = require('express');
 var bodyParser = require('body-parser');
 var multer  = require('multer');
@@ -13,6 +12,7 @@ var wix = require('wix');
 var httpStatus = require('http-status');
 var connectionString = process.env.DATABASE_URL || require('./connect-keys/pg-connect.json').connectPg;
 var app = express();
+var router = express.Router();
 
 wix.secret(require('./connect-keys/wix-key.json').secret);
 app.use(bodyParser());
@@ -24,8 +24,26 @@ app.use(multer({
 
 // parse instance and sets parsed insatnceId
 function WixWidget(instance, compId) {
-  this.instanceId = wix.parse(instance).instanceId;
+  var parsedInstance = wix.parse(instance);
+  if (!parsedInstance) {
+    throw new Error('invalid instance')
+  }
+  this.instanceId = parsedInstance.instanceId;
   this.compId = compId;
+}
+
+// set any param to null to avoid it's update
+function WidgetSettings(userEmail, provider, settings) {
+  this.userEmail = userEmail;
+  this.provider = provider;
+  this.settings = settings;
+}
+
+
+function error(message, statusCode) {
+  var err = new Error(message);
+  err.status = statusCode;
+  return err;
 }
 
 
@@ -43,11 +61,7 @@ app.get('/oauth2callback', function (req, res) {
 
       db.token.insert(client, currInstance, tokens, provider, function (err) {
         userAuth.getWidgetEmail(tokens, function (err, widgetEmail) {
-          var widgetSettings = {
-            userEmail: widgetEmail || '',
-            provider: provider,
-            settings: null  // won't reset anything because there is a COALESCE condition in query
-          };
+          var widgetSettings = new WidgetSettings(widgetEmail || '', provider, null);
           db.widget.getSettings(client, currInstance, function (err, widgetSettingsFromDb) {
             if (widgetSettingsFromDb !== null) {
               var isEmailSet = widgetSettingsFromDb.user_email !== '';
@@ -73,17 +87,36 @@ app.get('/oauth2callback', function (req, res) {
   });
 });
 
-app.get('/login/auth/google/:compId', function (req, res) {
-  // var instance = req.header('X-Wix-Instance');
-  var currInstance = {
-    instanceId: 'whatever',
-    compId: 'however'
-  }; //new WixWidget(instance, req.params.compId);
+
+app.use('/api', function(req, res, next){
+
+  // var currInstance = {
+  //   instanceId: 'whatever',
+  //   compId: 'however'
+  // };
+  var componentId = req.params.compId;
+  var instance = req.header('X-Wix-Instance');
+  if (!componentId || !instance) {
+    return next(error('componentId and instanceId required', httpStatus.BAD_REQUEST));
+  }
+
+  var currInstance;
+  try {
+    currInstance = new WixWidget(instance, componentId);
+  } catch (e) {
+    return next(error(e.message, httpStatus.UNAUTHORIZED));
+  }
+
+  req.widgetIds = currInstance;
+  next();
+});
+
+app.get('/api/auth/login/google/:compId', function (req, res) {
 
   pg.connect(connectionString, function (err, client, done) {
-    db.token.get(client, currInstance, 'google', function (err, tokensFromDb) {
+    db.token.get(client, req.widgetIds, 'google', function (err, tokensFromDb) {
       if (tokensFromDb !== null) {
-        userAuth.getGoogleAuthUrl(currInstance, function (url) {
+        userAuth.getGoogleAuthUrl(req.widgetIds, function (url) {
           done();
           pg.end();
           res.redirect(url);
@@ -92,23 +125,18 @@ app.get('/login/auth/google/:compId', function (req, res) {
         console.error('You are still signed in with Google.');
         done();
         pg.end();
-        res.redirect('/logout/auth/google');
+        res.redirect('/api/auth/logout/google/' + widgetIds.compId);
       }
     });
   });
 });
 
-app.get('/logout/auth/google/:compId', function (req, res) {
-  // var instance = req.header('X-Wix-Instance');
-  var currInstance = {
-    instanceId: 'whatever',
-    compId: 'however'
-  }; //new WixWidget(instance, req.params.compId);
+app.get('/api/auth/logout/google/:compId', function (req, res, next) {
 
   pg.connect(connectionString, function (err, client, done) {
     if (err) { console.error('db connection error: ', err); }
 
-    db.token.remove(client, currInstance, 'google', function (err, tokensFromDb) {
+    db.token.remove(client, req.widgetIds, 'google', function (err, tokensFromDb) {
 
       if (err) {
         done();
@@ -118,16 +146,14 @@ app.get('/logout/auth/google/:compId', function (req, res) {
         return;
       }
 
-      var widgetSettings = {
-        userEmail: null,
-        provider: '',
-        settings: null  // won't reset anything because there is a COALESCE condition in query
-      };
+      var widgetSettings = new WidgetSettings(null, '', null);
 
-      db.widget.updateSettings(client, currInstance, widgetSettings, function (err, updatedWidgetSettings) {
+      db.widget.updateSettings(client, req.widgetIds, widgetSettings, function (err, updatedWidgetSettings) {
         var oauth2Client = userAuth.createOauth2Client();
         oauth2Client.revokeToken(tokensFromDb.refresh_token, function (err, result) {
-          if (err) { console.error('token revoking error', err); }
+          if (err) {
+            console.error('token revoking error', err);
+          }
 
           console.log('revoking token');
           done();
@@ -146,23 +172,8 @@ app.get('/login', function (req, res) {
 });
 
 
-function setError(res, message, statusCode) {
-  var resJson = {
-    code: statusCode,
-    error: message
-  };
-  res.status(statusCode);
-  return resJson;
-}
 
-
-
-app.post('/api/files/upload/:compId', function (req, res) {
-  // var instance = req.header('X-Wix-Instance');
-  var currInstance = {
-    instanceId: 'whatever',
-    compId: 'however'
-  }; //new WixWidget(instance, req.params.compId)
+app.post('/api/files/upload/:compId', function (req, res, next) {
 
   var MAX_FILE_SIZE = 1073741824;
 
@@ -171,52 +182,53 @@ app.post('/api/files/upload/:compId', function (req, res) {
   var sessionId = req.query.sessionId;
 
   if (!validator.isNumeric(sessionId)) {
-    res.json(setError(res, 'invalid session format', httpStatus.BAD_REQUEST));
-    return;
+    return next(error('invalid session format', httpStatus.BAD_REQUEST));
   }
 
   if (newFile.size >= MAX_FILE_SIZE) {
-    res.json(setError(res, 'file is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
-    return;
+    return next(error('file is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
   }
 
   pg.connect(connectionString, function (err, client, done) {
     if (err) { console.error('db connection error: ', err); }
-    db.session.update(client, sessionId, currInstance, function (err) {
+    db.files.updateSessionAndInsert(client, newFile, sessionId, req.widgetIds, function (err, fileId) {
+      done();
+      pg.end();
 
       if (err) {
-        // expired session or non-existing session or mistyped sessionId
-        res.json(setError(res, 'session is not found', httpStatus.UNAUTHORIZED));
-        return;
+        return next(error('something bad', httpStatus.BAD_REQUEST)); // change status
       }
 
-      db.files.insert(client, sessionId, newFile, function (err, fileId) {
-        done();
-        pg.end();
-
-
-        if (fileId !== null) {
-          var resJson = {
-            code: httpStatus.OK,
-            fileId: fileId
-          };
-          res.status(httpStatus.OK);
-          res.json(resJson);
-        }
-      });
+      var resJson = {
+        status: httpStatus.OK,
+        fileId: fileId
+      };
+      res.status(httpStatus.OK);
+      res.json(resJson);
     });
   });
 });
 
+/*
 
-app.post('/api/files/send/:compId', function (req, res) {
+JSON format
+
+{
+  "name": "kjasdfasfasdf",
+  "email": "whasdfasdfs",
+  "message": "asdfasfasdfasf"
+  "toUpload": [
+    "1",
+    "2",
+    "3"
+  ]
+}
+
+*/
+
+app.post('/api/files/send/:compId', function (req, res, next) {
 
   var MAX_FILE_SIZE = 1073741824;
-  // var instance = req.header('X-Wix-Instance');
-  var currInstance = {
-    instanceId: 'whatever',
-    compId: 'however'
-  }; //new WixWidget(instance, req.params.compId)
 
   // parse the request
 
@@ -224,17 +236,15 @@ app.post('/api/files/send/:compId', function (req, res) {
   var sessionId = req.query.sessionId;
 
   if (!validator.isNumeric(sessionId)) {
-    res.json(setError(res, 'invalid session format', httpStatus.BAD_REQUEST));
-    return;
+    return next(error('invalid session format', httpStatus.BAD_REQUEST));
   }
 
   if (!validator.isJSON(recievedJson)) {
-    res.json(setError(res, 'request body is not JSON', httpStatus.BAD_REQUEST));
-    return;
+    return next(error('request body is not JSON', httpStatus.BAD_REQUEST));
   }
 
   var visitorEmail = recievedJson.email.trim();
-  var visitorName = recievedJson.name.trim();
+  var visitorName = recievedJson.visitorName.trim();
   var toUploadFileIds = recievedJson.toUpload;
   var visitorMessage = recievedJson.message.trim();
 
@@ -243,43 +253,44 @@ app.post('/api/files/send/:compId', function (req, res) {
                       !validator.isNull(visitorName) &&
                       !validator.isNull(visitorMessage);
 
+
   if (!isValidFormat) {
-    res.json(setError(res, 'invalid request format', httpStatus.BAD_REQUEST));
-    return;
+    return next(error('invalid request format', httpStatus.BAD_REQUEST));
   }
 
   pg.connect(connectionString, function (err, client, done) {
     if (err) { console.error('db connection error: ', err); }
-    userAuth.getInstanceTokens(client, currInstance, function (err, tokens) {
+    userAuth.getInstanceTokens(client, req.widgetIds, function (err, tokens) {
 
       if (err) {
         done();
         pg.end();
         console.error('getting instance tokens error', err);
-        res.json(setError(res, 'widget is not signed in', httpStatus.BAD_REQUEST));
-        return;
+        return next(error('widget is not signed in', httpStatus.BAD_REQUEST));
       }
       db.files.getByIds(client, sessionId, toUploadFileIds, function (err, files) {
         if (err) {
           done();
           pg.end();
           console.error('cannot find files', err);
-          res.json(setError(res, 'cannot find files', httpStatus.BAD_REQUEST));
-          return;
+          return next(error('cannot find files', httpStatus.BAD_REQUEST));
         }
 
         if (files[0].total_size > MAX_FILE_SIZE) {
           done();
           pg.end();
-          console.error('cannot find files', err);
-          res.json(setError(res, 'total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
+          console.error('total files size is too large', err);
+          // somthing is broken here
+          return next(error('total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
         } else {
           res.status(httpStatus.ACCEPTED);
-          res.json({code: httpStatus.ACCEPTED});
+          res.json({status: httpStatus.ACCEPTED});
 
           console.log('files to be zipped: ', files);
-          upload.zip(files, function (err, archive) {
-            upload.insertFile(client, archive, sessionId, currInstance, tokens, function (err, result) {
+          var zipName = visitorName.replace(/\s+/g, '-');
+
+          upload.zip(files, zipName, function (err, archive) {
+            upload.insertFile(client, archive, sessionId, req.widgetIds, tokens, function (err, result) {
               if (err) { console.error('uploading to google error', err); }
               console.log('inserted file: ', result);
               done();
@@ -293,22 +304,17 @@ app.post('/api/files/send/:compId', function (req, res) {
 });
 
 
-// /api/settings/:compId?sessionId=true to recieve a sessionId
+// /api/settings/:compId to recieve a sessionId
 
-app.get('/api/settings/:compId', function (req, res) {
+app.get('/api/settings/:compId', function (req, res, next) {
 
-  // var instance = req.header('X-Wix-Instance');
-  var currInstance = {
-    instanceId: 'whatever',
-    compId: 'however'
-  }; //new WixWidget(instance, req.params.compId);
 
   pg.connect(connectionString, function (err, client, done) {
     if (err) { console.error('db connection error: ', err); }
 
-    db.widget.getSettings(client, currInstance, function (err, widgetSettings) {
+    db.widget.getSettings(client, req.widgetIds, function (err, widgetSettings) {
       var settingsResponse = {
-        code: httpStatus.OK,
+        status: httpStatus.OK,
         userEmail: '',
         provider: '',
         settings: {}
@@ -320,33 +326,19 @@ app.get('/api/settings/:compId', function (req, res) {
         settingsResponse.settings = JSON.parse(widgetSettings.settings);
       }
 
-      if (req.query.sessionId === 'true') {
-        db.session.open(client, currInstance, function (err, sessionId) {
-          settingsResponse.sessionId = sessionId;
-          done();
-          pg.end();
-          res.status(httpStatus.OK);
-          res.json({widgetSettings: settingsResponse});
-          return;
-        });
-      } else {
+      db.session.open(client, req.widgetIds, function (err, sessionId) {
+        settingsResponse.sessionId = sessionId;
         done();
         pg.end();
         res.status(httpStatus.OK);
         res.json({widgetSettings: settingsResponse});
-      }
-
+      });
     });
   });
 });
 
 
-app.put('/api/settings/:compId', function (req, res) {
-  // var instance = req.header('X-Wix-Instance');
-  var currInstance = {
-    instanceId: 'whatever',
-    compId: 'however'
-  }; //new WixWidget(instance, req.params.compId);
+app.put('/api/settings/:compId', function (req, res, next) {
 
   var widgetSettings = req.body.widgetSettings;
   var userEmail = widgetSettings.userEmail.trim();
@@ -356,35 +348,39 @@ app.put('/api/settings/:compId', function (req, res) {
                         validator.isJSON(widgetSettings.settings);
 
   if (!isValidSettings) {
-    res.json(setError(res, 'invalid request format', httpStatus.BAD_REQUEST));
-    return;
+    return next(error('invalid request format', httpStatus.BAD_REQUEST));
   }
 
-  var settingsRecieved = {
-    userEmail: userEmail,
-    provider: null, // do not update provider
-    settings: JSON.stringfy(widgetSettings.settings)
-  };
+  var settingsRecieved = new WidgetSettings(userEmail, null, widgetSettings);
   pg.connect(connectionString, function (err, client, done) {
     console.log('/api/settings/:compId connected to db');
     if (err) { console.error('db connection error: ', err); }
-    db.widget.updateSettings(client, currInstance, settingsRecieved, function (err, updatedWidgetSettings) {
+    db.widget.updateSettings(client, req.widgetIds, settingsRecieved, function (err, updatedWidgetSettings) {
 
       if (err) {
-        db.widget.insertSettings(client, currInstance, settingsRecieved, function (err) {
+        db.widget.insertSettings(client, req.widgetIds, settingsRecieved, function (err) {
           done();
           pg.end();
-          res.status(httpStatus.OK);
-          res.json({code: httpStatus.OK});
+          res.status(httpStatus.CREATED);
+          res.json({status: httpStatus.CREATED});
         });
       } else {
         done();
         pg.end();
-        res.status(httpStatus.OK);
-        res.json({code: httpStatus.OK});
+        res.status(httpStatus.CREATED);
+        res.json({status: httpStatus.CREATED});
       }
     });
   });
+});
+
+app.use(function (err, req, res, next) {
+  var errorStatus = err.status || httpStatus.INTERNAL_SERVER_ERROR;
+  res.send(errorStatus, {status: errorStatus, error: err.message });
+});
+
+app.use(function (req, res) {
+  res.send(httpStatus.NOT_FOUND, {status: httpStatus.NOT_FOUND, error: "Lame, can't find that" });
 });
 
 

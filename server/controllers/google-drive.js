@@ -5,8 +5,17 @@ var googleapis = require('googleapis');
 var qs = require('querystring');
 var request = require('request');
 var async = require('async');
+var httpStatus = require('http-status');
 
 
+function constructUrl(root, path, params) {
+  var paramsString = '';
+  if (params !== undefined) {
+    paramsString = '?' + qs.stringify(params);
+  }
+  path = (path.charAt(0) === '/') ? path.substr(1) : path;
+  return root + path + paramsString;
+}
 
 function getGoogleUploadUrl(file, accessToken, callback) {
   var ROOT_URL = 'https://www.googleapis.com/';
@@ -37,7 +46,7 @@ function getGoogleUploadUrl(file, accessToken, callback) {
       return callback(err, null);
     }
 
-    if (res.statusCode !== 200) {
+    if (res.statusCode !== httpStatus.OK) {
       var errorMessage = 'Cannot retrieve Google Drive upload URL: ' +
                           body.error.code + ' ' +
                           body.error.messsage;
@@ -45,7 +54,7 @@ function getGoogleUploadUrl(file, accessToken, callback) {
     }
 
     var uploadUrl = res.headers.location;
-    callback(err, uploadUrl);
+    callback(null, uploadUrl);
   });
 }
 
@@ -60,15 +69,18 @@ function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
   };
 
   setTimeout(request(options, function (err, res) {
-    if (!err && res.statusCode === 308) { // Resume Incomplete
+
+    if (err) {
+      console.error('requestUploadStatus error');
+      return callback(err, 0, res.statusCode);
+    }
+
+    if (res.statusCode === 308) { // Resume Incomplete
       var range = res.headers.range;
       var uploadedSoFar = parseInt(range.split('-')[1], 10);
-      callback(err, uploadedSoFar + 1, res.statusCode);
-    } else if (err) {
-      console.error('requestUploadStatus error');
-      callback(err, 0, 404);
+      callback(null, uploadedSoFar + 1, res.statusCode);
     } else {
-      callback(err, 0, res.statusCode);
+      callback(null, 0, res.statusCode);
     }
   }), waitFor);
 }
@@ -78,23 +90,31 @@ function recoverUploadToGoogle(file, uploadUrl, accessToken, callback) {
   var watingTimes = [0, 1000, 2000, 4000, 8000, 16000];
   var startFrom = 0;
   var recoverCount = 0;
-  var statusCode = 500;
+  var statusCode = httpStatus.SERVICE_UNAVAILABLE;
   async.whilst(
     function () {
       return statusCode !== 308 && recoverCount < watingTimes.length;
     },
     function (callback) {
-      requestUploadStatus(file, uploadUrl, accessToken, watingTimes[recoverCount], function (err, startUploadFrom, newStatusCode) {
-        startFrom = startUploadFrom;
+      requestUploadStatus(file, uploadUrl, accessToken, watingTimes[recoverCount], function (err, restartFrom, newStatusCode) {
+        if (err) {
+          return callback(err);
+        }
+        startFrom = restartFrom;
         statusCode = newStatusCode;
         recoverCount++;
-        callback(err);
+        callback(null);
       });
     },
     function (err) {
-      if (statusCode !== 308) {
-        callback(err, startFrom);
+      if (err) {
+        startFrom = 0;
+        return callback(err, startFrom);
+      }
+      if (statusCode === 308) {
+        callback(null, startFrom);
       } else {
+        startFrom = 0;
         callback(new Error('Google Drive is unavailable'), startFrom);
       }
     }
@@ -105,7 +125,7 @@ function recoverUploadToGoogle(file, uploadUrl, accessToken, callback) {
 
 
 // todo set a limit to a number of recovers
-function uploadFileToGoogle(file, uploadUrl, accessToken, start, callback) {
+function uploadFileToGoogle(file, uploadUrl, accessToken, start, maxRecovers, callback) {
 
   var options = {
     url: uploadUrl,
@@ -126,44 +146,59 @@ function uploadFileToGoogle(file, uploadUrl, accessToken, start, callback) {
   readStream.on('open', function () {
     readStream.pipe(request(options, function (err, res) {
       if (err) {
-        return callback(err, res);
+        return callback(err, null);
       }
 
       console.log('google uploaded status code: ', res.statusCode);
 
       var recoverWhenStatus = [500, 501, 502, 503];
 
-      if (recoverWhenStatus.indexOf(res.statusCode) > -1) {
+      var shouldRecover = recoverWhenStatus.indexOf(res.statusCode) > -1;
+
+      if (shouldRecover && maxRecovers > 0) {
         recoverUploadToGoogle(file, uploadUrl, accessToken, function (err, startUploadFrom) {
           if (err) {
             console.error('google upload recover error: ', err);
-            callback(err, null);
-          } else {
-            uploadFileToGoogle(file, uploadUrl, accessToken, startUploadFrom, function (err, result) {
-              callback(err, result);
-            });
+            return callback(err, null);
           }
+
+          uploadFileToGoogle(file, uploadUrl, accessToken, startUploadFrom, maxRecovers - 1, function (err, result) {
+            if (err) {
+              return callback(err, null);
+            }
+            callback(null, result);
+          });
         });
+      } else if (maxRecovers <= 0) {
+        callback(new Error('excided number of recovers', null));
       } else {
-        callback(err, res.body);
+        callback(null, res.body);
       }
     }));
   });
 
   readStream.on('error', function (err) {
-    throw err;
+    callback(err, null);
   });
 }
 
 
 function insertFile(file, accessToken, callback) {
+  var MAX_RECOVERS_NUM = 10;
+
   console.log('insering file to google');
   getGoogleUploadUrl(file, accessToken, function (err, uploadUrl) {
-    if (err) { console.error('google request error: ', err); }
+    if (err) {
+      console.error('google request error: ', err);
+      return callback(err, null);
+    }
     console.log('google file upload url: ', uploadUrl);
-    uploadFileToGoogle(file, uploadUrl, accessToken, 0, function (err, result) {
-      if (err) { console.error('upload error: ', err); }
-      callback(err, result);
+    uploadFileToGoogle(file, uploadUrl, accessToken, 0, MAX_RECOVERS_NUM, function (err, result) {
+      if (err) {
+        console.error('upload file to google error: ', err);
+        return callback(err, null);
+      }
+      callback(null, result);
     });
   });
 }

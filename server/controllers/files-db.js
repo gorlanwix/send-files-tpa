@@ -1,5 +1,7 @@
 'use strict';
 
+var db = require('./pg-database.js');
+
 
 function createFileIdsValuesSelectQuery(valLength) {
 
@@ -56,6 +58,27 @@ function getByIds(client, sessionId, fileIds, callback) {
   });
 }
 
+
+function updateSessionAndInsert(client, file, sessionId, instance, callback) {
+  db.session.update(client, sessionId, instance, function (err) {
+
+    if (err) {
+      // expired session or non-existing session or mistyped sessionId
+      return callback(err, null);
+    }
+
+    insert(client, sessionId, file, function (err, fileId) {
+
+      if (err) {
+        return callback(err, null);
+      }
+
+      callback(null, fileId);
+
+    });
+  });
+}
+
 // once done with upload, set all files from the session ready to delete
 function setDeleteReady(client, sessionId, callback) {
 
@@ -78,5 +101,6 @@ function setDeleteReady(client, sessionId, callback) {
 module.exports = {
   insert: insert,
   getByIds: getByIds,
-  setDeleteReady: setDeleteReady
+  setDeleteReady: setDeleteReady,
+  updateSessionAndInsert: updateSessionAndInsert
 };
