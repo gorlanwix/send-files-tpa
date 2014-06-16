@@ -153,20 +153,27 @@
   border-top: 0;
 }
 
-.email-box {
+.input-block {
   border-top: none;
-  border-bottom: none;
 }
 
-.email-box input {
+.input-block input {
   height: 100%;
   width: 90%;
   border: none;
   outline: none;
 }
 
+.visitorName.ng-invalid {
+  color: red;
+}
+
 .email.ng-invalid {
   color: red;
+}
+
+.email-block {
+  padding-top: 17px;
 }
 
 .tool-tip-container {
@@ -215,6 +222,7 @@
 
 .user-message {
   padding-top: 17px;
+  border-top: none;
 }
 
 .user-message textarea {
