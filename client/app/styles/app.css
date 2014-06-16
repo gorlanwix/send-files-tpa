@@ -155,7 +155,6 @@
 
 .input-block {
   border-top: none;
-  border-bottom: none;
 }
 
 .input-block input {
@@ -165,12 +164,16 @@
   outline: none;
 }
 
-.name.ng-invalid {
+.visitorName.ng-invalid {
   color: red;
 }
 
 .email.ng-invalid {
   color: red;
+}
+
+.email-block {
+  padding-top: 17px;
 }
 
 .tool-tip-container {
@@ -219,6 +222,7 @@
 
 .user-message {
   padding-top: 17px;
+  border-top: none;
 }
 
 .user-message textarea {
