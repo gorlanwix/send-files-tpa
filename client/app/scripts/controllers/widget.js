@@ -128,14 +128,22 @@ angular.module('sendFiles')
       $scope.showNoFile = false;
     };
 
-<<<<<<< HEAD
     /* Call this function after the user has changed their settings
      * to initiate changes in the widget. */
-    $scope.setSettings = function() {
-      console.log('I am running');
-      $wix.Settings.refreshApp();
-      console.log($scope.submitButtonText);
-    };
+    // $scope.setSettings = function() {
+    //   console.log('I am running');
+    //   $wix.Settings.refreshApp();
+    //   console.log($scope.submitButtonText);
+    // };
+
+    // $scope.email = 'hello';
+    //$scope.cool = false;
+    // $scope.setSettings = function() {
+      // console.log('hi');
+      // $wix.Settings.refreshApp();
+      // console.log($scope.submitButtonText);
+      // console.log('but');
+    // };
 
     /* Call this when the user selects file(s) to begin file upload.
      * Use this if users can upload unlimited files as long as they don't
@@ -348,17 +356,7 @@ angular.module('sendFiles')
     // } else {
     //   $scope.getDatabaseSettings();
     // }
-=======
-    // $scope.email = 'hello';
-    //$scope.cool = false;
-    // $scope.setSettings = function() {
-      // console.log('hi');
-      // $wix.Settings.refreshApp();
-      // console.log($scope.submitButtonText);
-      // console.log('but');
-    // };
 
-    $scope.settings = api.getSettings(true);
     console.log($scope.settings);
 
     $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
@@ -372,9 +370,3 @@ angular.module('sendFiles')
 
       $scope.$apply();
     });
-
-
-    
->>>>>>> Changes in settings panel are now reflected in the widget. No text input settings are saved yet.
-
-  });
