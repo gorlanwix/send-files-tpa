@@ -1,12 +1,13 @@
 'use strict';
 
 var googleDrive = require('./google-drive.js');
+var db = require('./pg-database.js');
 var fs = require('fs');
 var async = require('async');
 var archiver = require('archiver');
 var tmp = require('tmp');
 
-var tempDir = './tmp/';
+var tmpDir = './tmp/';
 var archive = archiver('zip');
 
 
@@ -23,27 +24,27 @@ function zip(files, newName, callback) {
     path += '.zip';
 
     console.log("Created temporary filename: ", path);
-    var output = fs.createWriteStream(tempDir + path);
+    var output = fs.createWriteStream(tmpDir + path);
 
-    output.on('close', function() {
+    output.on('close', function () {
       console.log(archive.pointer() + ' total bytes');
       var file = {
         name: path,
         mimetype: 'application/zip',
         size: archive.pointer(),
         originalname: newName
-      }
+      };
       callback(null, file);
     });
 
     output.on('error', function (err) {
       console.error('saving archive error: ', err);
       callback(err, null);
-    })
+    });
 
     archive.pipe(output);
 
-    archive.on('error', function(err) {
+    archive.on('error', function (err) {
       console.error('archiving error: ', err);
       callback(err, null);
     });
@@ -56,8 +57,7 @@ function zip(files, newName, callback) {
     }, function (err) {
       if (err) {
         console.error('async error: ', err);
-        callback(new Error('async execution failed'), null);
-        return;
+        return callback(new Error('async execution failed'), null);
       }
 
       archive.finalize();
@@ -67,38 +67,25 @@ function zip(files, newName, callback) {
 
 
 function insertFile(client, file, sessionId, instance, tokens, callback) {
-  pg.connect(connectionString, function (err, client, done) {
-    if (err) { console.error('db connection error: ', err); }
-    db.session.update(client, sessionId, instance, function (err) {
+  db.files.updateSessionAndInsert(client, file, sessionId, instance, function (err) {
 
-      if (err) {
-        // expired session or non-existing session or mistyped sessionId
-        return callback(err, null);
-      }
+    if (err) {
+      return callback(err, null);
+    }
 
-      db.files.insert(client, sessionId, file, function (err) {
-
+    if (tokens.auth_provider === 'google') {
+      googleDrive.insertFile(file, tokens.access_token, function (err, result) {
         if (err) {
+          console.error('uploading to google error', err);
           return callback(err, null);
         }
-
-        if (tokens.auth_provider === 'google') {
-          googleDrive.insertFile(file, tokens.access_token, function (err, result) {
-            if (err) {
-              console.error('uploading to google error', err);
-              return callback(err, null);
-            }
-            db.files.setDeleteReady(client, sessionId, function (err) {
-              if (err) {
-                return callback(err, null);
-              }
-              callback(null, result);
-            });
-
-          });
-        }
-
+        db.files.setDeleteReady(client, sessionId, function (err) {
+          if (err) {
+            return callback(err, null);
+          }
+          callback(null, result);
+        });
       });
-    });
+    }
   });
 }

@@ -1,0 +1,15 @@
+TODO:
+
+- tests
+- verification if Google Drive is full
+
+- use passport.js for general authorization
+- check for session id?
+
+
+
+NOTES:
+
+google needs offline mode to use refresh tokens
+dropbox's access token is persistent, no need for refresh token or expiration
+box has a refresh token by default, looks just like google's
