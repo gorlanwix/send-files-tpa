@@ -4,10 +4,8 @@ angular.module('sendFiles')
   .controller('SettingsCtrl', function ($scope, $wix, api) {
     $wix.UI.onChange('*', function (value, key) {
       $scope.settings[key] = value;
-      // $scope.settings.$promise.then(function () {
   	  $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
   		$wix.Utils.getOrigCompId());
-      // });
       //then save here with debounce
       var compId = $wix.Utils.getOrigCompId();
       // api.saveSettings(compId, {});
@@ -17,7 +15,7 @@ angular.module('sendFiles')
     var compId = $wix.Utils.getOrigCompId();
     api.saveSettings(compId, {});
 
-    $scope.settings = api.getSettings();
+    $scope.settings = api.getSettings(api.defaults);
 
     // uncomment the block below when app is ready to be connected to a backend database
     // actually might be unnecessary. code in api.js seems to already do that
@@ -37,5 +35,7 @@ angular.module('sendFiles')
 
     $scope.settings.$promise.then(function () {
       $wix.UI.initialize($scope.settings);
+      $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
+      $wix.Utils.getOrigCompId());
     });
 });

@@ -332,7 +332,8 @@ angular.module('sendFiles')
     //   });
     // };
 
-    $scope.settings = api.getSettings(true); //remove this eventually
+    // console.log("using getSettings from widget.js");
+    // $scope.settings = api.getSettings(true); //remove this eventually
 
     // if (window.location.host === "editor.wix.com") {
     //   $scope.settings = api.getSettings(true);
@@ -340,14 +341,13 @@ angular.module('sendFiles')
     //   $scope.getDatabaseSettings();
     // }
 
-    // console.log($scope.settings);
-
     //This block below listens for changes in the settings panel and updates the widget view.
     $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
      $scope.settings = message;
-      // console.log('Input Data: ', message);
+      // console.log('Input Data: ', message); //for testing communication between widget and settings
       $scope.$apply();
     });
+    $scope.settings = api.getSettings(api.defaults);
   });
 
 
