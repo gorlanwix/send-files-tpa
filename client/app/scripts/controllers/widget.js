@@ -102,7 +102,7 @@ angular.module('sendFiles')
 
     /* Call this to get error messages to show up if the form
      * is filled out incorrectly. */
-    $scope.enableErrorMessage = function() {
+    $scope.enableErrorMessage = function () {
       if ($scope.fileForm.visitorName.$invalid) {
         $scope.showNoName = true;
       }
@@ -120,20 +120,12 @@ angular.module('sendFiles')
     };
 
     /* Call this to get error messages to disappear. */
-    $scope.disableErrorMessage = function() {
+    $scope.disableErrorMessage = function () {
       $scope.showNoName = false;
       $scope.showInvalidEmail = false;
       $scope.showNoMessage = false;
       $scope.marginStyle = {};
       $scope.showNoFile = false;
-    };
-
-    /* Call this function after the user has changed their settings
-     * to initiate changes in the widget. */
-    $scope.setSettings = function() {
-      console.log('I am running');
-      $wix.Settings.refreshApp();
-      console.log($scope.submitButtonText);
     };
 
     /* Call this when the user selects file(s) to begin file upload.
@@ -348,4 +340,14 @@ angular.module('sendFiles')
     //   $scope.getDatabaseSettings();
     // }
 
+    // console.log($scope.settings);
+
+    //This block below listens for changes in the settings panel and updates the widget view.
+    $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
+     $scope.settings = message;
+      // console.log('Input Data: ', message);
+      $scope.$apply();
+    });
   });
+
+
