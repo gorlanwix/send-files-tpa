@@ -13,3 +13,11 @@ NOTES:
 google needs offline mode to use refresh tokens
 dropbox's access token is persistent, no need for refresh token or expiration
 box has a refresh token by default, looks just like google's
+
+
+clean up temporary files every 24 hour regradles whether they are marked for deletion or not.
+adv:
+    no need for ready to delete column
+dis:
+    what if they are not uploaded within 24 hours?
+        should be error then.

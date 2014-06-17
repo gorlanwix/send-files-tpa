@@ -43,6 +43,10 @@ function updateSettings(client, instance, widgetSettings, callback) {
       return callback(err, null);
     }
 
+    if (result.rows.length === 0) {
+        return callback(new Error('Widget settings not found'), null);
+    }
+
     callback(null, result.rows[0]);
   });
 }

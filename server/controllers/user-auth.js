@@ -59,8 +59,6 @@ function getInstanceTokens(client, instance, callback) {
     }
 
     if (!db.token.isAccessTokenExpired(tokens)) {
-      done();
-      pg.end();
       console.log('Got valid token from database: ', tokens.access_token);
       return callback(null, tokens);
     }
@@ -73,19 +71,14 @@ function getInstanceTokens(client, instance, callback) {
         console.log('Got new token from google: ', refreshedTokens);
 
         db.token.update(client, instance, refreshedTokens, 'google', function (err, result) {
-          done();
-          pg.end();
-
           if (err) {
             return callback(err, null);
           }
 
-          return callback(null, result);
+          callback(null, result);
         });
       });
     }
-
-    callback(new Error('Unable to get tokens'), null);
   });
 }
 
