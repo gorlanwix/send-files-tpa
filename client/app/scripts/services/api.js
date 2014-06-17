@@ -7,7 +7,7 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
     noFileText: '',
     emailAddressText: 'Your email address',
     messageText: 'You can add a message to site owner',
-    submitButtonText: 'Submiasdasdsadt'
+    submitButtonText: 'Submit'
   };
 
   var headers = {
