@@ -376,8 +376,7 @@ angular.module('sendFiles')
 
     //This block below listens for changes in the settings panel and updates the widget view.
     $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
-        // message is {key1:val1, key2: val2}
-        $scope.settings = message;
+      $scope.settings = message;
         //console.log('Input Data: ', message); //for testing communication between widget and settings
         $scope.$apply();
      });
