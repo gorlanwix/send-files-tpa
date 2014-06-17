@@ -102,7 +102,7 @@ angular.module('sendFiles')
 
     /* Call this to get error messages to show up if the form
      * is filled out incorrectly. */
-    $scope.enableErrorMessage = function() {
+    $scope.enableErrorMessage = function () {
       if ($scope.fileForm.visitorName.$invalid) {
         $scope.showNoName = true;
       }
@@ -120,30 +120,13 @@ angular.module('sendFiles')
     };
 
     /* Call this to get error messages to disappear. */
-    $scope.disableErrorMessage = function() {
+    $scope.disableErrorMessage = function () {
       $scope.showNoName = false;
       $scope.showInvalidEmail = false;
       $scope.showNoMessage = false;
       $scope.marginStyle = {};
       $scope.showNoFile = false;
     };
-
-    /* Call this function after the user has changed their settings
-     * to initiate changes in the widget. */
-    // $scope.setSettings = function() {
-    //   console.log('I am running');
-    //   $wix.Settings.refreshApp();
-    //   console.log($scope.submitButtonText);
-    // };
-
-    // $scope.email = 'hello';
-    //$scope.cool = false;
-    // $scope.setSettings = function() {
-      // console.log('hi');
-      // $wix.Settings.refreshApp();
-      // console.log($scope.submitButtonText);
-      // console.log('but');
-    // };
 
     /* Call this when the user selects file(s) to begin file upload.
      * Use this if users can upload unlimited files as long as they don't
@@ -359,6 +342,7 @@ angular.module('sendFiles')
 
     console.log($scope.settings);
 
+    //This block below listens for changes in the settings panel and updates the widget view.
     $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
       // message is {key1:val1, key2: val2}
       $scope.settings = message;
@@ -370,3 +354,6 @@ angular.module('sendFiles')
 
       $scope.$apply();
     });
+  });
+
+
