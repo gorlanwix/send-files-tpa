@@ -35,7 +35,8 @@ function update(client, sessionId, instance, callback) {
   client.query(query, values, function (err, result) {
     if (err) {
       console.error('session update error: ', err);
-      return callback(err);
+      callback(err);
+      return;
     }
 
     callback(null);

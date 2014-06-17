@@ -54,9 +54,8 @@
     <!-- build:js scripts/plugins.js -->
     <script src="bower_components/ng-file-upload-shim/angular-file-upload-shim.js"></script>
     <script src="bower_components/angular/angular.js"></script>
-    <script src="bower_components/angular-resource/angular-resource.js"></script>
     <script src="bower_components/ng-file-upload/angular-file-upload.js"></script>
-
+    <script src="bower_components/angular-resource/angular-resource.js"></script>
     <!-- endbuild -->
 
     <!-- build:js({.tmp,app}) scripts/index.js -->
@@ -70,7 +69,7 @@
 
     <!-- process:remove -->
     <script>
-      var testMode = true;
+      var testMode = false;
       var parent = window.parent;
       try {
         window.scenario = p && p.angular && p.angular.scenario;

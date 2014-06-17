@@ -35,7 +35,6 @@ CREATE TABLE file (
     temp_name text NOT NULL,
     original_name text NOT NULL,
     size bigint NOT NULL,
-    delete_ready boolean NOT NULL DEFAULT false,
     created timestamp NOT NULL
 )
 
@@ -145,3 +144,9 @@ AND component_id = $2 \
 AND auth_provider = $3 \
 RETURNING *
 
+
+SELECT *, SUM(size) AS total_size
+OVER (PARTITION BY session_id)
+FROM file
+WHERE file_id IN (30, 31)
+AND session_id = 116

@@ -39,6 +39,8 @@ function getGoogleUploadUrl(file, accessToken, callback) {
     json: true
   };
 
+  console.log('options: ', options);
+
   request(options, function (err, res, body) {
 
     if (err) {
@@ -47,6 +49,7 @@ function getGoogleUploadUrl(file, accessToken, callback) {
     }
 
     if (res.statusCode !== httpStatus.OK) {
+      console.error('request error body: ', res.body);
       var errorMessage = 'Cannot retrieve Google Drive upload URL: ' +
                           body.error.code + ' ' +
                           body.error.messsage;

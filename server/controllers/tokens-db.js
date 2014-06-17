@@ -8,7 +8,7 @@ function calcTokenExpiresDate(expiresIn) {
 function isAccessTokenExpired(token) {
   var expiresOn = +new Date(token.expires);
   var now = +new Date();
-  return expiresOn > now;
+  return expiresOn < now;
 }
 
 function insert(client, instance, tokens, provider, callback) {
@@ -34,17 +34,15 @@ function insert(client, instance, tokens, provider, callback) {
   });
 }
 
-function get(client, instance, provider, callback) {
+function get(client, instance, callback) {
   var query = 'SELECT access_token, refresh_token, expires, auth_provider \
                FROM oauth_token \
                WHERE instance_id = $1 \
                AND component_id = $2 \
-               AND auth_provider = $3 \
                LIMIT 1';
   var values = [
     instance.instanceId,
     instance.compId,
-    provider
   ];
 
   client.query(query, values, function (err, result) {
@@ -84,26 +82,32 @@ function update(client, instance, tokens, provider, callback) {
       return callback(err, null);
     }
 
+    if (result.rows.length === 0) {
+      return callback(new Error('Tokens not found'), null);
+    }
+
     callback(null, result.rows[0]);
   });
 }
 
-function remove(client, instance, provider, callback) {
+function remove(client, instance, callback) {
   var query = 'DELETE FROM oauth_token \
                WHERE instance_id = $1 \
                AND component_id = $2 \
-               AND auth_provider = $3 \
                RETURNING *';
   var values = [
     instance.instanceId,
     instance.compId,
-    provider
   ];
 
   client.query(query, values, function (err, result) {
     if (err) {
       console.error('delete token error: ', err);
       return callback(err, null);
+    }
+
+    if (result.rows.length === 0) {
+      return callback(new Error('Tokens not found'), null);
     }
 
     callback(null, result.rows[0]);
@@ -115,5 +119,6 @@ module.exports = {
   insert: insert,
   get: get,
   remove: remove,
+  update: update,
   isAccessTokenExpired: isAccessTokenExpired,
 };
