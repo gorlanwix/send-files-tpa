@@ -99,25 +99,81 @@
 }
 
 .files {
-  height: 100px;
   padding-top: 0;
-  padding-bottom: 5px;
+  padding-bottom: 0;
   overflow: scroll;
+  min-height: 50px;
   max-height: 100px;
+  overflow-x: hidden;
 }
 
-.files p {
-  margin-top: 2px;
-  padding-left: 40px;
+.file-statistics {
   text-align: left;
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid #838486;
+  padding-left: 4px;
+}
+
+.space-left {
+  float: right;
+  margin-right: 8px;
+}
+
+@media all and (min-width: 475px) {
+  .file-statistics {
+    padding-left: 20px;
+  }
+  .space-left {
+    margin-right: 40px;
+  }
+}
+
+
+.list-files {
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  list-style-type: none;
 }
 
 .display-files {
   display: block;
 }
 
+.file-text {
+  text-align: left;
+  float: left;
+  min-width: 99%;
+  padding: 3px;
+  padding-right: 0;
+  padding-top: 4px;
+  padding-bottom: 1px;
+  padding-left: 5px;
+  border: 1px solid #838486;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  height: 21px;
+  overflow-y: scroll;
+}
+
+@media all and (min-width: 600px) {
+  .file-text {
+    min-width: 99.5%;
+  }
+}
+
+.file-info {
+  display: inline-block;
+  max-width: 75%;
+}
+
 .remove {
-  background-image: url(/images/rsz_glyphicons_circle_remove.png);
+  background-image: url(/images/50opacityicon.png);
   background-repeat: no-repeat;
   background-position: 4px, 4px; 
   display: block;
@@ -126,31 +182,18 @@
   text-indent:100%;
   white-space:nowrap;
   width: 13px;
-  opacity: 0.5;
-  /* For IE Compatibility */
-  filter: alpha(opacity=0.5);
   float: right;
-  border: 1px solid rgba(131, 132, 134, 1);
-  border-right: 0;
-  border-top: 0;
+  border-left: 1px solid #838486;
   padding: 4px;
-}
-
-.file-text {
-  float: left;
-  padding: 3px;
-  padding-left: 0;
-  border: 1px solid #838486;
+  padding-top: 0;
+  margin-left: 4px;
 }
 
 .status-text {
   float: right;
-  padding: 2px;
   color: red;
   font-size: 15px;
-  border: 1px solid #838486;
-  border-right: 0;
-  border-top: 0;
+  display: inline-block;
 }
 
 .input-block {
