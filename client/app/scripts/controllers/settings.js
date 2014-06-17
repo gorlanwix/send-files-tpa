@@ -2,25 +2,6 @@
 
 angular.module('sendFiles')
   .controller('SettingsCtrl', function ($scope, $wix, api) {
-   //  var compId = 'abc';//temporary fake ID we can use while backend is broken 
-   //  //how to actually get widget compID//var compId = $wix.Utils.getOrigCompId(); 
-   //  //Original because more IDs are generated as settings are updated
-   //  var p = api.getSettings(compId);
-  	// //p is a promise made by http
-   //  $scope.settings = {}; //beginning with no settings
-
-   //  p.success(function (settings) {
-   //    $scope.settings = settings;
-   //    $wix.UI.initialize(settings);
-   //  }); //if promise successful, update and initialize with settings
-
-   //  p.error(function () {
-   //    console.log("Settings failed");
-   //    $wix.UI.initialize();
-   //  });
-
-   //  // $scope.$watch('settings.email', 
-   //  // ng-show="settings.email" - do this in html to check if user actually gave email
     $wix.UI.onChange('*', function (value, key) {
       $scope.settings[key] = value;
       // $scope.settings.$promise.then(function () {
@@ -37,7 +18,6 @@ angular.module('sendFiles')
     api.saveSettings(compId, {});
 
     $scope.settings = api.getSettings();
-
 
     // uncomment the block below when app is ready to be connected to a backend database
     // actually might be unnecessary. code in api.js seems to already do that
@@ -58,11 +38,4 @@ angular.module('sendFiles')
     $scope.settings.$promise.then(function () {
       $wix.UI.initialize($scope.settings);
     });
-
-
-    // $scope.settings.$promise.then(function () {
-  	 //  $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
-  	 //  	$wix.Utils.getOrigCompId());
-    // });
-
 });
