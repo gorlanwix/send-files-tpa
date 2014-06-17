@@ -20,42 +20,56 @@
   <!-- Note: Placeholder attribute is not supported in IE9 or below -->
 
     <div class="block files">
-      <p ng-style="marginStyle">Space Remaining: {{totalGBLeft}} GB</p>
+      <p class="file-statistics" ng-style="marginStyle">Total files added: {{totalFilesAdded}} <span class="space-left">Space left: {{totalGBLeft}} GB</span></p>
       <div class="tool-tip-container" ng-show="showNoFile">
           <span class="tool-tip">Please add a file</span>
       </div>
       <!-- Show uploading files here -->
-      <ul>
-        <li ng-repeat="file in tooLargeList">
-          {{file.name}} - {{file.newSize}} - File is too large!
-        </li>
-      </ul>
-      <ul>
+      <div>
+        <ul class="list-files">
+          <!-- <li>The following files can't be loaded due to lack of storage space.</li> -->
+          <li ng-repeat="file in tooLargeList">
+            {{file.name}} - {{file.newSize}} - File is too large!
+          </li>
+        </ul>
+      </div>
+      <ul class="list-files">
         <li class="display-files"ng-repeat="file in fileList">
-          <span class="file-text">{{file.name}} - {{file.newSize}}</span>
-          <a class="remove" href="#" ng-click="abort($index)">.</a>
-          <span class="status-text">&#10008; &#10004;</span>
+          <span class="file-text" ng-style="borderStyle($index)" hover>
+            <!-- <a class="hover-files" href="#">.</a>
+            <div class="hover-files hover"></div> -->
+            <span class="file-info">
+              {{file.name}} - {{file.newSize}}
+            </span>
+            <a class="remove" href="#" ng-click="abort($index)" display>.</a>
+            <span class="status-text">
+              &#10008; &#10004;
+            </span>
+          </span>
           <div style="clear: both;"></div>
+          <div class="progress">
+            <span style="width:{{progress[$index]}}%;"></span>
+          </div>
         </li>
       </ul> 
     </div>
 
     <div class="block input-block">
-      <input name="visitorName" class="visitorName" placeholder="Your name" required ng-model="visitorName">
+      <input name="visitorName" class="visitorName" placeholder="Your name" required ng-model="visitorName" ng-change="updateVisitorName(visitorName)">
       <div class="tool-tip-container" ng-show="showNoName">
           <span class="tool-tip">Please enter a name.</span>
       </div>
     </div>
 
     <div class="block input-block email-block">
-      <input name="email" type="email" class="email" placeholder="{{settings.emailAddressText}}" required ng-model="email" ng-pattern="emailRegex">
+      <input name="email" type="email" class="email" placeholder="{{settings.emailAddressText}}" required ng-model="email" ng-pattern="emailRegex" ng-change="updateEmail(email)">
       <div class="tool-tip-container" ng-show="showInvalidEmail">
           <span class="tool-tip">Please enter a valid email address</span>
       </div>
     </div>
 
     <div class="block user-message">
-      <textarea name="message" placeholder={{settings.messageText}} required ng-model="message" class="message"></textarea>
+      <textarea name="message" placeholder={{settings.messageText}} required ng-model="message" class="message" ng-change="updateMessage(message)"></textarea>
        <div class="tool-tip-container-message">
           <span class="tool-tip-message" ng-show="showNoMessage">Please enter a message</span>
       </div>
