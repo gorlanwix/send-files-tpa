@@ -1,6 +1,6 @@
 'use strict';
 
-var db = require('./pg-database.js');
+var session = require('./sessions-db.js');
 
 
 function createFileIdsValuesSelectQuery(valLength) {
@@ -29,7 +29,8 @@ function insert(client, sessionId, file, callback) {
   client.query(query, values, function (err, result) {
     if (err) {
       console.error('file insert error: ', err);
-      return callback(err, null);
+      callback(err, null);
+      return;
     }
 
     callback(null, result.rows[0].file_id);
@@ -40,7 +41,7 @@ function insert(client, sessionId, file, callback) {
 function getByIds(client, sessionId, fileIds, callback) {
   var queryValues = createFileIdsValuesSelectQuery(fileIds.length);
 
-  var query = 'SELECT *, SUM(size) AS total_size \
+  var query = 'SELECT *, SUM(size) \
                OVER (PARTITION BY session_id) \
                FROM file \
                WHERE file_id IN (' + queryValues + ') \
@@ -50,7 +51,6 @@ function getByIds(client, sessionId, fileIds, callback) {
 
   client.query(query, values, function (err, result) {
     if (err) {
-      console.error('file setUploadReady error: ', err);
       return callback(err, null);
     }
 
@@ -60,17 +60,20 @@ function getByIds(client, sessionId, fileIds, callback) {
 
 
 function updateSessionAndInsert(client, file, sessionId, instance, callback) {
-  db.session.update(client, sessionId, instance, function (err) {
+
+  session.update(client, sessionId, instance, function (err) {
 
     if (err) {
       // expired session or non-existing session or mistyped sessionId
-      return callback(err, null);
+      callback(err, null);
+      return;
     }
 
     insert(client, sessionId, file, function (err, fileId) {
 
       if (err) {
-        return callback(err, null);
+        callback(err, null);
+        return;
       }
 
       callback(null, fileId);
@@ -79,28 +82,8 @@ function updateSessionAndInsert(client, file, sessionId, instance, callback) {
   });
 }
 
-// once done with upload, set all files from the session ready to delete
-function setDeleteReady(client, sessionId, callback) {
-
-  var query = 'UPDATE file \
-               SET delete_ready = true \
-               WHERE session_id = $1';
-
-  var values = [sessionId];
-
-  client.query(query, values, function (err) {
-    if (err) {
-      console.error('file setDeleteReady error: ', err);
-      return callback(err);
-    }
-
-    callback(null);
-  });
-}
-
 module.exports = {
   insert: insert,
   getByIds: getByIds,
-  setDeleteReady: setDeleteReady,
   updateSessionAndInsert: updateSessionAndInsert
 };
