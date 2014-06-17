@@ -35,13 +35,21 @@
       </div>
       <ul class="list-files">
         <li class="display-files"ng-repeat="file in fileList">
-          <span class="file-text"><span class="file-info">{{file.name}} - {{file.newSize}}</span><a class="remove" href="#" ng-click="abort($index)">.</a>
-            <span class="status-text">&#10008; &#10004;</span>
+          <span class="file-text" ng-style="borderStyle($index)" hover>
+            <!-- <a class="hover-files" href="#">.</a>
+            <div class="hover-files hover"></div> -->
+            <span class="file-info">
+              {{file.name}} - {{file.newSize}}
+            </span>
+            <a class="remove" href="#" ng-click="abort($index)" display>.</a>
+            <span class="status-text">
+              &#10008; &#10004;
+            </span>
           </span>
           <div style="clear: both;"></div>
-          <span class="progress">
-            
-          </span>
+          <div class="progress">
+            <span style="width:{{progress[$index]}}%;"></span>
+          </div>
         </li>
       </ul> 
     </div>

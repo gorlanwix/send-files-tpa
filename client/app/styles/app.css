@@ -154,11 +154,12 @@
   padding-bottom: 1px;
   padding-left: 5px;
   border: 1px solid #838486;
-  border-top: none;
   border-left: none;
   border-right: none;
   height: 21px;
-  overflow-y: scroll;
+  overflow-y: auto;
+  overflow-x: hidden; 
+  position: relative;
 }
 
 @media all and (min-width: 600px) {
@@ -166,6 +167,47 @@
     min-width: 99.5%;
   }
 }
+
+.hover {
+  background-color: #FFFF99;
+}
+
+.display {
+  display: none;
+}
+
+/*.hover-files {
+  background-color: red;
+  position: absolute;
+  text-indent: 100%;
+  overflow: hidden;
+  width: 88%;
+  color: white;
+  text-decoration: none;
+}
+
+@media all and (min-width: 400px) and (max-width: 700px) {
+  .hover-files {
+    width: 92%;
+  }
+}
+
+@media all and (min-width: 700px) and (max-width: 1000px) {
+  .hover-files {
+    width: 95%;
+  }
+}
+
+@media all and (min-width: 1000px) {
+  .hover-files {
+    width: 97%;
+  }
+}
+
+.hover {
+  background-color: blue;
+  height: 21px;
+}*/
 
 .file-info {
   display: inline-block;
@@ -187,6 +229,7 @@
   padding: 4px;
   padding-top: 0;
   margin-left: 4px;
+  color: white;
 }
 
 .status-text {
@@ -194,6 +237,31 @@
   color: red;
   font-size: 15px;
   display: inline-block;
+}
+
+.progress {
+  height: 3px;
+  /* Fallback for even older browsers + Opera 12 & IE9 */
+  background-color: green;
+  /* Safari 5.1, iOS 5.0-6.1, Chrome 10-25, Android 4.0-4.3 */
+  background-image:
+    -webkit-linear-gradient(left, red, orange, yellow, green);
+  background-image: 
+    linear-gradient(
+      to right,
+      red,
+      orange,
+      yellow,
+      green
+    );
+}
+
+.progress span {
+  float: right;
+  width: 100%;
+  background-color: white;
+  height: 100%;
+  display: block;
 }
 
 .input-block {

@@ -72,6 +72,11 @@ angular.module('sendFiles')
       * upload process. */
     $scope.progress = [];
 
+    /* Holds all the values for each file that are displayed to the user.
+     * Most of the time it is a progress number, but can be an error icon
+     * or completion icon. */
+     $scope.progressIcons = [];
+
     /* A list used to tell what files have been successfully uploaded. It is 
      * sent to the backend for verification when the user hits submit. The
      * objects in the array are carrying a fileID given by the backend when
@@ -112,6 +117,14 @@ angular.module('sendFiles')
       }
     });
 
+    $scope.borderStyle = function(index) {
+      if (index === 0) {
+        return {'border-top': 0};
+      } else {
+        return {};
+      }
+    };
+
     /* Call this to get error messages to show up if the form
      * is filled out incorrectly. */
     $scope.enableErrorMessage = function() {
@@ -139,15 +152,6 @@ angular.module('sendFiles')
       $scope.marginStyle = {};
       $scope.showNoFile = false;
     };
-
-    /* Call this function after the user has changed their settings
-     * to initiate changes in the widget. */
-    $scope.setSettings = function() {
-      console.log('I am running');
-      $wix.Settings.refreshApp();
-      console.log($scope.submitButtonText);
-    };
-
     /* Call this when the user selects file(s) to begin file upload.
      * Use this if users can upload unlimited files as long as they don't
      * exceed 1GB.
@@ -227,14 +231,20 @@ angular.module('sendFiles')
 
     /* Call this when the file at INDEX of fileList is ready 
      * to be sent to the server.
+     * Note: Progress starts at 100 because the progress bar is
+     * "uncovered" as progress goes on so by completion, the 
+     * HTML element covering the progress bar has a width of 0.
      */
     $scope.start = function(index) {
-      $scope.progress[index] = 0;
+      $scope.progress[index] = 100;
 
       console.log(index);
 
       if (index === 0) {
         spaceVerified = $scope.verifySpace();
+        // REMOVE THIS LINE BELOW
+        spaceVerified = true;
+        // REMOVE THIS LINE ABOVE
       }
       if (spaceVerified) {
         //make some function that check for upload space before uploading
@@ -246,7 +256,7 @@ angular.module('sendFiles')
           file: $scope.fileList[index] //could technically upload all files - but only supported in HTML 5
         }).progress(function(evt) {
           console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total, 10));
-          $scope.progress[index] = Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10));
+          $scope.progress[index] = (100 - Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10)));
           //fill in other 100 when sucess
           /* Use this data to implment progress bar */
         }).success(function (data, status, headers, config) {
@@ -255,7 +265,7 @@ angular.module('sendFiles')
             if (status === 201) {
               var uploadVerified = {'fileId' : data}; //make sure this the actual format
               $scope.uploadedFiles.push(uploadVerified);
-              $scope.progress[index] = 100;
+              $scope.progress[index] = 0;
             } else {
               console.log('ERROR ERROR ERROR: success failed!');
             }
@@ -273,8 +283,10 @@ angular.module('sendFiles')
 
     /* Call this when user wants to remove file from list. */
     $scope.abort = function(index) { /* TODO: Pass in file in HTML somehow! */
+      //test if you can get program to crash by aborting before the upload even occurs
       $scope.totalFilesAdded -= 1;
-      $scope.upload[index].abort();
+      $scope.fileList[index] = null;
+      $scope.upload[index].abort();   //when should you abort???
       $scope.upload[index] = null;
       $scope.uploadedFiles[index] = null;
     };
@@ -355,12 +367,19 @@ angular.module('sendFiles')
     //   });
     // };
 
-    $scope.settings = api.getSettings(true); //remove this eventually
-
     // if (window.location.host === "editor.wix.com") {
     //   $scope.settings = api.getSettings(true);
     // } else {
     //   $scope.getDatabaseSettings();
     // }
 
+
+    //This block below listens for changes in the settings panel and updates the widget view.
+    $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
+        // message is {key1:val1, key2: val2}
+        $scope.settings = message;
+        //console.log('Input Data: ', message); //for testing communication between widget and settings
+        $scope.$apply();
+     });
+    $scope.settings = api.getSettings(true); //remove this eventually
   });
