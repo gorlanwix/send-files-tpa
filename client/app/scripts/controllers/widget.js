@@ -332,9 +332,6 @@ angular.module('sendFiles')
     //   });
     // };
 
-    // console.log("using getSettings from widget.js");
-    // $scope.settings = api.getSettings(true); //remove this eventually
-
     // if (window.location.host === "editor.wix.com") {
     //   $scope.settings = api.getSettings(true);
     // } else {
