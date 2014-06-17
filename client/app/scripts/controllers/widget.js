@@ -340,12 +340,12 @@ angular.module('sendFiles')
     //   $scope.getDatabaseSettings();
     // }
 
-    console.log($scope.settings);
+    // console.log($scope.settings);
 
     //This block below listens for changes in the settings panel and updates the widget view.
     $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
      $scope.settings = message;
-      console.log('Input Data: ', message);
+      // console.log('Input Data: ', message);
       $scope.$apply();
     });
   });

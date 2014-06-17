@@ -41,7 +41,7 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
           });
         });
       }
-      console.log(settings); // to print the settings out before syncing them with the widget
+      // console.log(settings); // to print the settings out before syncing them with the widget
       return settings;
     }
   };
