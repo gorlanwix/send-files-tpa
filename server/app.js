@@ -3,6 +3,8 @@
 var userAuth = require('./controllers/user-auth.js');
 var db = require('./controllers/pg-database.js');
 var upload = require('./controllers/upload-files.js');
+var email = require('./controllers/email.js');
+
 var express = require('express');
 var bodyParser = require('body-parser');
 var multer  = require('multer');
@@ -15,7 +17,7 @@ var connectionString = process.env.DATABASE_URL || require('./connect-keys/pg-co
 var app = express();
 var router = express.Router();
 
-wix.secret(require('./connect-keys/wix-key.json').secret);
+wix.secret(require('./connect-keys/wix-key.json').secretKey);
 app.use(bodyParser());
 app.use(express.static(__dirname));
 
@@ -42,6 +44,13 @@ function WixWidget(instance, compId) {
     this.instanceId = parsedInstance.instanceId;
   }
   this.compId = compId;
+}
+
+function Visitor(name, email, message, fileUrl) {
+  this.name = name;
+  this.email = email;
+  this.message = message;
+  this.fileUrl = fileUrl;
 }
 
 // set any param to null to avoid it's update
@@ -395,8 +404,6 @@ app.post('/api/files/send/:compId', function (req, res, next) {
             return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
           }
 
-          res.status(httpStatus.ACCEPTED);
-          res.json({status: httpStatus.ACCEPTED});
 
 
           console.log('files to be zipped: ', files);
@@ -408,10 +415,17 @@ app.post('/api/files/send/:compId', function (req, res, next) {
               console.log('zipping error', err);
             }
             upload.insertFile(client, archive, sessionId, req.widgetIds, tokens, function (err, result) {
-              if (err) { console.error('uploading to google error', err); }
-              console.log('inserted file: ', result);
               done();
               pg.end();
+              if (err) { console.error('uploading to google error', err); }
+              result = JSON.parse(result);
+              console.log('inserted file: ', result);
+              var visitor = new Visitor(visitorName, visitorEmail, visitorMessage, result.alternateLink);
+              email.send('andreye@wix.com', visitor, function (err) {
+                console.log('sent email');
+                res.status(httpStatus.ACCEPTED);
+                res.json({status: httpStatus.ACCEPTED});
+              });
             });
           });
         });
@@ -469,7 +483,7 @@ app.put('/api/settings/:compId', function (req, res, next) {
     return next(error('invalid request format', httpStatus.BAD_REQUEST));
   }
 
-  var settingsRecieved = new WidgetSettings(userEmail, '', widgetSettings);
+  var settingsRecieved = new WidgetSettings(userEmail, '', widgetSettings.settings);
   pg.connect(connectionString, function (err, client, done) {
     if (err) {
       done();
