@@ -72,10 +72,11 @@ angular.module('sendFiles')
       * upload process. */
     $scope.progress = [];
 
-    /* Holds all the values for each file that are displayed to the user.
-     * Most of the time it is a progress number, but can be an error icon
-     * or completion icon. */
-     $scope.progressIcons = [];
+    /* An array of length equal to the number of files with icons at certain 
+     * indices. If an index has an icon, then either an error or success icon
+     * is shown to the user. Otherwise, a file upload progress percentage is 
+     * shown. */
+    $scope.progressIcons = [];
 
     /* A list used to tell what files have been successfully uploaded. It is 
      * sent to the backend for verification when the user hits submit. The
@@ -88,15 +89,16 @@ angular.module('sendFiles')
     var spaceVerified = false;
 
     /* Data to be sent to server when the user submits. */
-    var finalSubmission = {'visitorName': '',
-                           'email': '',
-                           'message': '',
-                           'toUpload': $scope.uploadedFiles
+    var finalSubmission = {"visitorName": "",
+                           "email": "",
+                           "message": "",
+                           "toUpload": $scope.uploadedFiles
                           };
 
     /* Records the visitor's name and updates final message to server. */
     $scope.updateVisitorName = function (newValue) {
       finalSubmission.visitorName = newValue;
+      console.log(newValue);
     };
 
     /* Records the visitor's email and updates final message to server. */
@@ -117,9 +119,19 @@ angular.module('sendFiles')
       }
     });
 
-    $scope.borderStyle = function(index) {
-      if (index === 0) {
-        return {'border-top': 0};
+    $scope.fileStyle = function(index) {
+      if ($scope.progressIcons[index] === true) {
+        if (index === 0) {
+          return {'border-top': 0, 'background-color': '#93C993'};
+        } else {
+          return {'background-color': '#93C993'};
+        }
+      } else if ($scope.progressIcons[index] === false) {
+        if (index === 0) {
+          return {'border-top': 0, 'background-color': '#FF9999'};
+        } else {
+          return {'background-color': '#FF9999'};
+        }
       } else {
         return {};
       }
@@ -160,20 +172,20 @@ angular.module('sendFiles')
     $scope.onFileSelectUnlimited = function($files) {
       // add some total bytes display
       for(var i = 0; i < $files.length; i++) {
-        $scope.totalFilesAdded += 1;
         var file = $files[i];
         if (file.size > uploadLimit) { //Test with files almost 1GB
-          file.newSize = (Math.floor(file.size / GBbytes * 100) / 100).toString() + 'GB';
+          file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
           $scope.tooLargeList.push(file);
           console.log(file.size);
         } else {
           var sizeInMB = Math.floor(file.size / MBbytes);
           if (sizeInMB === 0) {
-            file.newSize = ' <1 MB';
+            file.newSize = ' 1 MB';
           } else {
             file.newSize = sizeInMB.toString() + ' MB';
           }
           $scope.fileList.push(file);
+          $scope.totalFilesAdded += 1;
           $scope.start(fileIndex, instanceID);
           console.log(fileIndex); //error checking purposes
           fileIndex += 1;
@@ -186,23 +198,26 @@ angular.module('sendFiles')
      * Use this when we only want users to upload up to 1GB of files total.
      */
     $scope.onFileSelect = function($files) {
+      if ($scope.fileList.length === 0) {
+        $scope.verifySpace();
+      }
       for (var i = 0; i < $files.length; i++) {
-        $scope.totalFilesAdded += 1;
         var file = $files[i];
         if ($scope.totalBytes + file.size > uploadLimit) {
-          file.newSize = (Math.floor(file.size / GBbytes * 100) / 100).toString() + 'GB';
+          file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
           $scope.tooLargeList.push(file);
         } else {
 
           var sizeInMB = Math.floor(file.size / MBbytes);
           if (sizeInMB === 0) {
-            file.newSize = '< 1MB';
+            file.newSize = ' 1MB';
           } else {
             file.newSize = sizeInMB.toString() + 'MB';
           }
           $scope.fileList.push(file);
           $scope.totalBytes += file.size;
           
+          $scope.totalFilesAdded += 1;
           $scope.start(fileIndex);
           fileIndex += 1;
         }
@@ -213,20 +228,24 @@ angular.module('sendFiles')
     /* Sends a request to the server to check if the Google Drive
      * has enough storage space. */
     $scope.verifySpace = function() {
-      var verifyURL = ''; //wait for this
+      console.log("compID: " + compID);
+      var verifyURL = '/api/files/session/' + compID; //wait for this
       $http({method: 'GET',
              url: verifyURL,
              headers: {'X-Wix-Instance' : instanceID}
              // timeout: in milliseconds
         }).success(function (data, status, headers, config) {
           if (status === 200) {
-            return true;
+            uploadLimit = data.capacity; // make sure the uploadLimit variable actually changes
+            $scope.sessionId = data.sessionId; //make sure this is the correct format
+            //do you need to check if data capacity > 0? or will server just return error?
           } else {
             console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
           }
         }).error(function (data, status, headers, config) {
-          return false;
           //fail everything - tell user that owner has not enough space.
+          //probably should try to verify again! - but keep track of number of retrys with variable - only retry two times
+          //MAKE SURE IT IS IMPOSSIBLE FOR USER TO CONTINUE UPLOADING FILES
       });
      }
 
@@ -240,15 +259,7 @@ angular.module('sendFiles')
       $scope.progress[index] = 100;
 
       console.log(index);
-
-      if (index === 0) {
-        spaceVerified = $scope.verifySpace();
-        // REMOVE THIS LINE BELOW
-        spaceVerified = true;
-        // REMOVE THIS LINE ABOVE
-      }
-      if (spaceVerified) {
-        //make some function that check for upload space before uploading
+      if ($scope.upload[index] !== 'aborted') {
         var uploadURL = '/api/files/upload/' + compID + '?sessionId=' + $scope.sessionId;
         $scope.upload[index] = $upload.upload({
           url: uploadURL,
@@ -265,12 +276,16 @@ angular.module('sendFiles')
             console.log(data);
             if (status === 201) {
               var uploadVerified = {'fileId' : data}; //make sure this the actual format
-              $scope.uploadedFiles.push(uploadVerified);
+              if ($scope.uploadedFiles[index] !== 'aborted') {
+                $scope.uploadedFiles.push(uploadVerified);
+              }
               $scope.progress[index] = 0;
+              $scope.progressIcons[index] = true;
             } else {
               console.log('ERROR ERROR ERROR: success failed!');
             }
         }).error(function(data, status, headers, config) {
+            $scope.progressIcons[index] = false;
             console.log('ERROR ERROR ERROR');
             console.log(data);
             //give try again error to user
@@ -285,18 +300,18 @@ angular.module('sendFiles')
     /* Call this when user wants to remove file from list. */
     $scope.abort = function(index) { /* TODO: Pass in file in HTML somehow! */
       //test if you can get program to crash by aborting before the upload even occurs
+      $scope.uploadedFiles[index] = 'aborted';
       $scope.totalFilesAdded -= 1;
-      $scope.fileList[index] = null;
+      //$scope.fileList[index] = null; - throws errors on ng-repeat
       $scope.upload[index].abort();   //when should you abort???
-      $scope.upload[index] = null;
-      $scope.uploadedFiles[index] = null;
+      $scope.upload[index] = 'aborted';
     };
     /* Call this when user submits form with files, email, and message */
     $scope.submit = function() {
       var uploadedFileTemp = [];
       var j = 0;
       for (var i = 0; i < $scope.uploadedFiles.length; i++) {
-        if ($scope.uploadedFiles[i] !== null) {//check if it should be !=
+        if ($scope.uploadedFiles[i] !== "aborted") {//check if it should be !=
           uploadedFileTemp[j] = $scope.uploadedFiles[i];
           j += 1;
         }
@@ -311,6 +326,8 @@ angular.module('sendFiles')
       }).success(function(data, status, headers, config) {
           if (status === 202) {
             $scope.success();
+            //deal with capacity errors (google drive ran out of space as we
+              //were uploading after the verification) status: 400
           } else {
             console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
           }
@@ -329,6 +346,9 @@ angular.module('sendFiles')
     $scope.initiateFailure = function() {
       //call this only if submit fails
       $scope.uploadFailed = true;
+
+      //could instatiate this function with a specific error message for the user
+      //would just change some scope variable to function argument
     };
 
     /* Call this to reset widget after widget upload fail.
@@ -359,7 +379,6 @@ angular.module('sendFiles')
     //           $scope.active = false;
     //         }
     //         $scope.settings = data.widgetSettings.settings;
-    //         $scope.sessionId = data.widgetSettings.sessionId; //make sure this is the correct format
     //       } else {
     //         console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
     //       }

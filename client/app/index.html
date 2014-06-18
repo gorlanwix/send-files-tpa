@@ -15,7 +15,7 @@
     <style wix-style>
       .block {
         border-color: {{style.borderColor color-3}};
-        color: {{style.headlineText color-15}};
+        color: {{style.headlineColor color-15}};
         {{style.headlineFont Body-M}}
       }
       .end-blocks {
@@ -23,15 +23,40 @@
       }
       .end-blocks button {
         background-color: {{style.buttonColor color-17}};
-        color: {{style.buttonText color-25}};
-        border-radius: {{style.buttonCorner 5px}}
+        color: {{style.buttonTextColor color-25}};
         {{style.buttonFont Body-M}}
       }
-      .failure-end button {
-        background-color: {{style.buttonColor color-17}};
-        color: {{style.buttonText color-25}};
-        border-radius: {{style.buttonCorner 5px}}
-        {{style.buttonFont Body-M}}
+      .dropee {
+        background-color: {{style.fillColor color-8}};
+        color: {{style.headlineColor color-15}};
+        {{style.headlineFont Body-M}}
+      }
+      .dropping {
+        background-color: {{style.fillColor color-8}};
+        color: {{style.headlineColor color-15}};
+        {{style.headlineFont Body-M}}
+      }
+      .file-statistics {
+        border-color: {{style.borderColor color-3}};
+      }
+      .file-text {
+        border-color: {{style.borderColor color-3}};
+      }
+      .remove {
+        border-color: {{style.borderColor color-3}};
+      }
+      .progress-text {
+        {{style.headlineFont Body-M}}
+        color: {{style.headlineColor color-15}};
+      }
+      .status-text {
+        {{style.headlineFont Body-M}}
+      }
+      .submit {
+        border-color: {{style.borderColor color-3}};
+      }
+      .submit button[disabled] {
+        color: {{style.buttonTextColor color-25}};
       }
     </style>
   </head>
@@ -69,7 +94,7 @@
 
     <!-- process:remove -->
     <script>
-      var testMode = false;
+      var testMode = true;
       var parent = window.parent;
       try {
         window.scenario = p && p.angular && p.angular.scenario;

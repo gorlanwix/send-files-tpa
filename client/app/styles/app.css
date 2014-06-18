@@ -41,6 +41,7 @@
   opacity: 1;
   /* IE compatibility */
   filter: alpha(opacity=1);
+  line-height: 135px;
 }
 
 .end-blocks button {
@@ -101,7 +102,7 @@
 .files {
   padding-top: 0;
   padding-bottom: 0;
-  overflow: scroll;
+  overflow: auto;
   min-height: 50px;
   max-height: 100px;
   overflow-x: hidden;
@@ -168,16 +169,7 @@
   }
 }
 
-.hover {
-  background-color: #FFFF99;
-}
-
-.display {
-  display: none;
-}
-
-/*.hover-files {
-  background-color: red;
+.retry-files {
   position: absolute;
   text-indent: 100%;
   overflow: hidden;
@@ -187,27 +179,22 @@
 }
 
 @media all and (min-width: 400px) and (max-width: 700px) {
-  .hover-files {
+  .retry-files {
     width: 92%;
   }
 }
 
 @media all and (min-width: 700px) and (max-width: 1000px) {
-  .hover-files {
+  .retry-files {
     width: 95%;
   }
 }
 
 @media all and (min-width: 1000px) {
-  .hover-files {
+  .retry-files {
     width: 97%;
   }
 }
-
-.hover {
-  background-color: blue;
-  height: 21px;
-}*/
 
 .file-info {
   display: inline-block;
@@ -234,9 +221,18 @@
 
 .status-text {
   float: right;
-  color: red;
-  font-size: 15px;
+  color: #E50000;
+  font-size: 17px;
   display: inline-block;
+}
+
+.checkmark {
+  color: #005900;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #282828;
 }
 
 .progress {
@@ -262,6 +258,10 @@
   background-color: white;
   height: 100%;
   display: block;
+}
+
+.hover {
+  background-color: #FFFF99 !important;
 }
 
 .input-block {

@@ -25,25 +25,31 @@
           <span class="tool-tip">Please add a file</span>
       </div>
       <!-- Show uploading files here -->
-      <div>
+      <!-- <div class="block too-large">
         <ul class="list-files">
-          <!-- <li>The following files can't be loaded due to lack of storage space.</li> -->
+          <li ng-show="tooLargeList.length > 0">The following files can't be added due to lack of storage space:</li>
           <li ng-repeat="file in tooLargeList">
-            {{file.name}} - {{file.newSize}} - File is too large!
+            {{file.name}} - {{file.newSize}}
           </li>
         </ul>
-      </div>
+      </div> -->
       <ul class="list-files">
-        <li class="display-files"ng-repeat="file in fileList">
-          <span class="file-text" ng-style="borderStyle($index)" hover>
-            <!-- <a class="hover-files" href="#">.</a>
-            <div class="hover-files hover"></div> -->
+        <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
+          <span class="file-text" ng-style="fileStyle($index)" hover>
+            <a class="retry-files" href="#" ng-click="start($index)">.</a>
             <span class="file-info">
               {{file.name}} - {{file.newSize}}
             </span>
-            <a class="remove" href="#" ng-click="abort($index)" display>.</a>
-            <span class="status-text">
-              &#10008; &#10004;
+            <a class="remove" href="#" ng-click="abort($index)">.</a>
+            <span class="status-text progress-text" ng-if="progressIcons[$index]
+            === undefined">
+              {{100 - progress[$index]}}%
+            </span>
+            <span class="status-text" ng-if="progressIcons[$index] === false">
+              &#10008;
+            </span>
+            <span class="status-text checkmark" ng-if="progressIcons[$index] === true">
+              &#10004;
             </span>
           </span>
           <div style="clear: both;"></div>
@@ -76,7 +82,7 @@
     </div>
 
     <div class="block end-blocks submit">
-        <button type="submit" ng-disabled="fileForm.$invalid" ng-click="submit()">{{settings.submitButtonText}}</button>
+        <button type="submit" ng-disabled="fileForm.$invalid" ng-click="submit()"><span>{{settings.submitButtonText}}</span></button>
       <div class="submit-container" ng-mouseover="enableErrorMessage()" ng-mouseleave="disableErrorMessage()" ng-show="fileForm.$invalid"> 
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
       </div>
