@@ -14,18 +14,14 @@ angular.module('sendFiles')
 
     $scope.settings = api.getSettings(api.defaults);
     var compId = $wix.Utils.getOrigCompId();
-    var sendJson = JSON.stringify({ "widgetSettings" : {
-      "userEmail": "abc@mailinator.com",
-      "settings": $scope.settings
-      }
-    });
+    var sendJson = JSON.stringify( $scope.settings );
     console.log(sendJson); 
     // api.saveSettings(compId, sendJson);
 
     var putData = [];
 
     var headers = {
-      'X-Wix-Instance': 'whatever',//$wix.Utils.getInstanceId()
+      'X-Wix-Instance': 'whatever', //$wix.Utils.getInstanceId(),
       'Content-Type': 'application/json'
     };
 
