@@ -41,6 +41,7 @@
   opacity: 1;
   /* IE compatibility */
   filter: alpha(opacity=1);
+  line-height: 135px;
 }
 
 .end-blocks button {
