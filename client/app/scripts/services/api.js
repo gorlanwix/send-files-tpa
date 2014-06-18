@@ -4,10 +4,12 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
   var defaults = {
     headlineText: 'Upload the file and send it to us. We will review it as soon as possible.',
     addButtonText: '+ Add Files',
-    noFileText: '',
+    yourNameText: 'Your name',
     emailAddressText: 'Your email address',
     messageText: 'You can add a message to site owner',
-    submitButtonText: 'Submit'
+    submitButtonText: 'Submit',
+    dividerWidth: '3',
+    buttonRoundness: '5'
   };
 
   var headers = {
