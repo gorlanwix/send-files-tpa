@@ -186,6 +186,9 @@ angular.module('sendFiles')
      * Use this when we only want users to upload up to 1GB of files total.
      */
     $scope.onFileSelect = function($files) {
+      if ($scope.fileList.length === 0) {
+        $scope.verifySpace();
+      }
       for (var i = 0; i < $files.length; i++) {
         $scope.totalFilesAdded += 1;
         var file = $files[i];
@@ -220,13 +223,13 @@ angular.module('sendFiles')
              // timeout: in milliseconds
         }).success(function (data, status, headers, config) {
           if (status === 200) {
+            uploadLimit = data.capacity; // make sure the uploadLimit variable actually changes
             $scope.sessionId = data.sessionId; //make sure this is the correct format
-            return true;
+            //do you need to check if data capacity > 0? or will server just return error?
           } else {
             console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
           }
         }).error(function (data, status, headers, config) {
-          return false;
           //fail everything - tell user that owner has not enough space.
       });
      }
@@ -242,47 +245,38 @@ angular.module('sendFiles')
 
       console.log(index);
 
-      if (index === 0) {
-        spaceVerified = $scope.verifySpace();
-        // REMOVE THIS LINE BELOW
-        spaceVerified = true;
-        // REMOVE THIS LINE ABOVE
-      }
-      if (spaceVerified) {
-        //make some function that check for upload space before uploading
-        var uploadURL = '/api/files/upload/' + compID + '?sessionId=' + $scope.sessionId;
-        $scope.upload[index] = $upload.upload({
-          url: uploadURL,
-          method: 'POST',
-          headers: {'X-Wix-Instance' : instanceID},
-          file: $scope.fileList[index] //could technically upload all files - but only supported in HTML 5
-        }).progress(function(evt) {
-          console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total, 10));
-          $scope.progress[index] = (100 - Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10)));
-          //fill in other 100 when sucess
-          /* Use this data to implment progress bar */
-        }).success(function (data, status, headers, config) {
-            //assuming data is the temp ID
-            console.log(data);
-            if (status === 201) {
-              var uploadVerified = {'fileId' : data}; //make sure this the actual format
-              if ($scope.uploadedFiles[index] !== 'aborted') {
-                $scope.uploadedFiles.push(uploadVerified);
-              }
-              $scope.progress[index] = 0;
-            } else {
-              console.log('ERROR ERROR ERROR: success failed!');
+      var uploadURL = '/api/files/upload/' + compID + '?sessionId=' + $scope.sessionId;
+      $scope.upload[index] = $upload.upload({
+        url: uploadURL,
+        method: 'POST',
+        headers: {'X-Wix-Instance' : instanceID},
+        file: $scope.fileList[index] //could technically upload all files - but only supported in HTML 5
+      }).progress(function(evt) {
+        console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total, 10));
+        $scope.progress[index] = (100 - Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10)));
+        //fill in other 100 when sucess
+        /* Use this data to implment progress bar */
+      }).success(function (data, status, headers, config) {
+          //assuming data is the temp ID
+          console.log(data);
+          if (status === 201) {
+            var uploadVerified = {'fileId' : data}; //make sure this the actual format
+            if ($scope.uploadedFiles[index] !== 'aborted') {
+              $scope.uploadedFiles.push(uploadVerified);
             }
-        }).error(function(data, status, headers, config) {
-            console.log('ERROR ERROR ERROR');
-            console.log(data);
-            //give try again error to user
-        }).xhr(function(xhr) {
-            xhr.upload.addEventListener('abort', function() {
-              console.log('abort complete');
-            }, false); //check if this is necessary
-        });
-      }
+            $scope.progress[index] = 0;
+          } else {
+            console.log('ERROR ERROR ERROR: success failed!');
+          }
+      }).error(function(data, status, headers, config) {
+          console.log('ERROR ERROR ERROR');
+          console.log(data);
+          //give try again error to user
+      }).xhr(function(xhr) {
+          xhr.upload.addEventListener('abort', function() {
+            console.log('abort complete');
+          }, false); //check if this is necessary
+      });
     };
 
     /* Call this when user wants to remove file from list. */
