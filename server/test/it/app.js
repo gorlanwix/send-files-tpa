@@ -154,7 +154,7 @@ describe('api requests', function () {
 
   });
 
-  describe.only('files upload session', function () {
+  describe('files upload session', function () {
     this.timeout(10000);
     it('should get capacity and sessionId', function (done) {
       request(app).get('/api/files/session/' + compId)
@@ -176,12 +176,13 @@ describe('api requests', function () {
     var sessionId;
 
     before(function (beforeDone) {
-      request(app).get('/api/settings/' + compId)
+      request(app).get('/api/files/session/' + compId)
         .set('x-wix-instance', instanceId)
         .end(function (err, res){
           console.log(res.body);
           if (err) return done(err);
-          sessionId = res.body.widgetSettings.sessionId;
+          sessionId = res.body.sessionId;
+          console.log('sessionId: ', sessionId);
           beforeDone();
         });
     });
@@ -296,7 +297,7 @@ describe('Google Drive', function () {
   });
 
   it('should get available capacity from Google', function (done) {
-    googleDrive.getAvailalbeCapacity(accessToken, function (err, capacity) {
+    googleDrive.getAvailableCapacity(accessToken, function (err, capacity) {
       if (err) {
         console.log('capacity error: ', err);
       }

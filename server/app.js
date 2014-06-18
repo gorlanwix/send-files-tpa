@@ -389,7 +389,7 @@ app.post('/api/files/send/:compId', function (req, res, next) {
             return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
           }
 
-          if (capacity > MAX_FILE_SIZE) {
+          if (capacity <= MAX_FILE_SIZE) {
             done();
             pg.end();
             return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
