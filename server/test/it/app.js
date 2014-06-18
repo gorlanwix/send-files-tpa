@@ -142,7 +142,7 @@ describe('api requests', function () {
     it('should update settings', function (done) {
       request(app).put('/api/settings/' + compId)
         .set('x-wix-instance', instanceId)
-        .send(JSON.stringify({widgetSettings: {userEmail: 'timoha@vdv.com', settings: {hello: 'sup'}}}))
+        .send({widgetSettings: {userEmail: 'timoha@vdv.com', settings: {hello: 'sup'}}})
         .expect('Content-Type', /json/)
         .expect(201)
         .end(function (err, res){
