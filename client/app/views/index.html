@@ -82,7 +82,7 @@
     </div>
 
     <div class="block end-blocks submit">
-        <button type="submit" ng-disabled="fileForm.$invalid" ng-click="submit()">{{settings.submitButtonText}}</button>
+        <button type="submit" ng-disabled="fileForm.$invalid" ng-click="submit()"><span>{{settings.submitButtonText}}</span></button>
       <div class="submit-container" ng-mouseover="enableErrorMessage()" ng-mouseleave="disableErrorMessage()" ng-show="fileForm.$invalid"> 
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
       </div>
