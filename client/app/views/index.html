@@ -34,14 +34,14 @@
         </ul>
       </div>
       <ul class="list-files">
-        <li class="display-files"ng-repeat="file in fileList">
-          <span class="file-text" ng-style="borderStyle($index)" hover>
+        <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
+          <span class="file-text" ng-style="borderStyle($first)" hover>
             <!-- <a class="hover-files" href="#">.</a>
             <div class="hover-files hover"></div> -->
             <span class="file-info">
               {{file.name}} - {{file.newSize}}
             </span>
-            <a class="remove" href="#" ng-click="abort($index)" display>.</a>
+            <a class="remove" href="#" ng-click="abort($index)">.</a>
             <span class="status-text">
               &#10008; &#10004;
             </span>

@@ -117,8 +117,8 @@ angular.module('sendFiles')
       }
     });
 
-    $scope.borderStyle = function(index) {
-      if (index === 0) {
+    $scope.borderStyle = function(first) {
+      if (first) {
         return {'border-top': 0};
       } else {
         return {};
@@ -220,6 +220,7 @@ angular.module('sendFiles')
              // timeout: in milliseconds
         }).success(function (data, status, headers, config) {
           if (status === 200) {
+            $scope.sessionId = data.sessionId; //make sure this is the correct format
             return true;
           } else {
             console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
@@ -265,7 +266,9 @@ angular.module('sendFiles')
             console.log(data);
             if (status === 201) {
               var uploadVerified = {'fileId' : data}; //make sure this the actual format
-              $scope.uploadedFiles.push(uploadVerified);
+              if ($scope.uploadedFiles[index] !== 'aborted') {
+                $scope.uploadedFiles.push(uploadVerified);
+              }
               $scope.progress[index] = 0;
             } else {
               console.log('ERROR ERROR ERROR: success failed!');
@@ -285,18 +288,18 @@ angular.module('sendFiles')
     /* Call this when user wants to remove file from list. */
     $scope.abort = function(index) { /* TODO: Pass in file in HTML somehow! */
       //test if you can get program to crash by aborting before the upload even occurs
+      $scope.uploadedFiles[index] = "aborted";
       $scope.totalFilesAdded -= 1;
-      $scope.fileList[index] = null;
+      //$scope.fileList[index] = null; - throws errors on ng-repeat
       $scope.upload[index].abort();   //when should you abort???
       $scope.upload[index] = null;
-      $scope.uploadedFiles[index] = null;
     };
     /* Call this when user submits form with files, email, and message */
     $scope.submit = function() {
       var uploadedFileTemp = [];
       var j = 0;
       for (var i = 0; i < $scope.uploadedFiles.length; i++) {
-        if ($scope.uploadedFiles[i] !== null) {//check if it should be !=
+        if ($scope.uploadedFiles[i] !== "aborted") {//check if it should be !=
           uploadedFileTemp[j] = $scope.uploadedFiles[i];
           j += 1;
         }
@@ -359,7 +362,6 @@ angular.module('sendFiles')
     //           $scope.active = false;
     //         }
     //         $scope.settings = data.widgetSettings.settings;
-    //         $scope.sessionId = data.widgetSettings.sessionId; //make sure this is the correct format
     //       } else {
     //         console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
     //       }

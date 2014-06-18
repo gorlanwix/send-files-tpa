@@ -101,7 +101,7 @@
 .files {
   padding-top: 0;
   padding-bottom: 0;
-  overflow: scroll;
+  overflow: auto;
   min-height: 50px;
   max-height: 100px;
   overflow-x: hidden;
