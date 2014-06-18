@@ -86,7 +86,20 @@ function insertFile(client, file, sessionId, instance, tokens, callback) {
   });
 }
 
+
+function getAvailableCapacity(tokens, callback) {
+  if (tokens.auth_provider === 'google') {
+    googleDrive.getAvailableCapacity(tokens.access_token, function (err, capacity) {
+      if (err) {
+        return callback(err, null);
+      }
+      callback(null, capacity);
+    });
+  }
+}
+
 module.exports = {
   zip: zip,
-  insertFile: insertFile
+  insertFile: insertFile,
+  getAvailableCapacity: getAvailableCapacity
 };

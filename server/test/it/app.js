@@ -4,19 +4,24 @@ var mocha = require('mocha');
 var expect = require('chai').expect;
 var request = require('supertest');
 var app = require('../../app');
+var googleDrive = require('../../controllers/google-drive.js');
+var userAuth = require('../../controllers/user-auth.js');
 var pg = require('pg');
 var connectionString = process.env.DATABASE_URL || require('../../connect-keys/pg-connect.json').connectPg;
 
 var instanceId = 'whatever';
 var compId = '12345'
 
-describe('api', function () {
-
+describe('requests', function () {
   it('should be not found', function (done) {
     request(app).get('/adsfasdfa')
       .expect('Content-Type', /json/)
       .expect(404, done);
   });
+});
+
+describe('api requests', function () {
+
 
   describe('widget IDs', function () {
     it('should give invalid instance error', function (done) {
@@ -52,15 +57,12 @@ describe('api', function () {
 
     after(function (doneAfter) {
       pg.connect(connectionString, function (err, client, done) {
-        var deleteSession = 'DELETE FROM session WHERE instance_id = $1 AND component_id = $2'
         var deleteSettings = 'DELETE FROM widget_settings WHERE instance_id = $1 AND component_id = $2';
         var values = [instanceId, compId];
-        client.query(deleteSession, values, function (err) {
-          client.query(deleteSettings, values, function (err) {
-            done();
-            pg.end();
-            doneAfter();
-          });
+        client.query(deleteSettings, values, function (err) {
+          done();
+          pg.end();
+          doneAfter();
         });
       });
     });
@@ -76,7 +78,6 @@ describe('api', function () {
           expect(res.body).to.have.property('status').to.equal(200);
           expect(res.body.widgetSettings).to.have.property('userEmail').to.equal('');
           expect(res.body.widgetSettings).to.have.property('provider').to.equal('');
-          expect(res.body.widgetSettings).to.have.property('sessionId').to.exist;
           expect(res.body.widgetSettings).to.have.property('settings').to.be.an('object');
           done();
         });
@@ -153,17 +154,35 @@ describe('api', function () {
 
   });
 
+  describe('files upload session', function () {
+    this.timeout(10000);
+    it('should get capacity and sessionId', function (done) {
+      request(app).get('/api/files/session/' + compId)
+        .set('x-wix-instance', instanceId)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(function (err, res){
+          if (err) return done(err);
+          expect(res.body).to.have.property('status').to.equal(200);
+          expect(res.body).to.have.property('sessionId').to.exist;
+          expect(res.body).to.have.property('capacity').to.exist;
+          done();
+        });
+    });
+  });
+
   describe('files upload', function () {
     var fileIds = [];
     var sessionId;
 
     before(function (beforeDone) {
-      request(app).get('/api/settings/' + compId)
+      request(app).get('/api/files/session/' + compId)
         .set('x-wix-instance', instanceId)
         .end(function (err, res){
           console.log(res.body);
           if (err) return done(err);
-          sessionId = res.body.widgetSettings.sessionId;
+          sessionId = res.body.sessionId;
+          console.log('sessionId: ', sessionId);
           beforeDone();
         });
     });
@@ -253,3 +272,44 @@ describe('api', function () {
   });
 
 });
+
+
+describe('Google Drive', function () {
+  var accessToken;
+  this.timeout(10000);
+
+  before(function (done) {
+    var widgetIds = {
+      instanceId: instanceId,
+      compId: compId
+    };
+    pg.connect(connectionString, function (err, client, doneBefore) {
+      userAuth.getInstanceTokens(client, widgetIds, function (err, tokens) {
+        if (err) {
+          console.error('token retrieval error: ', err);
+        }
+        accessToken = tokens.access_token;
+        done();
+        pg.end();
+        doneBefore();
+      });
+    });
+  });
+
+  it('should get available capacity from Google', function (done) {
+    googleDrive.getAvailableCapacity(accessToken, function (err, capacity) {
+      if (err) {
+        console.log('capacity error: ', err);
+      }
+      console.log('capacity: ', capacity);
+      expect(capacity).to.be.a('number');
+      done();
+    });
+  });
+});
+
+
+
+
+
+

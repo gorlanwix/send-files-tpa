@@ -111,7 +111,7 @@ app.get('/auth/callback/google', function (req, res, next) {
 
 app.use('/api', function (req, res, next) {
 
-  var instance = 'whatever';//req.header('X-Wix-Instance');
+  var instance = req.header('X-Wix-Instance');
 
   var currInstance;
   try {
@@ -205,6 +205,47 @@ app.get('/api/auth/logout/google/:compId', function (req, res, next) {
 
 app.get('/login', function (req, res) {
   res.sendfile('./login.html');
+});
+
+
+app.get('/api/files/session/:compId', function (req, res, next) {
+  pg.connect(connectionString, function (err, client, done) {
+    if (err) {
+      done();
+      pg.end();
+      console.error('db connection error: ', err);
+      return next(error('cannot connect to database', httpStatus.INTERNAL_SERVER_ERROR));
+    }
+    userAuth.getInstanceTokens(client, req.widgetIds, function (err, tokens) {
+      if (err) {
+        done();
+        pg.end();
+        console.error('getting instance tokens error', err);
+        return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
+      }
+      upload.getAvailableCapacity(tokens, function (err, capacity) {
+        if (err) {
+          done();
+          pg.end();
+          return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
+        }
+        db.session.open(client, req.widgetIds, function (err, sessionId) {
+          done();
+          pg.end();
+          if (err) {
+            return next(error('cannot open session', httpStatus.INTERNAL_SERVER_ERROR));
+          }
+          var resJson = {
+            sessionId: sessionId,
+            capacity: capacity,
+            status: httpStatus.OK
+          }
+          res.status(httpStatus.OK);
+          res.json(resJson);
+        });
+      });
+    });
+  });
 });
 
 
@@ -326,7 +367,7 @@ app.post('/api/files/send/:compId', function (req, res, next) {
         done();
         pg.end();
         console.error('getting instance tokens error', err);
-        return next(error('widget is not signed in', httpStatus.BAD_REQUEST));
+        return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
       }
       db.files.getByIds(client, sessionId, toUploadFileIds, function (err, files) {
         if (err) {
@@ -339,28 +380,39 @@ app.post('/api/files/send/:compId', function (req, res, next) {
         if (files[0].sum > MAX_FILE_SIZE) {
           done();
           pg.end();
-          console.error('total files size is too large', err);
-          // somthing is broken here
           return next(error('total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
         }
-
-        res.status(httpStatus.ACCEPTED);
-        res.json({status: httpStatus.ACCEPTED});
-
-
-        console.log('files to be zipped: ', files);
-        var zipName = visitorName.replace(/\s+/g, '-');
-
-        upload.zip(files, zipName, function (err, archive) {
-          console.log('zipped file: ', archive);
+        upload.getAvailableCapacity(tokens, function (err, capacity) {
           if (err) {
-            console.log('zipping error', err);
-          }
-          upload.insertFile(client, archive, sessionId, req.widgetIds, tokens, function (err, result) {
-            if (err) { console.error('uploading to google error', err); }
-            console.log('inserted file: ', result);
             done();
             pg.end();
+            return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
+          }
+
+          if (capacity <= MAX_FILE_SIZE) {
+            done();
+            pg.end();
+            return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
+          }
+
+          res.status(httpStatus.ACCEPTED);
+          res.json({status: httpStatus.ACCEPTED});
+
+
+          console.log('files to be zipped: ', files);
+          var zipName = visitorName.replace(/\s+/g, '-');
+
+          upload.zip(files, zipName, function (err, archive) {
+            console.log('zipped file: ', archive);
+            if (err) {
+              console.log('zipping error', err);
+            }
+            upload.insertFile(client, archive, sessionId, req.widgetIds, tokens, function (err, result) {
+              if (err) { console.error('uploading to google error', err); }
+              console.log('inserted file: ', result);
+              done();
+              pg.end();
+            });
           });
         });
       });
@@ -369,10 +421,9 @@ app.post('/api/files/send/:compId', function (req, res, next) {
 });
 
 
-// /api/settings/:compId to recieve a sessionId
+// /api/settings/:compId
 
 app.get('/api/settings/:compId', function (req, res, next) {
-
 
   pg.connect(connectionString, function (err, client, done) {
     if (err) {
@@ -382,6 +433,8 @@ app.get('/api/settings/:compId', function (req, res, next) {
       return next(error('cannot connect to database', httpStatus.INTERNAL_SERVER_ERROR));
     }
     db.widget.getSettings(client, req.widgetIds, function (err, widgetSettings) {
+      done();
+      pg.end();
 
       var settingsResponse = {
         userEmail: '',
@@ -392,21 +445,11 @@ app.get('/api/settings/:compId', function (req, res, next) {
       if (widgetSettings !== null) {
         settingsResponse.userEmail = widgetSettings.user_email;
         settingsResponse.provider = widgetSettings.curr_provider;
-        settingsResponse.settings = JSON.parse(widgetSettings.settings);
+        settingsResponse.settings = widgetSettings.settings;
       }
 
-      db.session.open(client, req.widgetIds, function (err, sessionId) {
-        if (err) {
-          done();
-          pg.end();
-          return next(error('cannot open session', httpStatus.INTERNAL_SERVER_ERROR));
-        }
-        settingsResponse.sessionId = sessionId;
-        done();
-        pg.end();
-        res.status(httpStatus.OK);
-        res.json({widgetSettings: settingsResponse, status: httpStatus.OK});
-      });
+      res.status(httpStatus.OK);
+      res.json({widgetSettings: settingsResponse, status: httpStatus.OK});
     });
   });
 });
@@ -414,6 +457,7 @@ app.get('/api/settings/:compId', function (req, res, next) {
 
 app.put('/api/settings/:compId', function (req, res, next) {
 
+  console.log(req.body);
   var widgetSettings = req.body.widgetSettings;
   var userEmail = widgetSettings.userEmail;
   var isValidSettings = widgetSettings && userEmail !== undefined &&

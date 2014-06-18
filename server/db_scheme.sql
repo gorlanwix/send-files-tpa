@@ -1,4 +1,4 @@
-CREATE TABLE oauth_token (
+CREATE TABLE provider (
     instance_id text NOT NULL,
     component_id text NOT NULL,
     access_token text NOT NULL,
@@ -6,6 +6,7 @@ CREATE TABLE oauth_token (
     token_type text NOT NULL,
     expires timestamp NOT NULL,
     auth_provider text NOT NULL,
+    settings json DEFAULT, -- think more about this
     created timestamp NOT NULL,
     PRIMARY KEY (instance_id, component_id)
 )
