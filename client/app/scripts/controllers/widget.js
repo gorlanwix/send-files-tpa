@@ -235,6 +235,7 @@ angular.module('sendFiles')
         }).error(function (data, status, headers, config) {
           //fail everything - tell user that owner has not enough space.
           //probably should try to verify again! - but keep track of number of retrys with variable - only retry two times
+          //MAKE SURE IT IS IMPOSSIBLE FOR USER TO CONTINUE UPLOADING FILES
       });
      }
 
