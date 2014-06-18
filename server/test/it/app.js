@@ -4,9 +4,12 @@ var mocha = require('mocha');
 var expect = require('chai').expect;
 var request = require('supertest');
 var app = require('../../app');
+var async = require('async');
 var googleDrive = require('../../controllers/google-drive.js');
 var userAuth = require('../../controllers/user-auth.js');
+var email = require('../../controllers/email.js');
 var pg = require('pg');
+var fs = require('fs');
 var connectionString = process.env.DATABASE_URL || require('../../connect-keys/pg-connect.json').connectPg;
 
 var instanceId = 'whatever';
@@ -22,6 +25,7 @@ describe('requests', function () {
 
 describe('api requests', function () {
 
+  this.timeout(60000);
 
   describe('widget IDs', function () {
     it('should give invalid instance error', function (done) {
@@ -155,7 +159,19 @@ describe('api requests', function () {
   });
 
   describe('files upload session', function () {
-    this.timeout(10000);
+
+    var sessionId;
+
+    after(function (doneAfter) {
+      pg.connect(connectionString, function (err, client, done) {
+        var deleteSession = 'DELETE FROM session WHERE session_id = $1'
+        var values = [sessionId];
+        client.query(deleteSession, values, function (err) {
+          done();
+          pg.end();
+        });
+      });
+    });
     it('should get capacity and sessionId', function (done) {
       request(app).get('/api/files/session/' + compId)
         .set('x-wix-instance', instanceId)
@@ -166,14 +182,16 @@ describe('api requests', function () {
           expect(res.body).to.have.property('status').to.equal(200);
           expect(res.body).to.have.property('sessionId').to.exist;
           expect(res.body).to.have.property('capacity').to.exist;
+          sessionId = res.body.sessionId;
           done();
         });
     });
   });
 
-  describe('files upload', function () {
+  describe.only('files upload', function () {
     var fileIds = [];
     var sessionId;
+    var tmpPath = './tmp/';
 
     before(function (beforeDone) {
       request(app).get('/api/files/session/' + compId)
@@ -187,20 +205,33 @@ describe('api requests', function () {
         });
     });
 
-    // after(function (doneAfter) {
-    //   pg.connect(connectionString, function (err, client, done) {
-    //     var deleteSession = 'DELETE FROM session WHERE instance_id = $1 AND component_id = $2'
-    //     var deleteSettings = 'DELETE FROM widget_settings WHERE instance_id = $1 AND component_id = $2';
-    //     var values = [instanceId, compId];
-    //     client.query(deleteSession, values, function (err) {
-    //       client.query(deleteSettings, values, function (err) {
-    //         done();
-    //         pg.end();
-    //         doneAfter();
-    //       });
-    //     });
-    //   });
-    // });
+    after(function (doneAfter) {
+      pg.connect(connectionString, function (err, client, done) {
+        var deleteFiles = 'DELETE FROM file WHERE session_id = $1 RETURNING temp_name';
+        var deleteSession = 'DELETE FROM session WHERE session_id = $1'
+        var values = [sessionId];
+        client.query(deleteFiles, values, function (err, files) {
+          client.query(deleteSession, values, function (err) {
+            done();
+            pg.end();
+
+            async.each(files, function (file, callback) {
+              fs.unlink(tmpPath + file.temp_name, function(err) {
+                if (err) {
+                  return callback(err);
+                }
+                callback();
+              });
+            }, function(err){
+                if( err ) {
+                  console.log('A file failed to process');
+                }
+                doneAfter();
+            });
+          });
+        });
+      });
+    });
 
     it('should error asking for sessionId', function (done) {
       request(app).post('/api/files/upload/' + compId)
@@ -248,12 +279,11 @@ describe('api requests', function () {
         });
     });
 
-    it('should upload zipped files to Google', function (done) {
-      this.timeout(10000);
+    it('should upload zipped files to Google and send email', function (done) {
       var resJson = {
-        visitorEmail: "timoha@bugaga.com",
-        visitorName: "Andrey Elenskiy",
-        message: "You better fucking work",
+        visitorEmail: 'timoha@bugaga.com',
+        visitorName: 'Andrey Elenskiy',
+        message: 'You better f*cking work',
         fileIds: fileIds
       }
 
@@ -306,6 +336,29 @@ describe('Google Drive', function () {
       done();
     });
   });
+});
+
+
+describe('Email', function () {
+
+  function Visitor(name, email, message, fileUrl) {
+    this.name = name;
+    this.email = email;
+    this.message = message;
+    this.fileUrl = fileUrl;
+  }
+
+
+  it('should send email', function (done) {
+    var message = 'Testing email troloo #yolo #swag <3 <3 <3';
+    var url = 'http://static.parastorage.com/services/html-landing/hp/ny/images/1920/stage_1/wix_logo.png';
+    var visitor = new Visitor('Timoha TROLOLO', 'andrey.elenskiy@gmail.com', message, url);
+    email.send('andreye@wix.com', visitor, function (err, res) {
+      expect(res).to.exist;
+      done();
+    });
+  });
+
 });
 
 
