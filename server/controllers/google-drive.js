@@ -7,19 +7,53 @@ var request = require('request');
 var async = require('async');
 var httpStatus = require('http-status');
 
+var ROOT_URL = 'https://www.googleapis.com/';
+var DRIVE_API_PATH = 'upload/drive/v2/files';
+var DRIVE_ABOUT_PATH = 'drive/v2/about';
+
 
 function constructUrl(root, path, params) {
   var paramsString = '';
-  if (params !== undefined) {
+  if (params) {
     paramsString = '?' + qs.stringify(params);
   }
   path = (path.charAt(0) === '/') ? path.substr(1) : path;
   return root + path + paramsString;
 }
 
+function getAvailableCapacity(accessToken, callback) {
+  var options = {
+    url: constructUrl(ROOT_URL, DRIVE_ABOUT_PATH, null),
+    method: 'GET',
+    headers: {
+      'Authorization': 'Bearer ' + accessToken
+    },
+  };
+
+  request(options, function (err, res, body) {
+    if (err) {
+      console.error('request for capacity error', err);
+      return callback(err, null);
+    }
+
+    if (res.statusCode !== httpStatus.OK) {
+      console.error('request error body: ', res.body);
+      var errorMessage = 'Cannot retrieve Google Drive capacity: ' +
+                          body.error.code + ' ' +
+                          body.error.messsage;
+      return callback(new Error(errorMessage), null);
+    }
+
+
+    var body = JSON.parse(body);
+
+    var totalQuota = body.quotaBytesTotal;
+    var usedQuota = body.quotaBytesUsedAggregate;
+    callback(null, totalQuota - usedQuota);
+  });
+}
+
 function getGoogleUploadUrl(file, accessToken, callback) {
-  var ROOT_URL = 'https://www.googleapis.com/';
-  var DRIVE_API_PATH = 'upload/drive/v2/files';
   var fileDesc = {
     title: file.originalname,
     mimeType: file.mimetype,
@@ -39,7 +73,6 @@ function getGoogleUploadUrl(file, accessToken, callback) {
     json: true
   };
 
-  console.log('options: ', options);
 
   request(options, function (err, res, body) {
 
@@ -209,4 +242,5 @@ function insertFile(file, accessToken, callback) {
 
 module.exports = {
   insertFile: insertFile,
+  getAvailableCapacity: getAvailableCapacity
 };
