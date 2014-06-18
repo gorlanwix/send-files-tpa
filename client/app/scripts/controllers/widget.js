@@ -162,20 +162,20 @@ angular.module('sendFiles')
     $scope.onFileSelectUnlimited = function($files) {
       // add some total bytes display
       for(var i = 0; i < $files.length; i++) {
-        $scope.totalFilesAdded += 1;
         var file = $files[i];
         if (file.size > uploadLimit) { //Test with files almost 1GB
-          file.newSize = (Math.floor(file.size / GBbytes * 100) / 100).toString() + 'GB';
+          file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
           $scope.tooLargeList.push(file);
           console.log(file.size);
         } else {
           var sizeInMB = Math.floor(file.size / MBbytes);
           if (sizeInMB === 0) {
-            file.newSize = ' <1 MB';
+            file.newSize = ' 1 MB';
           } else {
             file.newSize = sizeInMB.toString() + ' MB';
           }
           $scope.fileList.push(file);
+          $scope.totalFilesAdded += 1;
           $scope.start(fileIndex, instanceID);
           console.log(fileIndex); //error checking purposes
           fileIndex += 1;
@@ -192,22 +192,22 @@ angular.module('sendFiles')
         $scope.verifySpace();
       }
       for (var i = 0; i < $files.length; i++) {
-        $scope.totalFilesAdded += 1;
         var file = $files[i];
         if ($scope.totalBytes + file.size > uploadLimit) {
-          file.newSize = (Math.floor(file.size / GBbytes * 100) / 100).toString() + 'GB';
+          file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
           $scope.tooLargeList.push(file);
         } else {
 
           var sizeInMB = Math.floor(file.size / MBbytes);
           if (sizeInMB === 0) {
-            file.newSize = '< 1MB';
+            file.newSize = ' 1MB';
           } else {
             file.newSize = sizeInMB.toString() + 'MB';
           }
           $scope.fileList.push(file);
           $scope.totalBytes += file.size;
           
+          $scope.totalFilesAdded += 1;
           $scope.start(fileIndex);
           fileIndex += 1;
         }

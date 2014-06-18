@@ -25,14 +25,14 @@
           <span class="tool-tip">Please add a file</span>
       </div>
       <!-- Show uploading files here -->
-      <div>
+      <!-- <div class="block too-large">
         <ul class="list-files">
-          <!-- <li>The following files can't be loaded due to lack of storage space.</li> -->
+          <li ng-show="tooLargeList.length > 0">The following files can't be added due to lack of storage space:</li>
           <li ng-repeat="file in tooLargeList">
-            {{file.name}} - {{file.newSize}} - File is too large!
+            {{file.name}} - {{file.newSize}}
           </li>
         </ul>
-      </div>
+      </div> -->
       <ul class="list-files">
         <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
           <span class="file-text" ng-style="borderStyle($first)" hover>
