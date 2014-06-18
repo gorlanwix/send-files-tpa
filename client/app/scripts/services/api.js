@@ -11,7 +11,8 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
   };
 
   var headers = {
-    'X-Wix-Instance': $wix.Utils.getInstanceId()
+    'X-Wix-Instance': 'whatever', //$wix.Utils.getInstanceId(),
+    'Content-Type': 'application/json'
   };
 
   // console.log(headers); //for testing
@@ -26,6 +27,7 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
   return {
     defaults: defaults,
     saveSettings: function (settings) {
+      console.log(1);
       return Settings.save(settings);
     },
     getSettings: function (defaults) {
