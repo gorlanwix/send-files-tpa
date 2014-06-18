@@ -196,10 +196,6 @@
   }
 }
 
-.hover {
-  background-color: #FFFF99;
-}
-
 .file-info {
   display: inline-block;
   max-width: 75%;
@@ -225,13 +221,13 @@
 
 .status-text {
   float: right;
-  color: red;
+  color: #E50000;
   font-size: 17px;
   display: inline-block;
 }
 
 .checkmark {
-  color: #329932;
+  color: #005900;
 }
 
 .progress-text {
@@ -262,6 +258,10 @@
   background-color: white;
   height: 100%;
   display: block;
+}
+
+.hover {
+  background-color: #FFFF99 !important;
 }
 
 .input-block {

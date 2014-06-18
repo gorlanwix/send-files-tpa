@@ -119,9 +119,19 @@ angular.module('sendFiles')
       }
     });
 
-    $scope.borderStyle = function(first) {
-      if (first) {
-        return {'border-top': 0};
+    $scope.fileStyle = function(index) {
+      if ($scope.progressIcons[index] === true) {
+        if (index === 0) {
+          return {'border-top': 0, 'background-color': '#93C993'};
+        } else {
+          return {'background-color': '#93C993'};
+        }
+      } else if ($scope.progressIcons[index] === false) {
+        if (index === 0) {
+          return {'border-top': 0, 'background-color': '#FF9999'};
+        } else {
+          return {'background-color': '#FF9999'};
+        }
       } else {
         return {};
       }
