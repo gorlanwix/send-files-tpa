@@ -72,10 +72,11 @@ angular.module('sendFiles')
       * upload process. */
     $scope.progress = [];
 
-    /* Holds all the values for each file that are displayed to the user.
-     * Most of the time it is a progress number, but can be an error icon
-     * or completion icon. */
-     $scope.progressIcons = [];
+    /* An array of length equal to the number of files with icons at certain 
+     * indices. If an index has an icon, then either an error or success icon
+     * is shown to the user. Otherwise, a file upload progress percentage is 
+     * shown. */
+    $scope.progressIcons = [];
 
     /* A list used to tell what files have been successfully uploaded. It is 
      * sent to the backend for verification when the user hits submit. The
@@ -88,15 +89,16 @@ angular.module('sendFiles')
     var spaceVerified = false;
 
     /* Data to be sent to server when the user submits. */
-    var finalSubmission = {'visitorName': '',
-                           'email': '',
-                           'message': '',
-                           'toUpload': $scope.uploadedFiles
+    var finalSubmission = {"visitorName": "",
+                           "email": "",
+                           "message": "",
+                           "toUpload": $scope.uploadedFiles
                           };
 
     /* Records the visitor's name and updates final message to server. */
     $scope.updateVisitorName = function (newValue) {
       finalSubmission.visitorName = newValue;
+      console.log(newValue);
     };
 
     /* Records the visitor's email and updates final message to server. */
@@ -231,6 +233,7 @@ angular.module('sendFiles')
           }
         }).error(function (data, status, headers, config) {
           //fail everything - tell user that owner has not enough space.
+          //probably should try to verify again! - but keep track of number of retrys with variable - only retry two times
       });
      }
 
@@ -265,10 +268,12 @@ angular.module('sendFiles')
               $scope.uploadedFiles.push(uploadVerified);
             }
             $scope.progress[index] = 0;
+            $scope.progressIcons[index] = true;
           } else {
             console.log('ERROR ERROR ERROR: success failed!');
           }
       }).error(function(data, status, headers, config) {
+          $scope.progressIcons[index] = false;
           console.log('ERROR ERROR ERROR');
           console.log(data);
           //give try again error to user

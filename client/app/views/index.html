@@ -42,8 +42,15 @@
               {{file.name}} - {{file.newSize}}
             </span>
             <a class="remove" href="#" ng-click="abort($index)">.</a>
-            <span class="status-text">
-              &#10008; &#10004;
+            <span class="status-text progress-text" ng-if="progressIcons[$index]
+            === undefined">
+              {{100 - progress[$index]}}%
+            </span>
+            <span class="status-text" ng-if="progressIcons[$index] === false">
+              &#10008;
+            </span>
+            <span class="status-text checkmark" ng-if="progressIcons[$index] === true">
+              &#10004;
             </span>
           </span>
           <div style="clear: both;"></div>

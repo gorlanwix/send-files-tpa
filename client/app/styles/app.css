@@ -172,43 +172,6 @@
   background-color: #FFFF99;
 }
 
-.display {
-  display: none;
-}
-
-/*.hover-files {
-  background-color: red;
-  position: absolute;
-  text-indent: 100%;
-  overflow: hidden;
-  width: 88%;
-  color: white;
-  text-decoration: none;
-}
-
-@media all and (min-width: 400px) and (max-width: 700px) {
-  .hover-files {
-    width: 92%;
-  }
-}
-
-@media all and (min-width: 700px) and (max-width: 1000px) {
-  .hover-files {
-    width: 95%;
-  }
-}
-
-@media all and (min-width: 1000px) {
-  .hover-files {
-    width: 97%;
-  }
-}
-
-.hover {
-  background-color: blue;
-  height: 21px;
-}*/
-
 .file-info {
   display: inline-block;
   max-width: 75%;
@@ -235,8 +198,16 @@
 .status-text {
   float: right;
   color: red;
-  font-size: 15px;
+  font-size: 17px;
   display: inline-block;
+}
+
+.checkmark {
+  color: #329932;
+}
+
+.progress-text {
+  font-size: 14px;
 }
 
 .progress {
