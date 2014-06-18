@@ -169,6 +169,33 @@
   }
 }
 
+.retry-files {
+  position: absolute;
+  text-indent: 100%;
+  overflow: hidden;
+  width: 88%;
+  color: white;
+  text-decoration: none;
+}
+
+@media all and (min-width: 400px) and (max-width: 700px) {
+  .retry-files {
+    width: 92%;
+  }
+}
+
+@media all and (min-width: 700px) and (max-width: 1000px) {
+  .retry-files {
+    width: 95%;
+  }
+}
+
+@media all and (min-width: 1000px) {
+  .retry-files {
+    width: 97%;
+  }
+}
+
 .hover {
   background-color: #FFFF99;
 }

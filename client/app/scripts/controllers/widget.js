@@ -218,7 +218,8 @@ angular.module('sendFiles')
     /* Sends a request to the server to check if the Google Drive
      * has enough storage space. */
     $scope.verifySpace = function() {
-      var verifyURL = ''; //wait for this
+      console.log("compID: " + compID);
+      var verifyURL = '/api/files/session/' + compID; //wait for this
       $http({method: 'GET',
              url: verifyURL,
              headers: {'X-Wix-Instance' : instanceID}
@@ -247,51 +248,52 @@ angular.module('sendFiles')
       $scope.progress[index] = 100;
 
       console.log(index);
-
-      var uploadURL = '/api/files/upload/' + compID + '?sessionId=' + $scope.sessionId;
-      $scope.upload[index] = $upload.upload({
-        url: uploadURL,
-        method: 'POST',
-        headers: {'X-Wix-Instance' : instanceID},
-        file: $scope.fileList[index] //could technically upload all files - but only supported in HTML 5
-      }).progress(function(evt) {
-        console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total, 10));
-        $scope.progress[index] = (100 - Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10)));
-        //fill in other 100 when sucess
-        /* Use this data to implment progress bar */
-      }).success(function (data, status, headers, config) {
-          //assuming data is the temp ID
-          console.log(data);
-          if (status === 201) {
-            var uploadVerified = {'fileId' : data}; //make sure this the actual format
-            if ($scope.uploadedFiles[index] !== 'aborted') {
-              $scope.uploadedFiles.push(uploadVerified);
+      if ($scope.upload[index] !== 'aborted') {
+        var uploadURL = '/api/files/upload/' + compID + '?sessionId=' + $scope.sessionId;
+        $scope.upload[index] = $upload.upload({
+          url: uploadURL,
+          method: 'POST',
+          headers: {'X-Wix-Instance' : instanceID},
+          file: $scope.fileList[index] //could technically upload all files - but only supported in HTML 5
+        }).progress(function(evt) {
+          console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total, 10));
+          $scope.progress[index] = (100 - Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10)));
+          //fill in other 100 when sucess
+          /* Use this data to implment progress bar */
+        }).success(function (data, status, headers, config) {
+            //assuming data is the temp ID
+            console.log(data);
+            if (status === 201) {
+              var uploadVerified = {'fileId' : data}; //make sure this the actual format
+              if ($scope.uploadedFiles[index] !== 'aborted') {
+                $scope.uploadedFiles.push(uploadVerified);
+              }
+              $scope.progress[index] = 0;
+              $scope.progressIcons[index] = true;
+            } else {
+              console.log('ERROR ERROR ERROR: success failed!');
             }
-            $scope.progress[index] = 0;
-            $scope.progressIcons[index] = true;
-          } else {
-            console.log('ERROR ERROR ERROR: success failed!');
-          }
-      }).error(function(data, status, headers, config) {
-          $scope.progressIcons[index] = false;
-          console.log('ERROR ERROR ERROR');
-          console.log(data);
-          //give try again error to user
-      }).xhr(function(xhr) {
-          xhr.upload.addEventListener('abort', function() {
-            console.log('abort complete');
-          }, false); //check if this is necessary
-      });
+        }).error(function(data, status, headers, config) {
+            $scope.progressIcons[index] = false;
+            console.log('ERROR ERROR ERROR');
+            console.log(data);
+            //give try again error to user
+        }).xhr(function(xhr) {
+            xhr.upload.addEventListener('abort', function() {
+              console.log('abort complete');
+            }, false); //check if this is necessary
+        });
+      }
     };
 
     /* Call this when user wants to remove file from list. */
     $scope.abort = function(index) { /* TODO: Pass in file in HTML somehow! */
       //test if you can get program to crash by aborting before the upload even occurs
-      $scope.uploadedFiles[index] = "aborted";
+      $scope.uploadedFiles[index] = 'aborted';
       $scope.totalFilesAdded -= 1;
       //$scope.fileList[index] = null; - throws errors on ng-repeat
       $scope.upload[index].abort();   //when should you abort???
-      $scope.upload[index] = null;
+      $scope.upload[index] = 'aborted';
     };
     /* Call this when user submits form with files, email, and message */
     $scope.submit = function() {
@@ -313,6 +315,8 @@ angular.module('sendFiles')
       }).success(function(data, status, headers, config) {
           if (status === 202) {
             $scope.success();
+            //deal with capacity errors (google drive ran out of space as we
+              //were uploading after the verification) status: 400
           } else {
             console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
           }
@@ -331,6 +335,9 @@ angular.module('sendFiles')
     $scope.initiateFailure = function() {
       //call this only if submit fails
       $scope.uploadFailed = true;
+
+      //could instatiate this function with a specific error message for the user
+      //would just change some scope variable to function argument
     };
 
     /* Call this to reset widget after widget upload fail.

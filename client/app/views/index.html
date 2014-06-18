@@ -36,8 +36,7 @@
       <ul class="list-files">
         <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
           <span class="file-text" ng-style="borderStyle($first)" hover>
-            <!-- <a class="hover-files" href="#">.</a>
-            <div class="hover-files hover"></div> -->
+            <a class="retry-files" href="#">.</a>
             <span class="file-info">
               {{file.name}} - {{file.newSize}}
             </span>
