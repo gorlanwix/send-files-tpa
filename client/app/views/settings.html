@@ -15,17 +15,17 @@
 	        <h3>Content Settings</h3>
 	        <div class="acc-content">
 	        	<ul class="list">
+	        		<li wix-label="Your Name Text">
+			        	<div wix-model="yourNameText" wix-ctrl="Input" wix-options="{placeholder: 'Your name'}"></div>
+			        </li>
 		        	<li wix-label="Email Address Text">
-			        	<div wix-model="emailAddressText" wix-ctrl="Input" wix-options="{placeholder: 'Your Email Address'}"></div>
+			        	<div wix-model="emailAddressText" wix-ctrl="Input" wix-options="{placeholder: 'Your email address'}"></div>
 			        </li>
 		        	<li wix-label="Headline Text">
 			        	<div wix-model="headlineText" wix-ctrl="Input" wix-options="{placeholder: 'Upload the file and send it to us. We will review it as soon as possible'}"></div>
 			        </li>
 			        <li wix-label="Add Button Text">
 			        	<div wix-model="addButtonText" wix-ctrl="Input" wix-options="{placeholder: 'Submit'}"></div>
-			        </li>
-			        <li wix-label="No File Text">
-			        	<div wix-model="noFileText" wix-ctrl="Input" wix-options="{placeholder: 'No File Added'}"></div>
 			        </li>
 			        <li wix-label="Message To Recipient">
 			        	<div wix-model="messageText" wix-ctrl="Input" wix-options="{placeholder: 'You can add a message to site owner'}"></div>
@@ -48,9 +48,10 @@
 		        	</li>
 		        	<li wix-label="Divider Width">
 		        		<div wix-model="dividerWidth" wix-ctrl="ButtonGroup">
-						    <button value="small">Small</button>
-						    <button value="medium">Medium</button>
-						    <button value="large">Large</button>
+						    <button value="1">Tiny</button>
+						    <button value="3">Small</button>
+						    <button value="5">Medium</button>
+						    <button value="8">Large</button>
 						</div>
 		        	</li>
 			        <li wix-label="Headline Color &amp; Font">
