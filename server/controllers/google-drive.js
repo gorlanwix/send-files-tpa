@@ -53,7 +53,7 @@ function getAvailableCapacity(accessToken, callback) {
   });
 }
 
-function getGoogleUploadUrl(file, accessToken, callback) {
+function getUploadUrl(file, accessToken, callback) {
   var fileDesc = {
     title: file.originalname,
     mimeType: file.mimetype,
@@ -122,7 +122,7 @@ function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
 }
 
 
-function recoverUploadToGoogle(file, uploadUrl, accessToken, callback) {
+function recoverUpload(file, uploadUrl, accessToken, callback) {
   var watingTimes = [0, 1000, 2000, 4000, 8000, 16000];
   var startFrom = 0;
   var recoverCount = 0;
@@ -161,7 +161,7 @@ function recoverUploadToGoogle(file, uploadUrl, accessToken, callback) {
 
 
 // todo set a limit to a number of recovers
-function uploadFileToGoogle(file, uploadUrl, accessToken, start, maxRecovers, callback) {
+function uploadFile(file, uploadUrl, accessToken, start, maxRecovers, callback) {
 
   var options = {
     url: uploadUrl,
@@ -192,13 +192,13 @@ function uploadFileToGoogle(file, uploadUrl, accessToken, start, maxRecovers, ca
       var shouldRecover = recoverWhenStatus.indexOf(res.statusCode) > -1;
 
       if (shouldRecover && maxRecovers > 0) {
-        recoverUploadToGoogle(file, uploadUrl, accessToken, function (err, startUploadFrom) {
+        recoverUpload(file, uploadUrl, accessToken, function (err, startUploadFrom) {
           if (err) {
             console.error('google upload recover error: ', err);
             return callback(err, null);
           }
 
-          uploadFileToGoogle(file, uploadUrl, accessToken, startUploadFrom, maxRecovers - 1, function (err, result) {
+          uploadFile(file, uploadUrl, accessToken, startUploadFrom, maxRecovers - 1, function (err, result) {
             if (err) {
               return callback(err, null);
             }
@@ -223,13 +223,13 @@ function insertFile(file, accessToken, callback) {
   var MAX_RECOVERS_NUM = 10;
 
   console.log('insering file to google');
-  getGoogleUploadUrl(file, accessToken, function (err, uploadUrl) {
+  getUploadUrl(file, accessToken, function (err, uploadUrl) {
     if (err) {
       console.error('google request error: ', err);
       return callback(err, null);
     }
     console.log('google file upload url: ', uploadUrl);
-    uploadFileToGoogle(file, uploadUrl, accessToken, 0, MAX_RECOVERS_NUM, function (err, result) {
+    uploadFile(file, uploadUrl, accessToken, 0, MAX_RECOVERS_NUM, function (err, result) {
       if (err) {
         console.error('upload file to google error: ', err);
         return callback(err, null);

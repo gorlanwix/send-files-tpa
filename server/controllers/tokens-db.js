@@ -14,7 +14,7 @@ function isAccessTokenExpired(token) {
 }
 
 function insert(instance, tokens, provider, callback) {
-  var q = 'INSERT INTO oauth_token (instance_id, component_id, access_token, refresh_token, token_type, expires, auth_provider, created) \
+  var q = 'INSERT INTO oauth_token (instance_id, component_id, access_token, refresh_token, token_type, expires, provider, created) \
            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())';
   var values = [
     instance.instanceId,
@@ -37,7 +37,7 @@ function insert(instance, tokens, provider, callback) {
 }
 
 function get(instance, callback) {
-  var q = 'SELECT access_token, refresh_token, expires, auth_provider \
+  var q = 'SELECT access_token, refresh_token, expires, provider \
            FROM oauth_token \
            WHERE instance_id = $1 \
            AND component_id = $2 \
@@ -64,7 +64,7 @@ function update(instance, tokens, provider, callback) {
            SET access_token =  $1, expires = $2 \
            WHERE instance_id = $3 \
            AND component_id = $4 \
-           AND auth_provider = $5 \
+           AND provider = $5 \
            RETURNING *';
   var values = [
     tokens.access_token,

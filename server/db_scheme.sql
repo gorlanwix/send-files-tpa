@@ -1,12 +1,11 @@
-CREATE TABLE service (
+CREATE TABLE oauth_token (
     instance_id text NOT NULL,
     component_id text NOT NULL,
     access_token text NOT NULL,
     refresh_token text NOT NULL,
     token_type text NOT NULL,
     expires timestamp NOT NULL,
-    auth_provider text NOT NULL,
-    settings json DEFAULT, -- think more about this
+    provider text NOT NULL,
     created timestamp NOT NULL,
     PRIMARY KEY (instance_id, component_id)
 )
@@ -14,7 +13,8 @@ CREATE TABLE service (
 CREATE TABLE widget_settings (
     instance_id text NOT NULL,
     component_id text NOT NULL,
-    settings json DEFAULT '{}',
+    settings json,
+    service_settings json,
     user_email text DEFAULT '',
     curr_provider text DEFAULT '',
     updated timestamp NOT NULL,
@@ -77,21 +77,21 @@ AND component_id = $2 \
 AND instance_id = $3
 
 
-INSERT INTO oauth_token (instance_id, component_id, access_token, refresh_token, token_type, expires, auth_provider, created) \
+INSERT INTO oauth_token (instance_id, component_id, access_token, refresh_token, token_type, expires, provider, created) \
 VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
 
-SELECT access_token, refresh_token, expires, auth_provider \
+SELECT access_token, refresh_token, expires, provider \
 FROM oauth_token \
 WHERE instance_id = $1 \
 AND component_id = $2 \
-AND auth_provider = $3 \
+AND provider = $3 \
 LIMIT 1
 
 UPDATE oauth_token \
 SET access_token =  $1, expires = $2 \
 WHERE instance_id = $2 \
 AND component_id = $3 \
-AND auth_provider = $4 \
+AND provider = $4 \
 RETURNING *
 
 
@@ -142,7 +142,7 @@ AND component_id = 'however'
 DELETE FROM oauth_token \
 WHERE instance_id = $1 \
 AND component_id = $2 \
-AND auth_provider = $3 \
+AND provider = $3 \
 RETURNING *
 
 

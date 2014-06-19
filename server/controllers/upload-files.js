@@ -74,7 +74,7 @@ function insertFile(file, sessionId, instance, tokens, callback) {
       return callback(err, null);
     }
 
-    if (tokens.auth_provider === 'google') {
+    if (tokens.provider === 'google') {
       googleDrive.insertFile(file, tokens.access_token, function (err, result) {
         if (err) {
           console.error('uploading to google error', err);
@@ -88,7 +88,7 @@ function insertFile(file, sessionId, instance, tokens, callback) {
 
 
 function getAvailableCapacity(tokens, callback) {
-  if (tokens.auth_provider === 'google') {
+  if (tokens.provider === 'google') {
     googleDrive.getAvailableCapacity(tokens.access_token, function (err, capacity) {
       if (err) {
         return callback(err, null);

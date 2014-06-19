@@ -64,7 +64,7 @@ function getInstanceTokens(instance, callback) {
     }
 
 
-    if (tokens.auth_provider === 'google') {
+    if (tokens.provider === 'google') {
       var oauth2Client = createOauth2Client(tokens);
       oauth2Client.refreshAccessToken(function (err, refreshedTokens) {
         if (err) { console.error('token refreshing error: ', err); }

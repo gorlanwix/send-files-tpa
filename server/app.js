@@ -137,43 +137,38 @@ app.get('/api/auth/login/google/:compId', function (req, res, next) {
         res.redirect(url);
       });
     } else {
-      next(error('already logged in to ' + tokensFromDb.auth_provider, httpStatus.BAD_REQUEST));
+      next(error('already logged in to ' + tokensFromDb.provider, httpStatus.BAD_REQUEST));
     }
   });
 });
 
-app.get('/api/auth/logout/google/:compId', function (req, res, next) {
+app.get('/api/auth/logout/:compId', function (req, res, next) {
 
   db.token.remove(req.widgetIds, function (err, tokensFromDb) {
     console.log('removed tokens: ', tokensFromDb);
     if (!tokensFromDb) {
-
-      return next(error('not logged in to google', httpStatus.BAD_REQUEST));
+      return next(error('not logged in', httpStatus.BAD_REQUEST));
     }
 
     var widgetSettings = new WidgetSettings(null, '', null);
 
     db.widget.updateSettings(req.widgetIds, widgetSettings, function (err) {
       if (err) {
-
-
         return next(error('settings update error', httpStatus.INTERNAL_SERVER_ERROR));
       }
-      var oauth2Client = userAuth.createOauth2Client();
-      oauth2Client.revokeToken(tokensFromDb.refresh_token, function (err, result) {
-        console.log('revoked token');
-        if (err) {
+      if (tokensFromDb.provider === 'google') {
+        var oauth2Client = userAuth.createOauth2Client();
+        oauth2Client.revokeToken(tokensFromDb.refresh_token, function (err, result) {
+          console.log('revoked token');
+          if (err) {
+            console.error('token revoking error', err);
+            return next(error('token revoking error', httpStatus.INTERNAL_SERVER_ERROR));
+          }
 
-
-          console.error('token revoking error', err);
-          return next(error('token revoking error', httpStatus.INTERNAL_SERVER_ERROR));
-        }
-
-
-
-        res.status(httpStatus.OK);
-        res.json({status: httpStatus.OK});
-      });
+          res.status(httpStatus.OK);
+          res.json({status: httpStatus.OK});
+        });
+      }
     });
   });
 });
@@ -203,7 +198,7 @@ app.get('/api/files/session/:compId', function (req, res, next) {
           sessionId: sessionId,
           capacity: capacity,
           status: httpStatus.OK
-        }
+        };
         res.status(httpStatus.OK);
         res.json(resJson);
       });
