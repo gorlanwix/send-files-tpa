@@ -1,20 +1,30 @@
 'use strict';
 
 angular.module('sendFiles')
-  .controller('WidgetCtrl', function ($scope, api, $wix, $upload, $http) {
+  .controller('WidgetCtrl', function ($scope, api, $wix, $upload, $http, $location) {
 
      /* Regular expression used to determine if user input is a valid email. */
     $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
-
+    $scope.nameRegex = /\S+/;
     /* Constants used for byte conversion. */
     var GBbytes = 1073741824;
     var MBbytes = 1048576;
 
     /* Upper limit on total size of files that can be uploaded. */
-    var uploadLimit = GBbytes;
+    $scope.uploadLimit = GBbytes;
 
     /* Represents the Instance ID of this widget. */
-    var instanceID = $wix.Utils.getInstanceId();
+    var instanceID;
+    var url = $location.absUrl();
+    var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
+    var instance = instanceRegexp.exec(url);
+    if (instance && instance[1]) {
+      instanceID = instance[1];
+    } else {
+      console.log('All hell has broken loose.');
+      //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
+    }
+    console.log(instanceID);
 
     /* Represents the Component ID of this widget. */
     var compID = $wix.Utils.getOrigCompId();
@@ -47,7 +57,7 @@ angular.module('sendFiles')
     $scope.totalBytes = 0;
 
     /* Total space left for user to upload files in GB. */
-    $scope.totalGBLeft = (uploadLimit - $scope.totalBytes) / GBbytes;
+    $scope.totalGBLeft = ($scope.uploadLimit - $scope.totalBytes) / GBbytes;
 
     /* Used to keep track of the number of files uploaded and their
      * place in various arrays. */
@@ -85,8 +95,9 @@ angular.module('sendFiles')
      */
     $scope.uploadedFiles = [];
 
-    /* True if Google Drive and server has at least 1GB of space. */
-    var spaceVerified = false;
+    /* An alternate message that is displayed on the submit button that only
+     * appears during file uploaidng to give messages to the user. */
+    $scope.fileUploadSubmitText = $scope.settings.submitButtonText;
 
     /* Data to be sent to server when the user submits. */
     var finalSubmission = {"visitorName": "",
@@ -98,7 +109,14 @@ angular.module('sendFiles')
     /* Records the visitor's name and updates final message to server. */
     $scope.updateVisitorName = function (newValue) {
       finalSubmission.visitorName = newValue;
+      console.log($scope.fileForm.visitorName);
+      console.log(newValue === '');
       console.log(newValue);
+      // if (newValue === undefined) {
+      //   $scope.fileForm.visitorName.$invalid = true;
+      // } else {
+      //   $scope.fileForm.visitorName.$invalid = false;
+      // }
     };
 
     /* Records the visitor's email and updates final message to server. */
@@ -109,16 +127,24 @@ angular.module('sendFiles')
     /* Records the visitor's message and updates final message to server. */
     $scope.updateMessage = function (newValue) {
       finalSubmission.message = newValue;
+      if (newValue === undefined) {
+        $scope.fileForm.visitorName.$invalid = true;
+      } else {
+        $scope.fileForm.visitorName.$invalid = false;
+      }
     };
 
     /* Watches for changes in toal space visitor has left to upload files. */
     $scope.$watch('totalBytes', function () {
-      $scope.totalGBLeft = (uploadLimit - $scope.totalBytes) / GBbytes;
+      $scope.totalGBLeft = ($scope.uploadLimit - $scope.totalBytes) / GBbytes;
       if ($scope.totalBytes !== 0) {
         $scope.totalGBLeft -= $scope.totalGBLeft%0.01;
       }
     });
 
+    /* A function to used to style the files list. Files that are loaded
+     * successfully are given a green background, while a red background
+     * means an error has occured. */
     $scope.fileStyle = function(index) {
       if ($scope.progressIcons[index] === true) {
         if (index === 0) {
@@ -131,6 +157,34 @@ angular.module('sendFiles')
           return {'border-top': 0, 'background-color': '#FF9999'};
         } else {
           return {'background-color': '#FF9999'};
+        }
+      } else {
+        return {};
+      }
+    };
+
+    /* A function that is used to style the submit button. A red button is
+     * displayed while an error exists, a yellow button during typical file
+     * upload, and a green button after a successful upload. A unique message
+     * is displayed on the button during each situation.
+     */
+    $scope.submitButtonStyle = function () {
+      if ($scope.totalFilesAdded) {
+        var progress = false;
+        for (var i = 0, n = $scope.progressIcons.length; i < n; i++) {
+          if ($scope.progressIcons[i] === false) {
+            $scope.fileUploadSubmitText = 'Error! Remove the file or click on it to retry!';
+            return {'background-color' : '#FF9999'};
+          } else if ($scope.progressIcons[i] === undefined) {
+            progress = true;
+          }
+        }
+        if (progress) {
+          $scope.fileUploadSubmitText = 'Loading...';
+          return {'background-color' : '#FFFF99'};
+        } else {
+          $scope.fileUploadSubmitText = 'Files ready to submit!';
+          return {'background-color' : '#93C993'};
         }
       } else {
         return {};
@@ -165,6 +219,17 @@ angular.module('sendFiles')
       $scope.showNoFile = false;
     };
 
+    /* Determines if a user is ready to submit or not. Returns true if
+     * NOT ready to submit and false if ready. */
+    $scope.submitNotReady = function() {
+      if (!($scope.fileForm.$invalid) && $scope.totalFilesAdded &&
+            $scope.fileUploadSubmitText === 'Files ready to Submit!') {
+        return false;
+      } else {
+        return true;
+      }
+    };
+
     /* Call this when the user selects file(s) to begin file upload.
      * Use this if users can upload unlimited files as long as they don't
      * exceed 1GB.
@@ -173,7 +238,7 @@ angular.module('sendFiles')
       // add some total bytes display
       for(var i = 0; i < $files.length; i++) {
         var file = $files[i];
-        if (file.size > uploadLimit) { //Test with files almost 1GB
+        if (file.size > $scope.uploadLimit) { //Test with files almost 1GB
           file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
           $scope.tooLargeList.push(file);
           console.log(file.size);
@@ -203,7 +268,7 @@ angular.module('sendFiles')
       }
       for (var i = 0; i < $files.length; i++) {
         var file = $files[i];
-        if ($scope.totalBytes + file.size > uploadLimit) {
+        if ($scope.totalBytes + file.size > $scope.uploadLimit) {
           file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
           $scope.tooLargeList.push(file);
         } else {
@@ -236,7 +301,7 @@ angular.module('sendFiles')
              // timeout: in milliseconds
         }).success(function (data, status, headers, config) {
           if (status === 200) {
-            uploadLimit = data.capacity; // make sure the uploadLimit variable actually changes
+            $scope.uploadLimit = data.capacity; // make sure the uploadLimit variable actually changes
             $scope.sessionId = data.sessionId; //make sure this is the correct format
             //do you need to check if data capacity > 0? or will server just return error?
           } else {
@@ -350,10 +415,31 @@ angular.module('sendFiles')
       //could instatiate this function with a specific error message for the user
       //would just change some scope variable to function argument
     };
-
-    /* Call this to reset widget after widget upload fail.
-     * All upload failure messages will disappear. */
+    /* Call this to reset widget after widget upload fail/success.
+     * All failure/success messages will disappear and most variables are
+     * completly reset. */
     $scope.reset = function() {
+      //console.log($scope.fileForm.$pristine);
+      //$scope.fileForm.visitorName.$setPristine();
+      $scope.fileForm.visitorName.$invalid = true;
+      $scope.fileForm.email.$invalid = true;
+      //$scope.user = mast
+      //console.log($scope.fileForm.visitorName);
+      //$scope.fileForm.visitorName.$viewValue = '';
+      //$scope.fileForm.visitorName.$modelValue = undefined;
+      //$scope.fileForm.email = undefined;
+      //$scope.fileForm.message = undefined;
+      
+      fileIndex = 0;
+      $scope.totalBytes = 0;
+      $scope.totalFilesAdded = 0;
+      $scope.fileList = [];
+      $scope.tooLargeList = [];
+      $scope.upload = [];
+      $scope.progress = [];
+      $scope.progressIcons = [];
+      $scope.uploadedFiles = [];
+
       $scope.uploadFailed = false;
     };
 
@@ -395,7 +481,7 @@ angular.module('sendFiles')
 
     //This block below listens for changes in the settings panel and updates the widget view.
     $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
-     $scope.settings = message;
+      $scope.settings = message;
       // console.log('Input Data: ', message); //for testing communication between widget and settings
       $scope.$apply();
     });
