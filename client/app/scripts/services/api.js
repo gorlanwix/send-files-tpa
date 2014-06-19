@@ -29,22 +29,40 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
   return {
     defaults: defaults,
     saveSettings: function (settings) {
-      console.log(1);
+      console.log('Saving');
       return Settings.save(settings);
     },
     getSettings: function (defaults) {
-      var settings = Settings.get();
+      var settings = {};
+      var data = Settings.get();
       if (defaults === true || defaults) {
-        settings.$promise.then(function () {
+        data.$promise.then(function () {
+          var settingsBackend = data.widgetSettings.settings;
           angular.forEach(defaults, function (value, key) {
-            if (!settings.hasOwnProperty(key)) {
+            if (!settingsBackend.hasOwnProperty(key)) {
               settings[key] = value;
+            } else {
+              settings[key] = settingsBackend[key];
             }
           });
         });
       }
       // console.log(settings); // to print the settings out before syncing them with the widget
       return settings;
+    },
+
+    getSettings2: function (storedSettings) {
+      var settings = Settings.get();
+      var template = storedSettings || defaults;
+      settings.$promise.then(function () {
+          angular.forEach(template, function (value, key) {
+            if (!settings.hasOwnProperty(key)) {
+              settings[key] = value;
+            }
+          });
+        });
+      return settings;
     }
+
   };
 });
