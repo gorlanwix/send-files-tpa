@@ -182,7 +182,7 @@ describe('api requests', function () {
     });
   });
 
-  describe.only('files upload', function () {
+  describe('files upload', function () {
     var fileIds = [];
     var sessionId;
     var tmpPath = './tmp/';
@@ -348,7 +348,16 @@ describe('Email', function () {
     var message = 'Testing email troloo #yolo #swag <3 <3 <3';
     var url = 'http://static.parastorage.com/services/html-landing/hp/ny/images/1920/stage_1/wix_logo.png';
     var visitor = new Visitor('Timoha TROLOLO', 'andrey.elenskiy@gmail.com', message);
-    email.send('andreye@wix.com', visitor, url,  function (err, res) {
+    email.send('andreye@wix.com', visitor, url, function (err, res) {
+      expect(res).to.exist;
+      done();
+    });
+  });
+
+  it.only('should send error emails to both user and visitor', function (done) {
+    var message = 'Testing email troloo #yolo #swag <3 <3 <3';
+    var visitor = new Visitor('Timoha TROLOLO', 'andrey.elenskiy@gmail.com', message);
+    email.sendErrors('andreye@wix.com', visitor, function (err, res) {
       expect(res).to.exist;
       done();
     });
