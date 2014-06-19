@@ -66,28 +66,23 @@ function zip(files, newName, callback) {
   });
 }
 
-
-function insertFile(file, sessionId, instance, tokens, callback) {
-  db.files.updateSessionAndInsert(file, sessionId, instance, function (err) {
+// returns link to file
+function insertFile(file, serviceSettings, sessionId, tokens, callback) {
+  db.files.updateSessionAndInsert(file, sessionId, function (err) {
     console.log('inserted into database: ', file);
     if (err) {
       return callback(err, null);
     }
 
     if (tokens.provider === 'google') {
-      db.widget.getSettings(instance, function (err, settings) {
-        var googleSettings = settings.service_settings;
-        if (!googleSettings) {
-          console.error('cannot get google specific settings', err);
+      googleDrive.insertFile(file, serviceSettings.folderId, tokens.access_token, function (err, result) {
+        if (err) {
+          console.error('uploading to google error', err);
           return callback(err, null);
         }
-        googleDrive.insertFile(file, googleSettings.folderId, tokens.access_token, function (err, result) {
-          if (err) {
-            console.error('uploading to google error', err);
-            return callback(err, null);
-          }
-          callback(null, result);
-        });
+        result = JSON.parse(result);
+        console.log('inserted file: ', result);
+        callback(null, result.alternateLink);
       });
     }
   });
@@ -105,8 +100,35 @@ function getAvailableCapacity(tokens, callback) {
   }
 }
 
+// returns downloadUrl and widget settings object
+
+function zipAndInsert(files, visitor, instance, sessionId, tokens, callback) {
+  db.widget.getSettings(instance, function (err, settings) {
+    if (!settings) {
+      return callback(err, null, null);
+    }
+    var zipName = visitor.name.replace(/\s+/g, '-');
+    zip(files, zipName, function (err, archive) {
+      if (err) {
+        return callback(err, null, settings);
+      }
+      console.log('zipped file: ', archive);
+      insertFile(archive, settings.service_settings, sessionId, tokens, function (err, downloadUrl) {
+
+        if (err) {
+          console.error('inserting file error: ', err);
+          return callback(err, null, settings);
+        }
+
+        callback(null, downloadUrl, settings);
+      });
+    });
+  });
+}
+
 module.exports = {
   zip: zip,
   insertFile: insertFile,
+  zipAndInsert: zipAndInsert,
   getAvailableCapacity: getAvailableCapacity
 };

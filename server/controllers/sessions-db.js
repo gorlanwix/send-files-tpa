@@ -22,30 +22,18 @@ function open(instance, callback) {
 }
 
 // prolongs session by updating lastest access to current time
-function update(sessionId, instance, callback) {
+function update(sessionId, callback) {
   var q = 'UPDATE session \
            SET last_access = NOW() \
-           WHERE session_id = $1 \
-           AND component_id = $2 \
-           AND instance_id = $3';
+           WHERE session_id = $1';
   var values = [
     sessionId,
-    instance.instanceId,
-    instance.compId
   ];
 
-  query(q, values, function (err, rows, result) {
-    if (err) {
-      console.error('session update error: ', err);
-      callback(err);
-      return;
-    }
-
-    callback(null);
-  });
+  query(q, values, callback);
 }
 
-function destroy(sessionId, instance, callback) {
+function destroy(sessionId, callback) {
   var q = 'DELETE FROM session \
            WHERE session_id = $1 \
            AND component_id = $2 \
@@ -56,14 +44,7 @@ function destroy(sessionId, instance, callback) {
     instance.compId
   ];
 
-  query(q, values, function (err, rows, result) {
-    if (err) {
-      console.error('session delete error: ', err);
-      return callback(err);
-    }
-
-    callback(null);
-  });
+  query(q, values, callback);
 }
 
 

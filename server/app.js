@@ -152,7 +152,6 @@ app.get('/api/auth/login/google/:compId', function (req, res, next) {
 app.get('/api/auth/logout/:compId', function (req, res, next) {
 
   db.token.remove(req.widgetIds, function (err, removedTokens) {
-    console.log('removed tokens: ', removedTokens);
     if (!removedTokens) {
       return next(error('not logged in', httpStatus.BAD_REQUEST));
     }
@@ -163,13 +162,9 @@ app.get('/api/auth/logout/:compId', function (req, res, next) {
       if (err) {
         return next(error('settings update error', httpStatus.INTERNAL_SERVER_ERROR));
       }
-      console.log('updated settings');
-      console.log('removedTokens.provider: ', removedTokens.provider);
       if (removedTokens.provider === 'google') {
-        console.log('revoking token');
         var oauth2Client = userAuth.createOauth2Client();
-        oauth2Client.revokeToken(removedTokens.refresh_token, function (err, result) {
-          console.log('revoked token');
+        oauth2Client.revokeToken(removedTokens.refresh_token, function (err) {
           if (err) {
             console.error('token revoking error', err);
             return next(error('token revoking error', httpStatus.INTERNAL_SERVER_ERROR));
@@ -236,7 +231,7 @@ app.post('/api/files/upload/:compId', function (req, res, next) {
   }
 
   if (formatError) {
-    fs.unlink(newFile.path, function() {
+    fs.unlink(newFile.path, function () {
       return next(formatError);
     });
   } else {
@@ -336,28 +331,23 @@ app.post('/api/files/send/:compId', function (req, res, next) {
           return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
         }
 
+        res.status(httpStatus.ACCEPTED);
+        res.json({status: httpStatus.ACCEPTED});
 
         console.log('files to be zipped: ', files);
-        var zipName = visitorName.replace(/\s+/g, '-');
 
-        upload.zip(files, zipName, function (err, archive) {
-          console.log('zipped file: ', archive);
+        var visitor = new Visitor(visitorName, visitorEmail, visitorMessage);
+        upload.zipAndInsert(files, visitor, req.widgetIds, sessionId, tokens, function (err, downloadUrl, settings) {
           if (err) {
-            console.log('zipping error', err);
-          }
-          upload.insertFile(archive, sessionId, req.widgetIds, tokens, function (err, result) {
-
-
-            if (err) { console.error('uploading to google error', err); }
-            result = JSON.parse(result);
-            console.log('inserted file: ', result);
-            var visitor = new Visitor(visitorName, visitorEmail, visitorMessage);
-            email.send('andreye@wix.com', visitor, result.alternateLink, function (err) {
-              console.log('sent email');
-              res.status(httpStatus.ACCEPTED);
-              res.json({status: httpStatus.ACCEPTED});
+            console.error('zipping and inserting error: ', err);
+            email.sendErrors(settings.user_email, visitor, function (err, res) {
+              console.log('sent email erros');
             });
-          });
+          } else {
+            email.send(settings.user_email, visitor, downloadUrl, function (err) {
+              console.log('sent email');
+            });
+          }
         });
       });
     });
