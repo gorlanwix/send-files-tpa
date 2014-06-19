@@ -182,7 +182,7 @@ describe('api requests', function () {
     });
   });
 
-  describe.only('files upload', function () {
+  describe('files upload', function () {
     var fileIds = [];
     var sessionId;
     var tmpPath = './tmp/';
@@ -293,7 +293,7 @@ describe('api requests', function () {
 });
 
 
-describe('Google Drive', function () {
+describe.only('Google Drive', function () {
   var accessToken;
   this.timeout(10000);
 
@@ -321,10 +321,21 @@ describe('Google Drive', function () {
       done();
     });
   });
+
+  it('should create folder on Google Drive', function (done) {
+    googleDrive.createFolder(accessToken, function (err, result) {
+      if (err) {
+        console.log('creating folder error: ', err);
+      }
+      console.log('created folder: ', result);
+      expect(result).to.be.exist;
+      done();
+    });
+  });
 });
 
 
-describe.skip('Email', function () {
+describe('Email', function () {
 
   function Visitor(name, email, message) {
     this.name = name;

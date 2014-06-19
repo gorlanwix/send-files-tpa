@@ -6,6 +6,7 @@ var qs = require('querystring');
 var request = require('request');
 var async = require('async');
 var httpStatus = require('http-status');
+var userAuth = require('./user-auth.js');
 
 var ROOT_URL = 'https://www.googleapis.com/';
 var DRIVE_API_PATH = 'upload/drive/v2/files';
@@ -45,13 +46,40 @@ function getAvailableCapacity(accessToken, callback) {
     }
 
 
-    var body = JSON.parse(body);
+    body = JSON.parse(body);
 
     var totalQuota = body.quotaBytesTotal;
     var usedQuota = body.quotaBytesUsedAggregate;
     callback(null, totalQuota - usedQuota);
   });
 }
+
+// returns id of the folder
+function createFolder(accessToken, callback) {
+
+  var oauth2Client = userAuth.createOauth2Client();
+
+  oauth2Client.setCredentials({
+    access_token: accessToken
+  });
+
+  googleapis.discover('drive', 'v2').execute(function (err, client) {
+    if (err) {
+      return callback(err, null);
+    }
+    client
+      .drive.files.insert({ title: 'Wix Send Files', mimeType: 'application/vnd.google-apps.folder' })
+      .withAuthClient(oauth2Client)
+      .execute(function (err, result) {
+        if (err) {
+          return callback(err, null);
+        }
+
+        callback(null, result.id);
+      });
+  });
+}
+
 
 function getUploadUrl(file, accessToken, callback) {
   var fileDesc = {
@@ -158,8 +186,6 @@ function recoverUpload(file, uploadUrl, accessToken, callback) {
 }
 
 
-
-
 // todo set a limit to a number of recovers
 function uploadFile(file, uploadUrl, accessToken, start, maxRecovers, callback) {
 
@@ -242,5 +268,6 @@ function insertFile(file, accessToken, callback) {
 
 module.exports = {
   insertFile: insertFile,
-  getAvailableCapacity: getAvailableCapacity
+  getAvailableCapacity: getAvailableCapacity,
+  createFolder: createFolder
 };

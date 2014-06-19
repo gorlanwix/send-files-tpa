@@ -78,7 +78,7 @@ function getInstanceTokens(instance, callback) {
 
 
 
-function getWidgetEmail(tokens, callback) {
+function getGoogleEmail(tokens, callback) {
   var oauth2Client = createOauth2Client(tokens);
   googleapis
     .discover('oauth2', 'v2')
@@ -108,5 +108,5 @@ module.exports = {
   exchangeCodeForTokens: exchangeCodeForTokens,
   getInstanceTokens: getInstanceTokens,
   createOauth2Client: createOauth2Client,
-  getWidgetEmail: getWidgetEmail
+  getGoogleEmail: getGoogleEmail
 };

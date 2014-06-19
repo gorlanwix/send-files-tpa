@@ -3,12 +3,13 @@
 var query = require('../config.js').query;
 
 function insertSettings(instance, widgetSettings, callback) {
-  var q = 'INSERT INTO widget_settings (instance_id, component_id, settings, user_email, curr_provider, updated, created) \
+  var q = 'INSERT INTO widget_settings (instance_id, component_id, settings, service_settings, user_email, curr_provider, updated, created) \
            VALUES ($1, $2, $3, $4, $5, NOW(), NOW())';
   var values = [
     instance.instanceId,
     instance.compId,
     widgetSettings.settings,
+    widgetSettings.serviceSettings,
     widgetSettings.userEmail,
     widgetSettings.provider
   ];
@@ -25,14 +26,16 @@ function insertSettings(instance, widgetSettings, callback) {
 function updateSettings(instance, widgetSettings, callback) {
   var q = 'UPDATE widget_settings \
            SET settings = COALESCE($1, settings), \
-               user_email = COALESCE($2, user_email), \
-               curr_provider = COALESCE($3, curr_provider), \
+               service_settings = COALESCE($2, service_settings),
+               user_email = COALESCE($3, user_email), \
+               curr_provider = COALESCE($4, curr_provider), \
                updated = NOW() \
-           WHERE instance_id = $4 \
-           AND component_id = $5 \
+           WHERE instance_id = $5 \
+           AND component_id = $6 \
            RETURNING *';
   var values = [
     widgetSettings.settings,
+    widgetSettings.serviceSettings,
     widgetSettings.userEmail,
     widgetSettings.provider,
     instance.instanceId,
@@ -50,7 +53,7 @@ function updateSettings(instance, widgetSettings, callback) {
 }
 
 function getSettings(instance, callback) {
-  var q = 'SELECT settings, user_email, curr_provider \
+  var q = 'SELECT settings, service_settings, user_email, curr_provider \
            FROM widget_settings \
            WHERE instance_id = $1 \
            AND component_id = $2 \

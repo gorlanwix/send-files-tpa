@@ -4,6 +4,7 @@ var userAuth = require('./controllers/user-auth.js');
 var db = require('./controllers/pg-database.js');
 var upload = require('./controllers/upload-files.js');
 var email = require('./controllers/email.js');
+var googleDrive = require('./controllers/google-drive.js');
 
 var express = require('express');
 var bodyParser = require('body-parser');
@@ -52,10 +53,11 @@ function Visitor(name, email, message) {
 }
 
 // set any param to null to avoid it's update
-function WidgetSettings(userEmail, provider, settings) {
+function WidgetSettings(userEmail, provider, settings, serviceSettings) {
   this.userEmail = userEmail;
   this.provider = provider;
   this.settings = settings;
+  this.serviceSettings = serviceSettings;
 }
 
 
@@ -81,24 +83,29 @@ app.get('/auth/callback/google', function (req, res, next) {
     var provider = 'google';
 
     db.token.insert(currInstance, tokens, provider, function (err) {
-      userAuth.getWidgetEmail(tokens, function (err, widgetEmail) {
-        var widgetSettings = new WidgetSettings(widgetEmail || '', provider, null);
-        db.widget.getSettings(currInstance, function (err, widgetSettingsFromDb) {
-          if (widgetSettingsFromDb) {
-            var isEmailSet = widgetSettingsFromDb.user_email !== '';
-            // do not update if email already set
-            if (isEmailSet) { widgetSettings.userEmail = null; }
-            db.widget.updateSettings(currInstance, widgetSettings, function (err) {
+      userAuth.getGoogleEmail(tokens, function (err, widgetEmail) {
+        googleDrive.createFolder(tokens.access_token, function (err, folderId) {
+          var serviceSettings = {
+            folderId: folderId
+          };
+          var widgetSettings = new WidgetSettings(widgetEmail || '', provider, null, serviceSettings);
+          db.widget.getSettings(currInstance, function (err, widgetSettingsFromDb) {
+            if (widgetSettingsFromDb) {
+              var isEmailSet = widgetSettingsFromDb.user_email !== '';
+              // do not update if email already set
+              if (isEmailSet) { widgetSettings.userEmail = null; }
+              db.widget.updateSettings(currInstance, widgetSettings, function (err) {
 
-              res.redirect('/');
-            });
-          } else {
-            widgetSettings.settings = null;
-            db.widget.insertSettings(currInstance, widgetSettings, function (err) {
+                res.redirect('/');
+              });
+            } else {
+              widgetSettings.settings = null;
+              db.widget.insertSettings(currInstance, widgetSettings, function (err) {
 
-              res.redirect('/');
-            });
-          }
+                res.redirect('/');
+              });
+            }
+          });
         });
       });
     });
@@ -150,7 +157,7 @@ app.get('/api/auth/logout/:compId', function (req, res, next) {
       return next(error('not logged in', httpStatus.BAD_REQUEST));
     }
 
-    var widgetSettings = new WidgetSettings(null, '', null);
+    var widgetSettings = new WidgetSettings(null, '', null, {});
 
     db.widget.updateSettings(req.widgetIds, widgetSettings, function (err) {
       if (err) {
@@ -392,7 +399,7 @@ app.put('/api/settings/:compId', function (req, res, next) {
     return next(error('invalid request format', httpStatus.BAD_REQUEST));
   }
 
-  var settingsRecieved = new WidgetSettings(userEmail, '', widgetSettings.settings);
+  var settingsRecieved = new WidgetSettings(userEmail, null, widgetSettings.settings, null);
   db.widget.updateSettings(req.widgetIds, settingsRecieved, function (err, updatedWidgetSettings) {
     if (!updatedWidgetSettings) {
       db.widget.insertSettings(req.widgetIds, settingsRecieved, function (err) {
