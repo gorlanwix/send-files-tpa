@@ -1,10 +1,8 @@
 TODO:
 
 - tests
-- verification if Google Drive is full
 
 - use passport.js for general authorization
-- check for session id?
 
 
 

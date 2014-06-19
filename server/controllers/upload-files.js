@@ -67,20 +67,27 @@ function zip(files, newName, callback) {
 }
 
 
-function insertFile(client, file, sessionId, instance, tokens, callback) {
-  db.files.updateSessionAndInsert(client, file, sessionId, instance, function (err) {
+function insertFile(file, sessionId, instance, tokens, callback) {
+  db.files.updateSessionAndInsert(file, sessionId, instance, function (err) {
     console.log('inserted into database: ', file);
     if (err) {
       return callback(err, null);
     }
 
-    if (tokens.auth_provider === 'google') {
-      googleDrive.insertFile(file, tokens.access_token, function (err, result) {
-        if (err) {
-          console.error('uploading to google error', err);
+    if (tokens.provider === 'google') {
+      db.widget.getSettings(instance, function (err, settings) {
+        var googleSettings = settings.service_settings;
+        if (!googleSettings) {
+          console.error('cannot get google specific settings', err);
           return callback(err, null);
         }
-        callback(null, result);
+        googleDrive.insertFile(file, googleSettings.folderId, tokens.access_token, function (err, result) {
+          if (err) {
+            console.error('uploading to google error', err);
+            return callback(err, null);
+          }
+          callback(null, result);
+        });
       });
     }
   });
@@ -88,7 +95,7 @@ function insertFile(client, file, sessionId, instance, tokens, callback) {
 
 
 function getAvailableCapacity(tokens, callback) {
-  if (tokens.auth_provider === 'google') {
+  if (tokens.provider === 'google') {
     googleDrive.getAvailableCapacity(tokens.access_token, function (err, capacity) {
       if (err) {
         return callback(err, null);

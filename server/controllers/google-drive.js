@@ -6,6 +6,7 @@ var qs = require('querystring');
 var request = require('request');
 var async = require('async');
 var httpStatus = require('http-status');
+var userAuth = require('./user-auth.js');
 
 var ROOT_URL = 'https://www.googleapis.com/';
 var DRIVE_API_PATH = 'upload/drive/v2/files';
@@ -45,7 +46,7 @@ function getAvailableCapacity(accessToken, callback) {
     }
 
 
-    var body = JSON.parse(body);
+    body = JSON.parse(body);
 
     var totalQuota = body.quotaBytesTotal;
     var usedQuota = body.quotaBytesUsedAggregate;
@@ -53,10 +54,41 @@ function getAvailableCapacity(accessToken, callback) {
   });
 }
 
-function getGoogleUploadUrl(file, accessToken, callback) {
+// returns id of the folder
+function createFolder(accessToken, callback) {
+
+  var oauth2Client = userAuth.createOauth2Client();
+
+  oauth2Client.setCredentials({
+    access_token: accessToken
+  });
+
+  googleapis.discover('drive', 'v2').execute(function (err, client) {
+    if (err) {
+      return callback(err, null);
+    }
+    client
+      .drive.files.insert({ title: 'Wix Send Files', mimeType: 'application/vnd.google-apps.folder' })
+      .withAuthClient(oauth2Client)
+      .execute(function (err, result) {
+        if (err) {
+          return callback(err, null);
+        }
+
+        callback(null, result.id);
+      });
+  });
+}
+
+
+function getUploadUrl(file, folderId, accessToken, callback) {
   var fileDesc = {
     title: file.originalname,
     mimeType: file.mimetype,
+    parents: [{
+      kind: 'drive#fileLink',
+      id: folderId
+    }]
   };
 
   var params = { uploadType: 'resumable' };
@@ -122,7 +154,7 @@ function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
 }
 
 
-function recoverUploadToGoogle(file, uploadUrl, accessToken, callback) {
+function recoverUpload(file, uploadUrl, accessToken, callback) {
   var watingTimes = [0, 1000, 2000, 4000, 8000, 16000];
   var startFrom = 0;
   var recoverCount = 0;
@@ -158,10 +190,8 @@ function recoverUploadToGoogle(file, uploadUrl, accessToken, callback) {
 }
 
 
-
-
 // todo set a limit to a number of recovers
-function uploadFileToGoogle(file, uploadUrl, accessToken, start, maxRecovers, callback) {
+function uploadFile(file, uploadUrl, accessToken, start, maxRecovers, callback) {
 
   var options = {
     url: uploadUrl,
@@ -192,13 +222,13 @@ function uploadFileToGoogle(file, uploadUrl, accessToken, start, maxRecovers, ca
       var shouldRecover = recoverWhenStatus.indexOf(res.statusCode) > -1;
 
       if (shouldRecover && maxRecovers > 0) {
-        recoverUploadToGoogle(file, uploadUrl, accessToken, function (err, startUploadFrom) {
+        recoverUpload(file, uploadUrl, accessToken, function (err, startUploadFrom) {
           if (err) {
             console.error('google upload recover error: ', err);
             return callback(err, null);
           }
 
-          uploadFileToGoogle(file, uploadUrl, accessToken, startUploadFrom, maxRecovers - 1, function (err, result) {
+          uploadFile(file, uploadUrl, accessToken, startUploadFrom, maxRecovers - 1, function (err, result) {
             if (err) {
               return callback(err, null);
             }
@@ -219,17 +249,17 @@ function uploadFileToGoogle(file, uploadUrl, accessToken, start, maxRecovers, ca
 }
 
 
-function insertFile(file, accessToken, callback) {
+function insertFile(file, folderId, accessToken, callback) {
   var MAX_RECOVERS_NUM = 10;
 
   console.log('insering file to google');
-  getGoogleUploadUrl(file, accessToken, function (err, uploadUrl) {
+  getUploadUrl(file, folderId, accessToken, function (err, uploadUrl) {
     if (err) {
       console.error('google request error: ', err);
       return callback(err, null);
     }
     console.log('google file upload url: ', uploadUrl);
-    uploadFileToGoogle(file, uploadUrl, accessToken, 0, MAX_RECOVERS_NUM, function (err, result) {
+    uploadFile(file, uploadUrl, accessToken, 0, MAX_RECOVERS_NUM, function (err, result) {
       if (err) {
         console.error('upload file to google error: ', err);
         return callback(err, null);
@@ -242,5 +272,6 @@ function insertFile(file, accessToken, callback) {
 
 module.exports = {
   insertFile: insertFile,
-  getAvailableCapacity: getAvailableCapacity
+  getAvailableCapacity: getAvailableCapacity,
+  createFolder: createFolder
 };

@@ -35,10 +35,10 @@ function constructMessage(visitorName, visitorEmail, visitorMessage, downloadUrl
   return body;
 }
 
-function send(userEmail, visitor, callback) {
+function send(userEmail, visitor, fileUrl, callback) {
 
   var smtpTransport = getTransport();
-  var emailMessage = constructMessage(visitor.name, visitor.email, visitor.message, visitor.fileUrl);
+  var emailMessage = constructMessage(visitor.name, visitor.email, visitor.message, fileUrl);
 
   var emailToSend = new Email(userEmail, visitor.email, visitor.name, emailMessage);
 

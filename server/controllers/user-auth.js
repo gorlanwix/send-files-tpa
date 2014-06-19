@@ -50,11 +50,11 @@ function exchangeCodeForTokens(code, callback) {
   });
 }
 
-function getInstanceTokens(client, instance, callback) {
+function getInstanceTokens(instance, callback) {
 
-  db.token.get(client, instance, function (err, tokens) {
+  db.token.get(instance, function (err, tokens) {
 
-    if (err) {
+    if (!tokens) {
       return callback(err, null);
     }
 
@@ -64,19 +64,13 @@ function getInstanceTokens(client, instance, callback) {
     }
 
 
-    if (tokens.auth_provider === 'google') {
+    if (tokens.provider === 'google') {
       var oauth2Client = createOauth2Client(tokens);
       oauth2Client.refreshAccessToken(function (err, refreshedTokens) {
         if (err) { console.error('token refreshing error: ', err); }
         console.log('Got new token from google: ', refreshedTokens);
 
-        db.token.update(client, instance, refreshedTokens, 'google', function (err, result) {
-          if (err) {
-            return callback(err, null);
-          }
-
-          callback(null, result);
-        });
+        db.token.update(instance, refreshedTokens, 'google', callback);
       });
     }
   });
@@ -84,7 +78,7 @@ function getInstanceTokens(client, instance, callback) {
 
 
 
-function getWidgetEmail(tokens, callback) {
+function getGoogleEmail(tokens, callback) {
   var oauth2Client = createOauth2Client(tokens);
   googleapis
     .discover('oauth2', 'v2')
@@ -114,5 +108,5 @@ module.exports = {
   exchangeCodeForTokens: exchangeCodeForTokens,
   getInstanceTokens: getInstanceTokens,
   createOauth2Client: createOauth2Client,
-  getWidgetEmail: getWidgetEmail
+  getGoogleEmail: getGoogleEmail
 };
