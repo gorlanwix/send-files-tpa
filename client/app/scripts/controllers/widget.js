@@ -1,11 +1,11 @@
 'use strict';
 
 angular.module('sendFiles')
-  .controller('WidgetCtrl', function ($scope, api, $wix, $upload, $http) {
+  .controller('WidgetCtrl', function ($scope, api, $wix, $upload, $http, $location) {
 
      /* Regular expression used to determine if user input is a valid email. */
     $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
-
+    $scope.nameRegex = /\S+/;
     /* Constants used for byte conversion. */
     var GBbytes = 1073741824;
     var MBbytes = 1048576;
@@ -14,7 +14,17 @@ angular.module('sendFiles')
     $scope.uploadLimit = GBbytes;
 
     /* Represents the Instance ID of this widget. */
-    var instanceID = $wix.Utils.getInstanceId();
+    var instanceID;
+    var url = $location.absUrl();
+    var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
+    var instance = instanceRegexp.exec(url);
+    if (instance && instance[1]) {
+      instanceID = instance[1];
+    } else {
+      console.log('All hell has broken loose.');
+      //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
+    }
+    console.log(instanceID);
 
     /* Represents the Component ID of this widget. */
     var compID = $wix.Utils.getOrigCompId();
@@ -99,6 +109,14 @@ angular.module('sendFiles')
     /* Records the visitor's name and updates final message to server. */
     $scope.updateVisitorName = function (newValue) {
       finalSubmission.visitorName = newValue;
+      console.log($scope.fileForm.visitorName);
+      console.log(newValue === '');
+      console.log(newValue);
+      // if (newValue === undefined) {
+      //   $scope.fileForm.visitorName.$invalid = true;
+      // } else {
+      //   $scope.fileForm.visitorName.$invalid = false;
+      // }
     };
 
     /* Records the visitor's email and updates final message to server. */
@@ -109,6 +127,11 @@ angular.module('sendFiles')
     /* Records the visitor's message and updates final message to server. */
     $scope.updateMessage = function (newValue) {
       finalSubmission.message = newValue;
+      if (newValue === undefined) {
+        $scope.fileForm.visitorName.$invalid = true;
+      } else {
+        $scope.fileForm.visitorName.$invalid = false;
+      }
     };
 
     /* Watches for changes in toal space visitor has left to upload files. */
@@ -199,9 +222,8 @@ angular.module('sendFiles')
     /* Determines if a user is ready to submit or not. Returns true if
      * NOT ready to submit and false if ready. */
     $scope.submitNotReady = function() {
-      console.log(!($scope.fileForm.$invalid));
-      if (!($scope.fileForm.$invalid) && $scope.totalFilesAdded) {
-          //&& $scope.fileUploadSubmitText === 'Files ready to Submit!') {
+      if (!($scope.fileForm.$invalid) && $scope.totalFilesAdded &&
+            $scope.fileUploadSubmitText === 'Files ready to Submit!') {
         return false;
       } else {
         return true;
@@ -393,18 +415,23 @@ angular.module('sendFiles')
       //could instatiate this function with a specific error message for the user
       //would just change some scope variable to function argument
     };
-
     /* Call this to reset widget after widget upload fail/success.
      * All failure/success messages will disappear and most variables are
      * completly reset. */
     $scope.reset = function() {
-      $scope.fileForm.$setPristine();
-      console.log($scope.fileForm.$pristine);
-      $scope.fileForm.visitorName = '';
-      $scope.fileForm.email = '';
-      $scope.fileForm.message = '';
+      //console.log($scope.fileForm.$pristine);
+      //$scope.fileForm.visitorName.$setPristine();
+      $scope.fileForm.visitorName.$invalid = true;
+      $scope.fileForm.email.$invalid = true;
+      //$scope.user = mast
+      //console.log($scope.fileForm.visitorName);
+      //$scope.fileForm.visitorName.$viewValue = '';
+      //$scope.fileForm.visitorName.$modelValue = undefined;
+      //$scope.fileForm.email = undefined;
+      //$scope.fileForm.message = undefined;
       
       fileIndex = 0;
+      $scope.totalBytes = 0;
       $scope.totalFilesAdded = 0;
       $scope.fileList = [];
       $scope.tooLargeList = [];
@@ -454,7 +481,7 @@ angular.module('sendFiles')
 
     //This block below listens for changes in the settings panel and updates the widget view.
     $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
-     $scope.settings = message;
+      $scope.settings = message;
       // console.log('Input Data: ', message); //for testing communication between widget and settings
       $scope.$apply();
     });
