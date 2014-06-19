@@ -81,10 +81,14 @@ function createFolder(accessToken, callback) {
 }
 
 
-function getUploadUrl(file, accessToken, callback) {
+function getUploadUrl(file, folderId, accessToken, callback) {
   var fileDesc = {
     title: file.originalname,
     mimeType: file.mimetype,
+    parents: [{
+      kind: 'drive#fileLink',
+      id: folderId
+    }]
   };
 
   var params = { uploadType: 'resumable' };
@@ -245,11 +249,11 @@ function uploadFile(file, uploadUrl, accessToken, start, maxRecovers, callback) 
 }
 
 
-function insertFile(file, accessToken, callback) {
+function insertFile(file, folderId, accessToken, callback) {
   var MAX_RECOVERS_NUM = 10;
 
   console.log('insering file to google');
-  getUploadUrl(file, accessToken, function (err, uploadUrl) {
+  getUploadUrl(file, folderId, accessToken, function (err, uploadUrl) {
     if (err) {
       console.error('google request error: ', err);
       return callback(err, null);

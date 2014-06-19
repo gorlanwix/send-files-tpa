@@ -26,7 +26,7 @@ function insertSettings(instance, widgetSettings, callback) {
 function updateSettings(instance, widgetSettings, callback) {
   var q = 'UPDATE widget_settings \
            SET settings = COALESCE($1, settings), \
-               service_settings = COALESCE($2, service_settings),
+               service_settings = COALESCE($2, service_settings), \
                user_email = COALESCE($3, user_email), \
                curr_provider = COALESCE($4, curr_provider), \
                updated = NOW() \

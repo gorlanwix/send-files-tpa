@@ -182,7 +182,7 @@ describe('api requests', function () {
     });
   });
 
-  describe('files upload', function () {
+  describe.only('files upload', function () {
     var fileIds = [];
     var sessionId;
     var tmpPath = './tmp/';
@@ -293,7 +293,7 @@ describe('api requests', function () {
 });
 
 
-describe.only('Google Drive', function () {
+describe('Google Drive', function () {
   var accessToken;
   this.timeout(10000);
 

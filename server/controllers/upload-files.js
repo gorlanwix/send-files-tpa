@@ -75,12 +75,19 @@ function insertFile(file, sessionId, instance, tokens, callback) {
     }
 
     if (tokens.provider === 'google') {
-      googleDrive.insertFile(file, tokens.access_token, function (err, result) {
-        if (err) {
-          console.error('uploading to google error', err);
+      db.widget.getSettings(instance, function (err, settings) {
+        var googleSettings = settings.service_settings;
+        if (!googleSettings) {
+          console.error('cannot get google specific settings', err);
           return callback(err, null);
         }
-        callback(null, result);
+        googleDrive.insertFile(file, googleSettings.folderId, tokens.access_token, function (err, result) {
+          if (err) {
+            console.error('uploading to google error', err);
+            return callback(err, null);
+          }
+          callback(null, result);
+        });
       });
     }
   });

@@ -74,7 +74,7 @@ function update(instance, tokens, provider, callback) {
     provider
   ];
 
-  query(q, values, function (err, rows, result) {
+  query.first(q, values, function (err, rows, result) {
     if (err) {
       console.error('update token error: ', err);
       return callback(err, null);
@@ -94,7 +94,7 @@ function remove(instance, callback) {
     instance.compId,
   ];
 
-  query(q, values, function (err, rows, result) {
+  query.first(q, values, function (err, rows, result) {
     if (err) {
       console.error('delete token error: ', err);
       return callback(err, null);

@@ -115,7 +115,7 @@ app.get('/auth/callback/google', function (req, res, next) {
 
 app.use('/api', function (req, res, next) {
 
-  var instance = req.header('X-Wix-Instance');
+  var instance = 'whatever';//req.header('X-Wix-Instance');
 
   var currInstance;
   try {
@@ -151,9 +151,9 @@ app.get('/api/auth/login/google/:compId', function (req, res, next) {
 
 app.get('/api/auth/logout/:compId', function (req, res, next) {
 
-  db.token.remove(req.widgetIds, function (err, tokensFromDb) {
-    console.log('removed tokens: ', tokensFromDb);
-    if (!tokensFromDb) {
+  db.token.remove(req.widgetIds, function (err, removedTokens) {
+    console.log('removed tokens: ', removedTokens);
+    if (!removedTokens) {
       return next(error('not logged in', httpStatus.BAD_REQUEST));
     }
 
@@ -163,9 +163,12 @@ app.get('/api/auth/logout/:compId', function (req, res, next) {
       if (err) {
         return next(error('settings update error', httpStatus.INTERNAL_SERVER_ERROR));
       }
-      if (tokensFromDb.provider === 'google') {
+      console.log('updated settings');
+      console.log('removedTokens.provider: ', removedTokens.provider);
+      if (removedTokens.provider === 'google') {
+        console.log('revoking token');
         var oauth2Client = userAuth.createOauth2Client();
-        oauth2Client.revokeToken(tokensFromDb.refresh_token, function (err, result) {
+        oauth2Client.revokeToken(removedTokens.refresh_token, function (err, result) {
           console.log('revoked token');
           if (err) {
             console.error('token revoking error', err);
