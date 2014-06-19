@@ -13,7 +13,8 @@
         Or just drop files here.
       </p>
       <p class="limitation-message bottom-p">
-        You can upload up to 1GB of files.
+        <!-- 1GB = 1073741824 bytes -->
+        You can upload up to {{uploadLimit / 1073741824}}GB of files.
       </p>
     </div>
 
@@ -82,8 +83,11 @@
     </div>
 
     <div class="block end-blocks submit">
-        <button type="submit" ng-disabled="fileForm.$invalid" ng-click="submit()"><span>{{settings.submitButtonText}}</span></button>
-      <div class="submit-container" ng-mouseover="enableErrorMessage()" ng-mouseleave="disableErrorMessage()" ng-show="fileForm.$invalid"> 
+        <button class="submit-button" type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-style="submitButtonStyle()">
+          <span ng-show="!(totalFilesAdded)">{{settings.submitButtonText}}</span>
+          <span ng-show="totalFilesAdded &amp;&amp; !uploadFailed">{{fileUploadSubmitText}}</span>
+        </button>
+      <div class="submit-container" ng-mouseover="enableErrorMessage()" ng-mouseleave="disableErrorMessage()" ng-show="submitNotReady()"> 
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
       </div>
     </div>
