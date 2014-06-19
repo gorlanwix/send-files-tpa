@@ -1,5 +1,7 @@
 'use strict';
 
+var query = require('../config.js').query;
+
 function calcTokenExpiresDate(expiresIn) {
   var date = new Date();
   return new Date(date.getTime() + (expiresIn - 60) * 1000);
@@ -11,9 +13,9 @@ function isAccessTokenExpired(token) {
   return expiresOn < now;
 }
 
-function insert(client, instance, tokens, provider, callback) {
-  var query = 'INSERT INTO oauth_token (instance_id, component_id, access_token, refresh_token, token_type, expires, auth_provider, created) \
-               VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())';
+function insert(instance, tokens, provider, callback) {
+  var q = 'INSERT INTO oauth_token (instance_id, component_id, access_token, refresh_token, token_type, expires, auth_provider, created) \
+           VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())';
   var values = [
     instance.instanceId,
     instance.compId,
@@ -24,7 +26,7 @@ function insert(client, instance, tokens, provider, callback) {
     provider
   ];
 
-  client.query(query, values, function (err) {
+  query(q, values, function (err) {
     if (err) {
       console.error('tokens insert error: ', err);
       return callback(err);
@@ -34,40 +36,36 @@ function insert(client, instance, tokens, provider, callback) {
   });
 }
 
-function get(client, instance, callback) {
-  var query = 'SELECT access_token, refresh_token, expires, auth_provider \
-               FROM oauth_token \
-               WHERE instance_id = $1 \
-               AND component_id = $2 \
-               LIMIT 1';
+function get(instance, callback) {
+  var q = 'SELECT access_token, refresh_token, expires, auth_provider \
+           FROM oauth_token \
+           WHERE instance_id = $1 \
+           AND component_id = $2 \
+           LIMIT 1';
   var values = [
     instance.instanceId,
     instance.compId,
   ];
 
-  client.query(query, values, function (err, result) {
+  query.first(q, values, function (err, rows, result) {
     if (err) {
       console.error('get token error: ', err);
       return callback(err, null);
     }
 
-    if (result.rows.length === 0) {
-      return callback(new Error('Tokens not found'), null);
-    }
-
-    callback(null, result.rows[0]);
+    callback(null, rows);
   });
 }
 
 
-function update(client, instance, tokens, provider, callback) {
+function update(instance, tokens, provider, callback) {
 
-  var query = 'UPDATE oauth_token \
-               SET access_token =  $1, expires = $2 \
-               WHERE instance_id = $3 \
-               AND component_id = $4 \
-               AND auth_provider = $5 \
-               RETURNING *';
+  var q = 'UPDATE oauth_token \
+           SET access_token =  $1, expires = $2 \
+           WHERE instance_id = $3 \
+           AND component_id = $4 \
+           AND auth_provider = $5 \
+           RETURNING *';
   var values = [
     tokens.access_token,
     calcTokenExpiresDate(tokens.expires_in),
@@ -76,41 +74,33 @@ function update(client, instance, tokens, provider, callback) {
     provider
   ];
 
-  client.query(query, values, function (err, result) {
+  query(q, values, function (err, rows, result) {
     if (err) {
       console.error('update token error: ', err);
       return callback(err, null);
     }
 
-    if (result.rows.length === 0) {
-      return callback(new Error('Tokens not found'), null);
-    }
-
-    callback(null, result.rows[0]);
+    callback(null, rows);
   });
 }
 
-function remove(client, instance, callback) {
-  var query = 'DELETE FROM oauth_token \
-               WHERE instance_id = $1 \
-               AND component_id = $2 \
-               RETURNING *';
+function remove(instance, callback) {
+  var q = 'DELETE FROM oauth_token \
+           WHERE instance_id = $1 \
+           AND component_id = $2 \
+           RETURNING *';
   var values = [
     instance.instanceId,
     instance.compId,
   ];
 
-  client.query(query, values, function (err, result) {
+  query(q, values, function (err, rows, result) {
     if (err) {
       console.error('delete token error: ', err);
       return callback(err, null);
     }
 
-    if (result.rows.length === 0) {
-      return callback(new Error('Tokens not found'), null);
-    }
-
-    callback(null, result.rows[0]);
+    callback(null, rows);
   });
 }
 

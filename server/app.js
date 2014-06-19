@@ -9,11 +9,10 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var multer  = require('multer');
 var validator = require('validator');
-var pg = require('pg');
 var fs = require('fs');
 var wix = require('wix');
 var httpStatus = require('http-status');
-var connectionString = process.env.DATABASE_URL || require('./connect-keys/pg-connect.json').connectPg;
+
 var app = express();
 var router = express.Router();
 
@@ -46,11 +45,10 @@ function WixWidget(instance, compId) {
   this.compId = compId;
 }
 
-function Visitor(name, email, message, fileUrl) {
+function Visitor(name, email, message) {
   this.name = name;
   this.email = email;
   this.message = message;
-  this.fileUrl = fileUrl;
 }
 
 // set any param to null to avoid it's update
@@ -81,36 +79,26 @@ app.get('/auth/callback/google', function (req, res, next) {
     var currInstance = new WixWidget(wixIds[0], wixIds[1]);
 
     var provider = 'google';
-    pg.connect(connectionString, function (err, client, done) {
-      if (err) {
-        done();
-        pg.end();
-        console.error('db connection error: ', err);
-        return next(error('cannot connect to database', httpStatus.INTERNAL_SERVER_ERROR));
-      }
 
-      db.token.insert(client, currInstance, tokens, provider, function (err) {
-        userAuth.getWidgetEmail(tokens, function (err, widgetEmail) {
-          var widgetSettings = new WidgetSettings(widgetEmail || '', provider, null);
-          db.widget.getSettings(client, currInstance, function (err, widgetSettingsFromDb) {
-            if (!err) {
-              var isEmailSet = widgetSettingsFromDb.user_email !== '';
-              // do not update if email already set
-              if (isEmailSet) { widgetSettings.userEmail = null; }
-              db.widget.updateSettings(client, currInstance, widgetSettings, function (err) {
-                done();
-                pg.end();
-                res.redirect('/');
-              });
-            } else {
-              widgetSettings.settings = null;
-              db.widget.insertSettings(client, currInstance, widgetSettings, function (err) {
-                done();
-                pg.end();
-                res.redirect('/');
-              });
-            }
-          });
+    db.token.insert(currInstance, tokens, provider, function (err) {
+      userAuth.getWidgetEmail(tokens, function (err, widgetEmail) {
+        var widgetSettings = new WidgetSettings(widgetEmail || '', provider, null);
+        db.widget.getSettings(currInstance, function (err, widgetSettingsFromDb) {
+          if (widgetSettingsFromDb) {
+            var isEmailSet = widgetSettingsFromDb.user_email !== '';
+            // do not update if email already set
+            if (isEmailSet) { widgetSettings.userEmail = null; }
+            db.widget.updateSettings(currInstance, widgetSettings, function (err) {
+
+              res.redirect('/');
+            });
+          } else {
+            widgetSettings.settings = null;
+            db.widget.insertSettings(currInstance, widgetSettings, function (err) {
+
+              res.redirect('/');
+            });
+          }
         });
       });
     });
@@ -143,69 +131,48 @@ app.param('compId', function (req, res, next, compId) {
 });
 
 app.get('/api/auth/login/google/:compId', function (req, res, next) {
-
-  pg.connect(connectionString, function (err, client, done) {
-    if (err) {
-      done();
-      pg.end();
-      console.error('db connection error: ', err);
-      return next(error('cannot connect to database', httpStatus.INTERNAL_SERVER_ERROR));
+  db.token.get(req.widgetIds, function (err, tokensFromDb) {
+    if (!tokensFromDb) {
+      userAuth.getGoogleAuthUrl(req.widgetIds, function (url) {
+        res.redirect(url);
+      });
+    } else {
+      next(error('already logged in to ' + tokensFromDb.auth_provider, httpStatus.BAD_REQUEST));
     }
-    db.token.get(client, req.widgetIds, function (err, tokensFromDb) {
-      done();
-      pg.end();
-      if (tokensFromDb === null) {
-        userAuth.getGoogleAuthUrl(req.widgetIds, function (url) {
-          res.redirect(url);
-        });
-      } else {
-        next(error('already logged in to ' + tokensFromDb.auth_provider, httpStatus.BAD_REQUEST));
-      }
-    });
   });
 });
 
 app.get('/api/auth/logout/google/:compId', function (req, res, next) {
 
-  pg.connect(connectionString, function (err, client, done) {
-    if (err) {
-      done();
-      pg.end();
-      console.error('db connection error: ', err);
-      return next(error('cannot connect to database', httpStatus.INTERNAL_SERVER_ERROR));
+  db.token.remove(req.widgetIds, function (err, tokensFromDb) {
+    console.log('removed tokens: ', tokensFromDb);
+    if (!tokensFromDb) {
+
+      return next(error('not logged in to google', httpStatus.BAD_REQUEST));
     }
-    // todo: might not need to specify provider
-    db.token.remove(client, req.widgetIds, function (err, tokensFromDb) {
-      console.log('removed tokens: ', tokensFromDb);
+
+    var widgetSettings = new WidgetSettings(null, '', null);
+
+    db.widget.updateSettings(req.widgetIds, widgetSettings, function (err) {
       if (err) {
-        done();
-        pg.end();
-        return next(error('not logged in to google', httpStatus.BAD_REQUEST));
+
+
+        return next(error('settings update error', httpStatus.INTERNAL_SERVER_ERROR));
       }
-
-      var widgetSettings = new WidgetSettings(null, '', null);
-
-      db.widget.updateSettings(client, req.widgetIds, widgetSettings, function (err) {
+      var oauth2Client = userAuth.createOauth2Client();
+      oauth2Client.revokeToken(tokensFromDb.refresh_token, function (err, result) {
+        console.log('revoked token');
         if (err) {
-          done();
-          pg.end();
-          return next(error('settings update error', httpStatus.INTERNAL_SERVER_ERROR));
-        }
-        var oauth2Client = userAuth.createOauth2Client();
-        oauth2Client.revokeToken(tokensFromDb.refresh_token, function (err, result) {
-          console.log('revoked token');
-          if (err) {
-            done();
-            pg.end();
-            console.error('token revoking error', err);
-            return next(error('token revoking error', httpStatus.INTERNAL_SERVER_ERROR));
-          }
 
-          done();
-          pg.end();
-          res.status(httpStatus.OK);
-          res.json({status: httpStatus.OK});
-        });
+
+          console.error('token revoking error', err);
+          return next(error('token revoking error', httpStatus.INTERNAL_SERVER_ERROR));
+        }
+
+
+
+        res.status(httpStatus.OK);
+        res.json({status: httpStatus.OK});
       });
     });
   });
@@ -218,40 +185,27 @@ app.get('/login', function (req, res) {
 
 
 app.get('/api/files/session/:compId', function (req, res, next) {
-  pg.connect(connectionString, function (err, client, done) {
-    if (err) {
-      done();
-      pg.end();
-      console.error('db connection error: ', err);
-      return next(error('cannot connect to database', httpStatus.INTERNAL_SERVER_ERROR));
+  userAuth.getInstanceTokens(req.widgetIds, function (err, tokens) {
+    if (!tokens) {
+      console.error('getting instance tokens error', err);
+      return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
     }
-    userAuth.getInstanceTokens(client, req.widgetIds, function (err, tokens) {
+    upload.getAvailableCapacity(tokens, function (err, capacity) {
       if (err) {
-        done();
-        pg.end();
-        console.error('getting instance tokens error', err);
-        return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
+        return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
       }
-      upload.getAvailableCapacity(tokens, function (err, capacity) {
+      db.session.open(req.widgetIds, function (err, sessionId) {
+
         if (err) {
-          done();
-          pg.end();
-          return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
+          return next(error('cannot open session', httpStatus.INTERNAL_SERVER_ERROR));
         }
-        db.session.open(client, req.widgetIds, function (err, sessionId) {
-          done();
-          pg.end();
-          if (err) {
-            return next(error('cannot open session', httpStatus.INTERNAL_SERVER_ERROR));
-          }
-          var resJson = {
-            sessionId: sessionId,
-            capacity: capacity,
-            status: httpStatus.OK
-          }
-          res.status(httpStatus.OK);
-          res.json(resJson);
-        });
+        var resJson = {
+          sessionId: sessionId,
+          capacity: capacity,
+          status: httpStatus.OK
+        }
+        res.status(httpStatus.OK);
+        res.json(resJson);
       });
     });
   });
@@ -282,27 +236,17 @@ app.post('/api/files/upload/:compId', function (req, res, next) {
     });
   } else {
 
-    pg.connect(connectionString, function (err, client, done) {
-      if (err) {
-        done();
-        pg.end();
-        console.error('db connection error: ', err);
-        return next(error('cannot connect to database', httpStatus.INTERNAL_SERVER_ERROR));
+    db.files.updateSessionAndInsert(newFile, sessionId, req.widgetIds, function (err, fileId) {
+      if (!fileId) {
+        return next(error('cannot insert file', httpStatus.INTERNAL_SERVER_ERROR));
       }
-      db.files.updateSessionAndInsert(client, newFile, sessionId, req.widgetIds, function (err, fileId) {
-        if (err) {
-          return next(error('cannot insert file', httpStatus.INTERNAL_SERVER_ERROR));
-        }
 
-        var resJson = {
-          status: httpStatus.OK,
-          fileId: fileId
-        };
-        res.status(httpStatus.OK);
-        res.json(resJson);
-        done();
-        pg.end();
-      });
+      var resJson = {
+        status: httpStatus.OK,
+        fileId: fileId
+      };
+      res.status(httpStatus.OK);
+      res.json(resJson);
     });
   }
 });
@@ -363,69 +307,50 @@ app.post('/api/files/send/:compId', function (req, res, next) {
     return next(error('invalid request format', httpStatus.BAD_REQUEST));
   }
 
-  pg.connect(connectionString, function (err, client, done) {
-    if (err) {
-      done();
-      pg.end();
-      console.error('db connection error: ', err);
-      return next(error('cannot connect to database', httpStatus.INTERNAL_SERVER_ERROR));
+  userAuth.getInstanceTokens(req.widgetIds, function (err, tokens) {
+
+    if (!tokens) {
+      console.error('getting instance tokens error', err);
+      return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
     }
-    userAuth.getInstanceTokens(client, req.widgetIds, function (err, tokens) {
-
-      if (err) {
-        done();
-        pg.end();
-        console.error('getting instance tokens error', err);
-        return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
+    db.files.getByIds(sessionId, toUploadFileIds, function (err, files) {
+      if (!files) {
+        console.error('cannot find files', err);
+        return next(error('cannot find files', httpStatus.BAD_REQUEST));
       }
-      db.files.getByIds(client, sessionId, toUploadFileIds, function (err, files) {
+
+      if (files[0].sum > MAX_FILE_SIZE) {
+        return next(error('total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
+      }
+      upload.getAvailableCapacity(tokens, function (err, capacity) {
         if (err) {
-          done();
-          pg.end();
-          console.error('cannot find files', err);
-          return next(error('cannot find files', httpStatus.BAD_REQUEST));
+          return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
         }
 
-        if (files[0].sum > MAX_FILE_SIZE) {
-          done();
-          pg.end();
-          return next(error('total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
+        if (capacity <= MAX_FILE_SIZE) {
+          return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
         }
-        upload.getAvailableCapacity(tokens, function (err, capacity) {
+
+
+        console.log('files to be zipped: ', files);
+        var zipName = visitorName.replace(/\s+/g, '-');
+
+        upload.zip(files, zipName, function (err, archive) {
+          console.log('zipped file: ', archive);
           if (err) {
-            done();
-            pg.end();
-            return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
+            console.log('zipping error', err);
           }
-
-          if (capacity <= MAX_FILE_SIZE) {
-            done();
-            pg.end();
-            return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
-          }
+          upload.insertFile(archive, sessionId, req.widgetIds, tokens, function (err, result) {
 
 
-
-          console.log('files to be zipped: ', files);
-          var zipName = visitorName.replace(/\s+/g, '-');
-
-          upload.zip(files, zipName, function (err, archive) {
-            console.log('zipped file: ', archive);
-            if (err) {
-              console.log('zipping error', err);
-            }
-            upload.insertFile(client, archive, sessionId, req.widgetIds, tokens, function (err, result) {
-              done();
-              pg.end();
-              if (err) { console.error('uploading to google error', err); }
-              result = JSON.parse(result);
-              console.log('inserted file: ', result);
-              var visitor = new Visitor(visitorName, visitorEmail, visitorMessage, result.alternateLink);
-              email.send('andreye@wix.com', visitor, function (err) {
-                console.log('sent email');
-                res.status(httpStatus.ACCEPTED);
-                res.json({status: httpStatus.ACCEPTED});
-              });
+            if (err) { console.error('uploading to google error', err); }
+            result = JSON.parse(result);
+            console.log('inserted file: ', result);
+            var visitor = new Visitor(visitorName, visitorEmail, visitorMessage);
+            email.send('andreye@wix.com', visitor, result.alternateLink, function (err) {
+              console.log('sent email');
+              res.status(httpStatus.ACCEPTED);
+              res.json({status: httpStatus.ACCEPTED});
             });
           });
         });
@@ -435,36 +360,25 @@ app.post('/api/files/send/:compId', function (req, res, next) {
 });
 
 
-// /api/settings/:compId
 
 app.get('/api/settings/:compId', function (req, res, next) {
 
-  pg.connect(connectionString, function (err, client, done) {
-    if (err) {
-      done();
-      pg.end();
-      console.error('db connection error: ', err);
-      return next(error('cannot connect to database', httpStatus.INTERNAL_SERVER_ERROR));
+  db.widget.getSettings(req.widgetIds, function (err, widgetSettings) {
+
+    var settingsResponse = {
+      userEmail: '',
+      provider: '',
+      settings: {}
+    };
+
+    if (widgetSettings) {
+      settingsResponse.userEmail = widgetSettings.user_email;
+      settingsResponse.provider = widgetSettings.curr_provider;
+      settingsResponse.settings = widgetSettings.settings;
     }
-    db.widget.getSettings(client, req.widgetIds, function (err, widgetSettings) {
-      done();
-      pg.end();
 
-      var settingsResponse = {
-        userEmail: '',
-        provider: '',
-        settings: {}
-      };
-
-      if (widgetSettings !== null) {
-        settingsResponse.userEmail = widgetSettings.user_email;
-        settingsResponse.provider = widgetSettings.curr_provider;
-        settingsResponse.settings = widgetSettings.settings;
-      }
-
-      res.status(httpStatus.OK);
-      res.json({widgetSettings: settingsResponse, status: httpStatus.OK});
-    });
+    res.status(httpStatus.OK);
+    res.json({widgetSettings: settingsResponse, status: httpStatus.OK});
   });
 });
 
@@ -484,32 +398,22 @@ app.put('/api/settings/:compId', function (req, res, next) {
   }
 
   var settingsRecieved = new WidgetSettings(userEmail, '', widgetSettings.settings);
-  pg.connect(connectionString, function (err, client, done) {
-    if (err) {
-      done();
-      pg.end();
-      console.error('db connection error: ', err);
-      return next(error('cannot connect to database', httpStatus.INTERNAL_SERVER_ERROR));
-    }
-    db.widget.updateSettings(client, req.widgetIds, settingsRecieved, function (err, updatedWidgetSettings) {
-      if (err) {
-        db.widget.insertSettings(client, req.widgetIds, settingsRecieved, function (err) {
-          if (err) {
-            console.error('cannot insert settings: ', err);
-            return next(error('cannot insert settings', httpStatus.INTERNAL_SERVER_ERROR));
-          }
-          done();
-          pg.end();
-          res.status(httpStatus.CREATED);
-          res.json({status: httpStatus.CREATED});
-        });
-      } else {
-        done();
-        pg.end();
+  db.widget.updateSettings(req.widgetIds, settingsRecieved, function (err, updatedWidgetSettings) {
+    if (!updatedWidgetSettings) {
+      db.widget.insertSettings(req.widgetIds, settingsRecieved, function (err) {
+        if (err) {
+          console.error('cannot insert settings: ', err);
+          return next(error('cannot insert settings', httpStatus.INTERNAL_SERVER_ERROR));
+        }
+
         res.status(httpStatus.CREATED);
         res.json({status: httpStatus.CREATED});
-      }
-    });
+      });
+    } else {
+
+      res.status(httpStatus.CREATED);
+      res.json({status: httpStatus.CREATED});
+    }
   });
 });
 

@@ -1,4 +1,4 @@
-CREATE TABLE provider (
+CREATE TABLE service (
     instance_id text NOT NULL,
     component_id text NOT NULL,
     access_token text NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE provider (
 CREATE TABLE widget_settings (
     instance_id text NOT NULL,
     component_id text NOT NULL,
-    settings text DEFAULT '{}',
+    settings json DEFAULT '{}',
     user_email text DEFAULT '',
     curr_provider text DEFAULT '',
     updated timestamp NOT NULL,

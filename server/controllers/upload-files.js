@@ -67,8 +67,8 @@ function zip(files, newName, callback) {
 }
 
 
-function insertFile(client, file, sessionId, instance, tokens, callback) {
-  db.files.updateSessionAndInsert(client, file, sessionId, instance, function (err) {
+function insertFile(file, sessionId, instance, tokens, callback) {
+  db.files.updateSessionAndInsert(file, sessionId, instance, function (err) {
     console.log('inserted into database: ', file);
     if (err) {
       return callback(err, null);

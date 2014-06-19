@@ -8,6 +8,7 @@ var async = require('async');
 var googleDrive = require('../../controllers/google-drive.js');
 var userAuth = require('../../controllers/user-auth.js');
 var email = require('../../controllers/email.js');
+var query = require('../../config.js').query;
 var pg = require('pg');
 var fs = require('fs');
 var connectionString = process.env.DATABASE_URL || require('../../connect-keys/pg-connect.json').connectPg;
@@ -60,14 +61,10 @@ describe('api requests', function () {
   describe('widget settings', function () {
 
     after(function (doneAfter) {
-      pg.connect(connectionString, function (err, client, done) {
-        var deleteSettings = 'DELETE FROM widget_settings WHERE instance_id = $1 AND component_id = $2';
-        var values = [instanceId, compId];
-        client.query(deleteSettings, values, function (err) {
-          done();
-          pg.end();
-          doneAfter();
-        });
+      var deleteSettings = 'DELETE FROM widget_settings WHERE instance_id = $1 AND component_id = $2';
+      var values = [instanceId, compId];
+      query(deleteSettings, values, function (err) {
+        doneAfter();
       });
     });
 
@@ -163,14 +160,11 @@ describe('api requests', function () {
     var sessionId;
 
     after(function (doneAfter) {
-      pg.connect(connectionString, function (err, client, done) {
         var deleteSession = 'DELETE FROM session WHERE session_id = $1'
         var values = [sessionId];
-        client.query(deleteSession, values, function (err) {
-          done();
-          pg.end();
+        query(deleteSession, values, function (err) {
+          doneAfter();
         });
-      });
     });
     it('should get capacity and sessionId', function (done) {
       request(app).get('/api/files/session/' + compId)
@@ -206,28 +200,23 @@ describe('api requests', function () {
     });
 
     after(function (doneAfter) {
-      pg.connect(connectionString, function (err, client, done) {
-        var deleteFiles = 'DELETE FROM file WHERE session_id = $1 RETURNING temp_name';
-        var deleteSession = 'DELETE FROM session WHERE session_id = $1'
-        var values = [sessionId];
-        client.query(deleteFiles, values, function (err, files) {
-          client.query(deleteSession, values, function (err) {
-            done();
-            pg.end();
-
-            async.each(files, function (file, callback) {
-              fs.unlink(tmpPath + file.temp_name, function(err) {
-                if (err) {
-                  return callback(err);
-                }
-                callback();
-              });
-            }, function(err){
-                if( err ) {
-                  console.log('A file failed to process');
-                }
-                doneAfter();
+      var deleteFiles = 'DELETE FROM file WHERE session_id = $1 RETURNING temp_name';
+      var deleteSession = 'DELETE FROM session WHERE session_id = $1'
+      var values = [sessionId];
+      query(deleteFiles, values, function (err, files) {
+        query(deleteSession, values, function (err) {
+          async.each(files, function (file, callback) {
+            fs.unlink(tmpPath + file.temp_name, function(err) {
+              if (err) {
+                return callback(err);
+              }
+              callback();
             });
+          }, function(err){
+              if( err ) {
+                console.log('A file failed to process');
+              }
+              doneAfter();
           });
         });
       });
@@ -313,16 +302,12 @@ describe('Google Drive', function () {
       instanceId: instanceId,
       compId: compId
     };
-    pg.connect(connectionString, function (err, client, doneBefore) {
-      userAuth.getInstanceTokens(client, widgetIds, function (err, tokens) {
-        if (err) {
-          console.error('token retrieval error: ', err);
-        }
-        accessToken = tokens.access_token;
-        done();
-        pg.end();
-        doneBefore();
-      });
+    userAuth.getInstanceTokens(widgetIds, function (err, tokens) {
+      if (err) {
+        console.error('token retrieval error: ', err);
+      }
+      accessToken = tokens.access_token;
+      done();
     });
   });
 
@@ -339,26 +324,24 @@ describe('Google Drive', function () {
 });
 
 
-describe('Email', function () {
+describe.skip('Email', function () {
 
-  function Visitor(name, email, message, fileUrl) {
+  function Visitor(name, email, message) {
     this.name = name;
     this.email = email;
     this.message = message;
-    this.fileUrl = fileUrl;
   }
 
 
   it('should send email', function (done) {
     var message = 'Testing email troloo #yolo #swag <3 <3 <3';
     var url = 'http://static.parastorage.com/services/html-landing/hp/ny/images/1920/stage_1/wix_logo.png';
-    var visitor = new Visitor('Timoha TROLOLO', 'andrey.elenskiy@gmail.com', message, url);
-    email.send('andreye@wix.com', visitor, function (err, res) {
+    var visitor = new Visitor('Timoha TROLOLO', 'andrey.elenskiy@gmail.com', message);
+    email.send('andreye@wix.com', visitor, url,  function (err, res) {
       expect(res).to.exist;
       done();
     });
   });
-
 });
 
 

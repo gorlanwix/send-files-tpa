@@ -1,6 +1,7 @@
 'use strict';
 
 var session = require('./sessions-db.js');
+var query = require('../config.js').query;
 
 
 function createFileIdsValuesSelectQuery(valLength) {
@@ -15,10 +16,10 @@ function createFileIdsValuesSelectQuery(valLength) {
   return query.substring(0, query.length - 1);
 }
 
-function insert(client, sessionId, file, callback) {
-  var query = 'INSERT INTO file (session_id, temp_name, original_name, size, created) \
-               VALUES ($1, $2, $3, $4, NOW()) \
-               RETURNING file_id';
+function insert(sessionId, file, callback) {
+  var q = 'INSERT INTO file (session_id, temp_name, original_name, size, created) \
+           VALUES ($1, $2, $3, $4, NOW()) \
+           RETURNING file_id';
   var values = [
     sessionId,
     file.name,
@@ -26,30 +27,30 @@ function insert(client, sessionId, file, callback) {
     file.size
   ];
 
-  client.query(query, values, function (err, result) {
+  query.first(q, values, function (err, rows, result) {
     if (err) {
       console.error('file insert error: ', err);
       callback(err, null);
       return;
     }
 
-    callback(null, result.rows[0].file_id);
+    callback(null, rows.file_id);
   });
 }
 
 
-function getByIds(client, sessionId, fileIds, callback) {
+function getByIds(sessionId, fileIds, callback) {
   var queryValues = createFileIdsValuesSelectQuery(fileIds.length);
 
-  var query = 'SELECT *, SUM(size) \
-               OVER (PARTITION BY session_id) \
-               FROM file \
-               WHERE file_id IN (' + queryValues + ') \
-               AND session_id = $1';
+  var q = 'SELECT *, SUM(size) \
+           OVER (PARTITION BY session_id) \
+           FROM file \
+           WHERE file_id IN (' + queryValues + ') \
+           AND session_id = $1';
 
   var values = [sessionId].concat(fileIds);
 
-  client.query(query, values, function (err, result) {
+  query(q, values, function (err, rows, result) {
     if (err) {
       return callback(err, null);
     }
@@ -59,9 +60,9 @@ function getByIds(client, sessionId, fileIds, callback) {
 }
 
 
-function updateSessionAndInsert(client, file, sessionId, instance, callback) {
+function updateSessionAndInsert(file, sessionId, instance, callback) {
 
-  session.update(client, sessionId, instance, function (err) {
+  session.update(sessionId, instance, function (err) {
 
     if (err) {
       // expired session or non-existing session or mistyped sessionId
@@ -69,7 +70,7 @@ function updateSessionAndInsert(client, file, sessionId, instance, callback) {
       return;
     }
 
-    insert(client, sessionId, file, function (err, fileId) {
+    insert(sessionId, file, function (err, fileId) {
 
       if (err) {
         callback(err, null);

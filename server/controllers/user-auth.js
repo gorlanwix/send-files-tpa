@@ -50,11 +50,11 @@ function exchangeCodeForTokens(code, callback) {
   });
 }
 
-function getInstanceTokens(client, instance, callback) {
+function getInstanceTokens(instance, callback) {
 
-  db.token.get(client, instance, function (err, tokens) {
+  db.token.get(instance, function (err, tokens) {
 
-    if (err) {
+    if (!tokens) {
       return callback(err, null);
     }
 
@@ -70,13 +70,7 @@ function getInstanceTokens(client, instance, callback) {
         if (err) { console.error('token refreshing error: ', err); }
         console.log('Got new token from google: ', refreshedTokens);
 
-        db.token.update(client, instance, refreshedTokens, 'google', function (err, result) {
-          if (err) {
-            return callback(err, null);
-          }
-
-          callback(null, result);
-        });
+        db.token.update(instance, refreshedTokens, 'google', callback);
       });
     }
   });
