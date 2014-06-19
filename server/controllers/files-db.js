@@ -16,7 +16,7 @@ function createFileIdsValuesSelectQuery(valLength) {
   return query.substring(0, query.length - 1);
 }
 
-function insert(sessionId, file, callback) {
+function insert(file, sessionId, callback) {
   var q = 'INSERT INTO file (session_id, temp_name, original_name, size, created) \
            VALUES ($1, $2, $3, $4, NOW()) \
            RETURNING file_id';
@@ -60,9 +60,9 @@ function getByIds(sessionId, fileIds, callback) {
 }
 
 
-function updateSessionAndInsert(file, sessionId, instance, callback) {
+function updateSessionAndInsert(file, sessionId, callback) {
 
-  session.update(sessionId, instance, function (err) {
+  session.update(sessionId, function (err) {
 
     if (err) {
       // expired session or non-existing session or mistyped sessionId
@@ -70,7 +70,7 @@ function updateSessionAndInsert(file, sessionId, instance, callback) {
       return;
     }
 
-    insert(sessionId, file, function (err, fileId) {
+    insert(file, sessionId, function (err, fileId) {
 
       if (err) {
         callback(err, null);

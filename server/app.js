@@ -336,26 +336,28 @@ app.post('/api/files/send/:compId', function (req, res, next) {
           return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
         }
 
+        res.status(httpStatus.ACCEPTED);
+        res.json({status: httpStatus.ACCEPTED});
 
         console.log('files to be zipped: ', files);
         var zipName = visitorName.replace(/\s+/g, '-');
 
-        upload.zip(files, zipName, function (err, archive) {
-          console.log('zipped file: ', archive);
-          if (err) {
-            console.log('zipping error', err);
-          }
-          upload.insertFile(archive, sessionId, req.widgetIds, tokens, function (err, result) {
+        db.widget.getSettings(instance, function (err, settings) {
 
+          upload.zip(files, zipName, function (err, archive) {
+            console.log('zipped file: ', archive);
+            if (err) {
+              console.log('zipping error', err);
+            }
+            upload.insertFile(archive, settings.service_settings, sessionId, tokens, function (err, downloadUrl) {
 
-            if (err) { console.error('uploading to google error', err); }
-            result = JSON.parse(result);
-            console.log('inserted file: ', result);
-            var visitor = new Visitor(visitorName, visitorEmail, visitorMessage);
-            email.send('andreye@wix.com', visitor, result.alternateLink, function (err) {
-              console.log('sent email');
-              res.status(httpStatus.ACCEPTED);
-              res.json({status: httpStatus.ACCEPTED});
+              if (err) { console.error('uploading to google error', err); }
+              result = JSON.parse(result);
+              console.log('inserted file: ', result);
+              var visitor = new Visitor(visitorName, visitorEmail, visitorMessage);
+              email.send(settings.user_email, visitor, downloadUrl, function (err) {
+                console.log('sent email');
+              });
             });
           });
         });
