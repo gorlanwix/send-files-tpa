@@ -225,7 +225,7 @@ describe('api requests', function () {
     it('should error asking for sessionId', function (done) {
       request(app).post('/api/files/upload/' + compId)
         .set('x-wix-instance', instanceId)
-        .attach('sendFile', 'test/test.jpg')
+        .attach('file', 'test/test.jpg')
         .expect('Content-Type', /json/)
         .expect(400)
         .end(function (err, res){
@@ -239,13 +239,13 @@ describe('api requests', function () {
     it('should upload first file and return fileId', function (done) {
       request(app).post('/api/files/upload/' + compId + '?sessionId=' + sessionId)
         .set('x-wix-instance', instanceId)
-        .attach('sendFile', 'test/test.jpg')
+        .attach('file', 'test/test.jpg')
         .expect('Content-Type', /json/)
-        .expect(200)
+        .expect(201)
         .end(function (err, res){
           console.log(res.body);
           if (err) return done(err);
-          expect(res.body).to.have.property('status').to.equal(200);
+          expect(res.body).to.have.property('status').to.equal(201);
           expect(res.body).to.have.property('fileId').to.exist;
           fileIds.push(res.body.fileId);
           done();
@@ -255,13 +255,13 @@ describe('api requests', function () {
     it('should upload second file and return fileId', function (done) {
       request(app).post('/api/files/upload/' + compId + '?sessionId=' + sessionId)
         .set('x-wix-instance', instanceId)
-        .attach('sendFile', 'test/test.jpg')
+        .attach('file', 'test/test.jpg')
         .expect('Content-Type', /json/)
-        .expect(200)
+        .expect(201)
         .end(function (err, res){
           console.log(res.body);
           if (err) return done(err);
-          expect(res.body).to.have.property('status').to.equal(200);
+          expect(res.body).to.have.property('status').to.equal(201);
           expect(res.body).to.have.property('fileId').to.exist;
           fileIds.push(res.body.fileId);
           done();

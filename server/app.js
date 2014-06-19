@@ -19,9 +19,9 @@ var router = express.Router();
 
 wix.secret(require('./connect-keys/wix-key.json').secretKey);
 app.use(bodyParser());
-app.use(express.static(__dirname));
+app.use(express.static(__dirname + '../../client/app'));
 
-var MAX_FILE_SIZE = 1073741824;
+var MAX_FILE_SIZE = 1024 * 1024 * 1024 * 1;
 
 app.use(multer({
   dest: './tmp/',
@@ -201,7 +201,7 @@ app.get('/api/files/session/:compId', function (req, res, next) {
         }
         var resJson = {
           sessionId: sessionId,
-          capacity: capacity,
+          uploadSizeLimit: (capacity > MAX_FILE_SIZE) ? MAX_FILE_SIZE : capacity,
           status: httpStatus.OK
         };
         res.status(httpStatus.OK);
@@ -217,7 +217,7 @@ app.post('/api/files/upload/:compId', function (req, res, next) {
 
   var MAX_FILE_SIZE = 1073741824;
 
-  var newFile = req.files.sendFile;
+  var newFile = req.files.file;
   var sessionId = req.query.sessionId;
 
   var formatError = null;
@@ -236,16 +236,16 @@ app.post('/api/files/upload/:compId', function (req, res, next) {
     });
   } else {
 
-    db.files.updateSessionAndInsert(newFile, sessionId, req.widgetIds, function (err, fileId) {
+    db.files.updateSessionAndInsert(newFile, sessionId, function (err, fileId) {
       if (!fileId) {
         return next(error('cannot insert file', httpStatus.INTERNAL_SERVER_ERROR));
       }
 
       var resJson = {
-        status: httpStatus.OK,
+        status: httpStatus.CREATED,
         fileId: fileId
       };
-      res.status(httpStatus.OK);
+      res.status(httpStatus.CREATED);
       res.json(resJson);
     });
   }
@@ -287,7 +287,7 @@ app.post('/api/files/send/:compId', function (req, res, next) {
   var visitorEmail = recievedJson.visitorEmail;
   var visitorName = recievedJson.visitorName;
   var toUploadFileIds = recievedJson.fileIds;
-  var visitorMessage = recievedJson.message;
+  var visitorMessage = recievedJson.visitorMessage;
 
   var isRequiredExist = visitorEmail && visitorName && toUploadFileIds && visitorMessage;
 
