@@ -80,6 +80,8 @@ function insertFile(file, serviceSettings, sessionId, tokens, callback) {
           console.error('uploading to google error', err);
           return callback(err, null);
         }
+        result = JSON.parse(result);
+        console.log('inserted file: ', result);
         callback(null, result.alternateLink);
       });
     }
@@ -98,8 +100,34 @@ function getAvailableCapacity(tokens, callback) {
   }
 }
 
+// returns downloadUrl and widget settings object
+
+function zipAndInsert(files, instance, sessionId, tokens) {
+  db.widget.getSettings(instance, function (err, settings) {
+    if (!settings) {
+      return callback(err, null, null);
+    }
+    zip(files, zipName, function (err, archive) {
+      if (err) {
+        return callback(err, null, settings);
+      }
+      console.log('zipped file: ', archive);
+      insertFile(archive, settings.service_settings, sessionId, tokens, function (err, downloadUrl) {
+
+        if (err) {
+          console.error('inserting file error: ', err);
+          return callback(err, null, settings);
+        }
+
+        callback(null, downloadUrl, settings);
+      });
+    });
+  });
+}
+
 module.exports = {
   zip: zip,
   insertFile: insertFile,
+  zipAndInsert: zipAndInsert,
   getAvailableCapacity: getAvailableCapacity
 };
