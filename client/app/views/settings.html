@@ -1,16 +1,46 @@
 <div ng-controller="SettingsCtrl">
 	<div class="box description-box">
 		<img class="logo" width="86" src="images/wix_icon.png">
-		<p class="description">This is the box to contain text to describe what this settings panel does. </p>
-        <div class="login-panel">
-            <p class="create-account">Don't have an<br/>account? <strong><a href="#" target="_blank">Create
-                one</a></strong></p>
-            <button class="submit uilib-btn connect">Connect account</button>
-        </div>
+		<div class="notloggedin-container" ng-hide="loggedin">
+			<p class="description">Connect with your Google account. This process is secure and completely private. Login authentication is encrypted using Google API. Wix will not have access to your account name or password.
+				<span class="question-mark-container" wix-tooltip=" {placement:'bottom', text:'This is the account that users will upload files to.'}">
+					<img class="question-mark" ng-mouseenter="show = true" ng-mouseleave="show = false" ng-src="images/question_mark.png">
+				</span>
+			</p>
+	        <div class="login-panel">
+	            <!-- <p class="create-account">Don't have an<br/>account? <strong><a href="#" target="_blank">Create
+	                one</a></strong></p> --> 
+	            <a ng-href="https://www.google.com" target="_blank"><button class="submit uilib-btn connect">Connect account</button></a>
+	        </div>
+	    </div>
+	    <div class="loggedin-container" ng-show="loggedin">
+			<img class="checkmark" ng-src="images/checkmark.png">
+			<span class="connect">You are currently connected with your Google Drive account:</span> 
+			<p>{{accountName}}BarackObama@whitehouse.com  <button class="uilib-btn btn-black-text">Disconnect Account</button></p>
+		</div>
 		<!-- <p ng-show="isEmailValid && !isEmpty">Your app is active</p>
 		<p ng-hide="isEmailValid">The app will be inactive until a valid email address is entered</p> -->
 	</div>
 	<div wix-ctrl="Accordion">
+		<!-- <div class="acc-pane">
+			<h3>Account Settings</h3>
+			<div class="acc-content">
+				<ul class="list">
+					<li wix-label="Connect with:">
+						<button class="uilib-btn btn-green" class="googleBtn" ng-click="$event.stopPropagation(); openModal(googleBtn)">Google Drive</button>
+						<button class="uilib-btn btn-purple" id="dropboxBtn">Dropbox</button>
+				      	<div wix-tooltip=" {placement:'top', text:'This is the account that users will upload files to.'}">
+							<img class="question-mark" ng-mouseenter="show = true" ng-mouseleave="show = false" ng-src="images/question_mark.png">
+						</div>
+					</li>
+					<li wix-label="Connect status">
+						<img class="checkmark" ng-src="images/checkmark.png">
+						<span class="connect">You are currently connected with your Google Drive account.</span>
+						<button class="uilib-btn btn-black-text">Disconnect Account</button>
+					</li>
+				</ul>
+			</div>
+		</div> -->
 	    <div class="acc-pane">
 	        <h3>Content Settings</h3>
 	        <div class="acc-content">
