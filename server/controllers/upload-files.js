@@ -102,11 +102,12 @@ function getAvailableCapacity(tokens, callback) {
 
 // returns downloadUrl and widget settings object
 
-function zipAndInsert(files, instance, sessionId, tokens) {
+function zipAndInsert(files, visitor, instance, sessionId, tokens, callback) {
   db.widget.getSettings(instance, function (err, settings) {
     if (!settings) {
       return callback(err, null, null);
     }
+    var zipName = visitor.name.replace(/\s+/g, '-');
     zip(files, zipName, function (err, archive) {
       if (err) {
         return callback(err, null, settings);
