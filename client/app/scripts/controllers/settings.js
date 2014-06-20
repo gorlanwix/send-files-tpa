@@ -70,6 +70,7 @@ angular.module('sendFiles')
           }
     }).error(function(data, status, headers, config) {
         console.log("There was an error obtaining your saved settings from the database.");
+        $scope.settings = api.getSettings(api.defaults);
         $scope.settings.$promise.then(function () {
           $wix.UI.initialize($scope.settings);
           $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
