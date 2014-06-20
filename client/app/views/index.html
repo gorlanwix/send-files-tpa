@@ -37,7 +37,7 @@
       <ul class="list-files">
         <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
           <span class="file-text" ng-style="fileStyle($index)" hover>
-            <a class="retry-files" href="#" ng-click="start($index)">.</a>
+            <a class="retry-files" href="#" ng-click="start($index)" ng-if="progressIcons[$index] === false">.</a>
             <span class="file-info">
               {{file.name}} - {{file.newSize}}
             </span>
