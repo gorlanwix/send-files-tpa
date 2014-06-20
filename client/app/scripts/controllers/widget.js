@@ -269,9 +269,7 @@ angular.module('sendFiles')
     /* Call this  when users select file(s) to begin file upload.
      * Use this when we only want users to upload up to 1GB of files total.
      */
-
     $scope.onFileSelect = function($files) {
-      
       for (var i = 0; i < $files.length; i++) {
         var file = $files[i];
         if ($scope.totalBytes + file.size > $scope.uploadLimit) {
@@ -400,9 +398,19 @@ angular.module('sendFiles')
       //$scope.fileList[index] = null; - throws errors on ng-repeat
       $scope.upload[index].abort();   //when should you abort???
       $scope.upload[index] = 'aborted';
+      $scope.totalBytes -= $scope.fileList[index].size;
     };
 
     $scope.submit2 = function() {
+      var uploadedFileTemp = [];
+      var j = 0;
+      for (var i = 0; i < $scope.uploadedFiles.length; i++) {
+        if ($scope.uploadedFiles[i] !== "aborted") {//check if it should be !=
+          uploadedFileTemp[j] = $scope.uploadedFiles[i];
+          j += 1;
+        }
+      }
+      console.log(uploadedFileTemp.length);
       $scope.uploadFailed = true;
     };
 
