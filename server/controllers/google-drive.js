@@ -7,7 +7,7 @@ var request = require('request');
 var async = require('async');
 var httpStatus = require('http-status');
 var userAuth = require('./user-auth.js');
-var config = require('./config.js');
+var config = require('../config.js');
 
 // google drive specific constants
 var ROOT_URL = 'https://www.googleapis.com/';

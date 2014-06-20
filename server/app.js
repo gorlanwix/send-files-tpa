@@ -13,10 +13,10 @@ var multer  = require('multer');
 var validator = require('validator');
 var fs = require('fs');
 var httpStatus = require('http-status');
+var wix = config.wix;
 
 
 var MAX_FILE_SIZE = config.MAX_FILE_SIZE;
-var wix = config.wix;
 
 var app = express();
 var router = express.Router();
@@ -24,11 +24,11 @@ var router = express.Router();
 
 // parse application/json
 app.use(bodyParser.json())
-app.use(express.static(__dirname + '../../client/app'));
+app.use(express.static(__dirname + config.CLIENT_APP_DIR));
 
 // parse fields and files
 app.use(multer({
-  dest: './tmp/',
+  dest: config.TMP_DIR,
   limits: {
     fileSize: MAX_FILE_SIZE,
   }

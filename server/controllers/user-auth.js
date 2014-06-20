@@ -3,12 +3,12 @@
 var db = require('./pg-database.js');
 var googleapis = require('googleapis');
 var OAuth2 = googleapis.auth.OAuth2;
-var googleKeys = require('../connect-keys/client-id.json').web;
+var googleKeys = require('../config.js').googleKeys;
 //var passport = require('passport');
-var GoogleStrategy = require('passport-google-oauth').OAuthStrategy;
+//var GoogleStrategy = require('passport-google-oauth').OAuthStrategy;
 
 function createOauth2Client(tokens) {
-  var oauth2Client = new OAuth2(googleKeys.client_id, googleKeys.client_secret, googleKeys.redirect_uris[0]);
+  var oauth2Client = new OAuth2(googleKeys.clientId, googleKeys.clientSecret, googleKeys.redirectUri);
   if (arguments.length === 1) {
     oauth2Client.credentials = tokens;
   }
