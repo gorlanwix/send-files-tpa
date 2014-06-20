@@ -14,7 +14,7 @@
       </p>
       <p class="limitation-message bottom-p">
         <!-- 1GB = 1073741824 bytes -->
-        You can upload up to {{uploadLimit / 1073741824}}GB of files.
+        You can upload up to {{uploadLimit / 1073741824}}GB with a max of {{maxFileTotal}} files.
       </p>
     </div>
 
@@ -26,10 +26,10 @@
           <span class="tool-tip">Please add a file</span>
       </div>
       <!-- Show uploading files here -->
-      <!-- <div class="block too-large">
+      <!-- <div class="block">
         <ul class="list-files">
-          <li ng-show="tooLargeList.length > 0">The following files can't be added due to lack of storage space:</li>
-          <li ng-repeat="file in tooLargeList">
+          <li ng-show="overLoadedList.length > 0">The following files can't be added due to lack of storage space:</li>
+          <li ng-repeat="file in overLoadedList">
             {{file.name}} - {{file.newSize}}
           </li>
         </ul>

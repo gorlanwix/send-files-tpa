@@ -13,6 +13,19 @@ angular.module('sendFiles')
     /* Upper limit on total size of files that can be uploaded. */
     $scope.uploadLimit = GBbytes;
 
+    /* Total size of all uploaded files so far in Bytes. */
+    $scope.totalBytes = 0;
+
+    /* Total space left for user to upload files in GB. */
+    $scope.totalGBLeft = ($scope.uploadLimit - $scope.totalBytes) / GBbytes;
+
+    /* Represents the total amount of files added by the visitor - but not
+     * necessarily uploaded to the server yet. */
+    $scope.totalFilesAdded = 0;
+
+    /* Max amount of files than can be uploaded at a time. */
+    $scope.maxFileLimit = 50;
+
     /* Represents the Instance ID of this widget. */
     var instanceID = 'whatever';
     // var url = $location.absUrl();
@@ -54,25 +67,16 @@ angular.module('sendFiles')
     /* If true, upload failure messages are shown. */
     $scope.uploadFailed = false;
 
-    /* Total size of all uploaded files so far in Bytes. */
-    $scope.totalBytes = 0;
-
-    /* Total space left for user to upload files in GB. */
-    $scope.totalGBLeft = ($scope.uploadLimit - $scope.totalBytes) / GBbytes;
-
     /* Used to keep track of the number of files uploaded and their
      * place in various arrays. */
     var fileIndex = 0;
 
-    /* Represents the total amount of files added by the visitor - but not
-     * necessarily uploaded to the server yet. */
-    $scope.totalFilesAdded = 0;
-
     /* List of files. Initalized as empty list. */
     $scope.fileList = [];
 
-    /* List of files that are too large for uploading. */
-    $scope.tooLargeList = [];
+    /* List of files that can't be uploaded due to size limit or 
+    * max file amount limit being reached. */
+    $scope.overloadedList = [];
 
     /* A list of files that have gone through the upload process.
      * This list is used for keeping track of files. Used for when
@@ -247,7 +251,7 @@ angular.module('sendFiles')
         var file = $files[i];
         if (file.size > $scope.uploadLimit) { //Test with files almost 1GB
           file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
-          $scope.tooLargeList.push(file);
+          $scope.overloadedList.push(file);
           console.log(file.size);
         } else {
           var sizeInMB = Math.floor(file.size / MBbytes);
@@ -272,10 +276,14 @@ angular.module('sendFiles')
     $scope.onFileSelect = function($files) {
       for (var i = 0; i < $files.length; i++) {
         var file = $files[i];
-        if ($scope.totalBytes + file.size > $scope.uploadLimit) {
+        if ($scope.totalBytes + file.size > $scope.uploadLimit ||
+            $scope.totalFilesAdded + 1 > $scope.maxFileLimit) {
+          console.log("over bitch!");
           file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
-          $scope.tooLargeList.push(file);
+          $scope.overloadedList.push(file);
         } else {
+          $scope.totalBytes += file.size;
+          $scope.totalFilesAdded += 1;
 
           var sizeInMB = Math.floor(file.size / MBbytes);
           if (sizeInMB === 0) {
@@ -287,9 +295,6 @@ angular.module('sendFiles')
           $scope.progress[fileIndex] = 100;
 
           $scope.fileList.push(file);
-          $scope.totalBytes += file.size;
-          
-          $scope.totalFilesAdded += 1;
 
           console.log($scope.fileList.length + ' before if');
           if ($scope.fileList.length === 1) {
@@ -474,7 +479,7 @@ angular.module('sendFiles')
       $scope.totalBytes = 0;
       $scope.totalFilesAdded = 0;
       $scope.fileList = [];
-      $scope.tooLargeList = [];
+      $scope.overloadedList = [];
       $scope.upload = [];
       $scope.progress = [];
       $scope.progressIcons = [];
