@@ -1,8 +1,13 @@
 TODO:
 
-- tests
-
+- alter tables' colums for default values/not null
+- heroku deployment
+- scheduled temporary files clean up
+- relic
 - use passport.js for general authorization
+- email templates
+- more tests
+- comments
 
 - allow site owner to choose upload file size limit (an essay grader doesn't need 1 GB file limits)
 - add javascript to detect whether the site owner has connected an account to the send-files widget and display acc-content accordingly
@@ -15,11 +20,9 @@ google needs offline mode to use refresh tokens
 dropbox's access token is persistent, no need for refresh token or expiration
 box has a refresh token by default, looks just like google's
 
-
 clean up temporary files every 24 hour regradles whether they are marked for deletion or not.
 adv:
     no need for ready to delete column
 dis:
     what if they are not uploaded within 24 hours?
         should be error then.
-

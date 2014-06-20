@@ -16,6 +16,10 @@
 	padding: 10px;
 }
 
+.site-owner-email {
+  font-size: 12px;
+}
+
 .account-drive {
 	display: inline;
 	vertical-align: middle;
@@ -28,6 +32,11 @@
 
 .connect {
 	font-size: 12px;
+  color: black;
+}
+
+.connect-button {
+  margin-top: -25px;
 }
 
 .question-mark-container {
@@ -45,6 +54,14 @@
   width:20px;
   height: 20px;
   margin-bottom: -5px;
+}
+
+.userEmail.ng-invalid {
+  color: red;
+}
+
+.align-with-above {
+  margin-left: 120px;
 }
 
 .tool-tip-container {

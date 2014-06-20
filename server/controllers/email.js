@@ -1,6 +1,6 @@
 'use strict';
 
-var emailKey = require('../connect-keys/mailgun-key.json');
+var emailKey = require('../config.js').mailgunKeys;
 var nodemailer = require('nodemailer');
 
 

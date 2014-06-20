@@ -26,7 +26,7 @@ describe('requests', function () {
 
 describe('api requests', function () {
 
-  this.timeout(60000);
+  this.timeout(300000);
 
   describe('widget IDs', function () {
     it('should give invalid instance error', function (done) {
@@ -58,7 +58,7 @@ describe('api requests', function () {
   });
 
 
-  describe('widget settings', function () {
+  describe.skip('widget settings', function () {
 
     after(function (doneAfter) {
       var deleteSettings = 'DELETE FROM widget_settings WHERE instance_id = $1 AND component_id = $2';
@@ -175,7 +175,7 @@ describe('api requests', function () {
           if (err) return done(err);
           expect(res.body).to.have.property('status').to.equal(200);
           expect(res.body).to.have.property('sessionId').to.exist;
-          expect(res.body).to.have.property('capacity').to.exist;
+          expect(res.body).to.have.property('uploadSizeLimit').to.exist;
           sessionId = res.body.sessionId;
           done();
         });
@@ -272,7 +272,7 @@ describe('api requests', function () {
       var resJson = {
         visitorEmail: 'timoha@bugaga.com',
         visitorName: 'Andrey Elenskiy',
-        message: 'You better f*cking work',
+        visitorMessage: 'You better f*cking work',
         fileIds: fileIds
       }
 
@@ -335,7 +335,7 @@ describe('Google Drive', function () {
 });
 
 
-describe('Email', function () {
+describe.skip('Email', function () {
 
   function Visitor(name, email, message) {
     this.name = name;
@@ -354,7 +354,7 @@ describe('Email', function () {
     });
   });
 
-  it.only('should send error emails to both user and visitor', function (done) {
+  it('should send error emails to both user and visitor', function (done) {
     var message = 'Testing email troloo #yolo #swag <3 <3 <3';
     var visitor = new Visitor('Timoha TROLOLO', 'andrey.elenskiy@gmail.com', message);
     email.sendErrors('andreye@wix.com', visitor, function (err, res) {

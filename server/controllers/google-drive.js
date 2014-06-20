@@ -7,7 +7,9 @@ var request = require('request');
 var async = require('async');
 var httpStatus = require('http-status');
 var userAuth = require('./user-auth.js');
+var config = require('../config.js');
 
+// google drive specific constants
 var ROOT_URL = 'https://www.googleapis.com/';
 var DRIVE_API_PATH = 'upload/drive/v2/files';
 var DRIVE_ABOUT_PATH = 'drive/v2/about';
@@ -63,12 +65,17 @@ function createFolder(accessToken, callback) {
     access_token: accessToken
   });
 
+  var folder = {
+    title: 'Wix Send Files',
+    mimeType: 'application/vnd.google-apps.folder'
+  };
+
   googleapis.discover('drive', 'v2').execute(function (err, client) {
     if (err) {
       return callback(err, null);
     }
     client
-      .drive.files.insert({ title: 'Wix Send Files', mimeType: 'application/vnd.google-apps.folder' })
+      .drive.files.insert(folder)
       .withAuthClient(oauth2Client)
       .execute(function (err, result) {
         if (err) {
@@ -126,6 +133,12 @@ function getUploadUrl(file, folderId, accessToken, callback) {
   });
 }
 
+function getUploadedSoFar(res) {
+  var range = res.headers.range;
+  var uploadedSoFar = parseInt(range.split('-')[1], 10);
+  return uploadedSoFar;
+}
+
 function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
   var options = {
     url: uploadUrl,
@@ -144,10 +157,9 @@ function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
     }
 
     if (res.statusCode === 308) { // Resume Incomplete
-      var range = res.headers.range;
-      var uploadedSoFar = parseInt(range.split('-')[1], 10);
-      callback(null, uploadedSoFar + 1, res.statusCode);
+      callback(null, getUploadedSoFar(res) + 1, res.statusCode);
     } else {
+      // restart upload from zero
       callback(null, 0, res.statusCode);
     }
   }), waitFor);
@@ -157,20 +169,20 @@ function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
 function recoverUpload(file, uploadUrl, accessToken, callback) {
   var watingTimes = [0, 1000, 2000, 4000, 8000, 16000];
   var startFrom = 0;
-  var recoverCount = 0;
+  var requestCount = 0;
   var statusCode = httpStatus.SERVICE_UNAVAILABLE;
   async.whilst(
     function () {
-      return statusCode !== 308 && recoverCount < watingTimes.length;
+      return statusCode !== 308 && requestCount < watingTimes.length;
     },
     function (callback) {
-      requestUploadStatus(file, uploadUrl, accessToken, watingTimes[recoverCount], function (err, restartFrom, newStatusCode) {
+      requestUploadStatus(file, uploadUrl, accessToken, watingTimes[requestCount], function (err, restartFrom, newStatusCode) {
         if (err) {
           return callback(err);
         }
         startFrom = restartFrom;
         statusCode = newStatusCode;
-        recoverCount++;
+        requestCount++;
         callback(null);
       });
     },
@@ -217,6 +229,8 @@ function uploadFile(file, uploadUrl, accessToken, start, maxRecovers, callback) 
 
       console.log('google uploaded status code: ', res.statusCode);
 
+      // might be an issue with 308 status code, hasn't been able to replicate
+
       var recoverWhenStatus = [500, 501, 502, 503];
 
       var shouldRecover = recoverWhenStatus.indexOf(res.statusCode) > -1;
@@ -250,7 +264,7 @@ function uploadFile(file, uploadUrl, accessToken, start, maxRecovers, callback) 
 
 
 function insertFile(file, folderId, accessToken, callback) {
-  var MAX_RECOVERS_NUM = 10;
+  var MAX_UPLOAD_RECOVERS = config.MAX_UPLOAD_RECOVERS;
 
   console.log('insering file to google');
   getUploadUrl(file, folderId, accessToken, function (err, uploadUrl) {
@@ -258,8 +272,7 @@ function insertFile(file, folderId, accessToken, callback) {
       console.error('google request error: ', err);
       return callback(err, null);
     }
-    console.log('google file upload url: ', uploadUrl);
-    uploadFile(file, uploadUrl, accessToken, 0, MAX_RECOVERS_NUM, function (err, result) {
+    uploadFile(file, uploadUrl, accessToken, 0, MAX_UPLOAD_RECOVERS, function (err, result) {
       if (err) {
         console.error('upload file to google error: ', err);
         return callback(err, null);

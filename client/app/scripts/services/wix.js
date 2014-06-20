@@ -6,7 +6,4 @@ angular.module('sendFiles').factory('$wix', function ($window, $log) {
   } else {
     return $log.error('Did you forget to include Wix.js?');
   }
-
 });
-
-

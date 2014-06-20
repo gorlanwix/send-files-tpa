@@ -8,10 +8,10 @@ var archiver = require('archiver');
 var crypto = require('crypto');
 var archive = archiver('zip');
 
-var tmpDir = './tmp/';
+var tmpDir = require('../config.js').TMP_DIR;
 
 
-function generateTempName(filename) {
+function generateTmpName(filename) {
   var random_string = filename + Date.now() + Math.random();
   return crypto.createHash('md5').update(random_string).digest('hex');
 }
@@ -19,18 +19,18 @@ function generateTempName(filename) {
 
 function zip(files, newName, callback) {
 
-  var tempName = generateTempName(newName);
+  var tmpName = generateTmpName(newName);
 
   newName += '.zip';
-  tempName += '.zip';
-  var tempFolder = tmpDir + tempName;
-  console.log("Created temporary filename: ", tempName);
+  tmpName += '.zip';
+  var tempFolder = tmpDir + tmpName;
+  console.log("Created temporary filename: ", tmpName);
   var output = fs.createWriteStream(tempFolder);
 
   output.on('close', function () {
     console.log(archive.pointer() + ' total bytes');
     var file = {
-      name: tempName,
+      name: tmpName,
       mimetype: 'application/zip',
       size: archive.pointer(),
       originalname: newName,
