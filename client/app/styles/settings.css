@@ -35,6 +35,10 @@
   color: black;
 }
 
+.connect-button {
+  margin-top: -25px;
+}
+
 .question-mark-container {
   height: 21px;
   width: 21px;
@@ -50,6 +54,10 @@
   width:20px;
   height: 20px;
   margin-bottom: -5px;
+}
+
+.userEmail.ng-invalid {
+  color: red;
 }
 
 .align-with-above {

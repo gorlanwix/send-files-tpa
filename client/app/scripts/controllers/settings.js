@@ -3,7 +3,7 @@
 angular.module('sendFiles')
   .controller('SettingsCtrl', function ($scope, $wix, api, $http) {
     $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
-    $scope.loggedin = true;
+    $scope.loggedin = false;
     $scope.userEmail = 'test@testing.com'; //for testing
 
     $wix.UI.onChange('*', function (value, key) {
