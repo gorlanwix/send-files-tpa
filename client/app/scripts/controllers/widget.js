@@ -14,20 +14,20 @@ angular.module('sendFiles')
     $scope.uploadLimit = GBbytes;
 
     /* Represents the Instance ID of this widget. */
-    var instanceID = 'whatever';
-    // var url = $location.absUrl();
-    // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
-    // var instance = instanceRegexp.exec(url);
-    // if (instance && instance[1]) {
-    //   instanceID = instance[1];
-    // } else {
-    //   console.log('All hell has broken loose.');
-    //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
-    // }
+    var instanceID; //= 'whatever';
+    var url = $location.absUrl();
+    var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
+    var instance = instanceRegexp.exec(url);
+    if (instance && instance[1]) {
+      instanceID = instance[1];
+    } else {
+      console.log('All hell has broken loose.');
+      //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
+    }
     // console.log(instanceID);
 
     /* Represents the Component ID of this widget. */
-    var compID = '12345';//$wix.Utils.getOrigCompId();
+    var compID = $wix.Utils.getOrigCompId(); //'12345';
 
     /* Represents the user settings for the widget. */
     $scope.settings = {};
@@ -491,6 +491,7 @@ angular.module('sendFiles')
             if (data.widgetSettings.provider === "" || data.widgetSettings.userEmail === "") {
               $scope.active = false;
             }
+            console.log(data.widgetSettings.userEmail);
             if (Object.getOwnPropertyNames(data.widgetSettings.settings).length !== 0) {
               $scope.settings = data.widgetSettings.settings;
             } else {
@@ -498,6 +499,7 @@ angular.module('sendFiles')
             }
           } else {
             console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
+            $scope.settings = api.getSettings(api.defaults);
           }
         }).error(function (data, status, headers, config) {
           //deal with errors
