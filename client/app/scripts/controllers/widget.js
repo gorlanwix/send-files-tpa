@@ -5,7 +5,7 @@ angular.module('sendFiles')
 
      /* Regular expression used to determine if user input is a valid email. */
     $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
-    $scope.nameRegex = /\S/; //notBlankRegex
+    
     /* Constants used for byte conversion. */
     var GBbytes = 1073741824;
     var MBbytes = 1048576;
@@ -119,11 +119,11 @@ angular.module('sendFiles')
       console.log($scope.fileForm.visitorName);
       console.log(newValue === '');
       console.log(newValue);
-      // if (newValue === undefined) {
-      //   $scope.fileForm.visitorName.$invalid = true;
-      // } else {
-      //   $scope.fileForm.visitorName.$invalid = false;
-      // }
+      if (newValue === undefined) {
+        $scope.fileForm.visitorName.$invalid = true;
+      } else {
+        $scope.fileForm.visitorName.$invalid = false;
+      }
     };
 
     /* Records the visitor's email and updates final message to server. */
@@ -135,9 +135,9 @@ angular.module('sendFiles')
     $scope.updateMessage = function (newValue) {
       finalSubmission.visitorMessage = newValue;
       if (newValue === undefined) {
-        $scope.fileForm.visitorName.$invalid = true;
+        $scope.fileForm.message.$invalid = true;
       } else {
-        $scope.fileForm.visitorName.$invalid = false;
+        $scope.fileForm.message.$invalid = false;
       }
     };
 
@@ -401,6 +401,12 @@ angular.module('sendFiles')
       $scope.upload[index].abort();   //when should you abort???
       $scope.upload[index] = 'aborted';
     };
+
+    $scope.submit2 = function() {
+      $scope.uploadFailed = true;
+    };
+
+
     /* Call this when user submits form with files, email, and message */
     $scope.submit = function() {
       var uploadedFileTemp = [];
@@ -452,16 +458,9 @@ angular.module('sendFiles')
      * All failure/success messages will disappear and most variables are
      * completly reset. */
     $scope.reset = function() {
-      //console.log($scope.fileForm.$pristine);
-      //$scope.fileForm.visitorName.$setPristine();
       $scope.fileForm.visitorName.$invalid = true;
       $scope.fileForm.email.$invalid = true;
-      //$scope.user = mast
-      //console.log($scope.fileForm.visitorName);
-      //$scope.fileForm.visitorName.$viewValue = '';
-      //$scope.fileForm.visitorName.$modelValue = undefined;
-      //$scope.fileForm.email = undefined;
-      //$scope.fileForm.message = undefined;
+      $scope.fileForm.message.$invalid = true;
       
       fileIndex = 0;
       $scope.totalBytes = 0;
@@ -482,7 +481,6 @@ angular.module('sendFiles')
      * to upload more files. */
     $scope.success = function() {
       $scope.headlineText = 'Success! Your files were sent.';
-      $scope.success = true;
     };
 
     /* This setting makes a call to the backend database to get the
