@@ -5,7 +5,7 @@ angular.module('sendFiles')
 
      /* Regular expression used to determine if user input is a valid email. */
     $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
-    $scope.nameRegex = /\S+/;
+    $scope.nameRegex = /\S/; //notBlankRegex
     /* Constants used for byte conversion. */
     var GBbytes = 1073741824;
     var MBbytes = 1048576;
@@ -14,20 +14,20 @@ angular.module('sendFiles')
     $scope.uploadLimit = GBbytes;
 
     /* Represents the Instance ID of this widget. */
-    var instanceID = 'whatever';
-    // var url = $location.absUrl();
-    // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
-    // var instance = instanceRegexp.exec(url);
-    // if (instance && instance[1]) {
-    //   instanceID = instance[1];
-    // } else {
-    //   console.log('All hell has broken loose.');
-    //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
-    // }
+    var instanceID; //= 'whatever';
+    var url = $location.absUrl();
+    var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
+    var instance = instanceRegexp.exec(url);
+    if (instance && instance[1]) {
+      instanceID = instance[1];
+    } else {
+      console.log('All hell has broken loose.');
+      //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
+    }
     // console.log(instanceID);
 
     /* Represents the Component ID of this widget. */
-    var compID = '12345';//$wix.Utils.getOrigCompId();
+    var compID = $wix.Utils.getOrigCompId(); //'12345';
 
     /* Represents the user settings for the widget. */
     $scope.settings = {};
@@ -405,6 +405,9 @@ angular.module('sendFiles')
         }
       }
       finalSubmission.fileIds = uploadedFileTemp;
+      finalSubmission.visitorName = finalSubmission.visitorName.trim();
+      finalSubmission.visitorEmail = finalSubmission.visitorEmail.trim();
+      finalSubmission.visitorMessage = finalSubmission.visitorMessage.trim();
       var uploadURL = '/api/files/send/' + compID + '?sessionId=' + $scope.sessionId;
       $http({method: 'POST',
              url: uploadURL,
@@ -477,31 +480,38 @@ angular.module('sendFiles')
 
     /* This setting makes a call to the backend database to get the
      * latest user settings. */
-    // $scope.getDatabaseSettings = function() {
-    //   var urlDatabase = '/api/settings/' + compID;
-    //   $http({method: 'GET',
-    //          url: urlDatabase,
-    //          headers: {'X-Wix-Instance' : instanceID}
-    //          // timeout: in milliseconds
-    //   }).success(function (data, status, headers, config) {
-    //       if (status === 200) { //check if this is right status code
-    //         if (data.widgetSettings.provider === "" || data.widgetSettings.settings.email === "") {
-    //           $scope.active = false;
-    //         }
-    //         $scope.settings = data.widgetSettings.settings;
-    //       } else {
-    //         console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
-    //       }
-    //     }).error(function (data, status, headers, config) {
-    //       //deal with errors
-    //   });
-    // };
+    $scope.getDatabaseSettings = function() {
+      var urlDatabase = '/api/settings/' + compID;
+      $http({method: 'GET',
+             url: urlDatabase,
+             headers: {'X-Wix-Instance' : instanceID}
+             // timeout: in milliseconds
+      }).success(function (data, status, headers, config) {
+          if (status === 200) { //check if this is right status code
+            if (data.widgetSettings.provider === "" || data.widgetSettings.userEmail === "") {
+              $scope.active = false;
+            }
+            console.log(data.widgetSettings.userEmail);
+            if (Object.getOwnPropertyNames(data.widgetSettings.settings).length !== 0) {
+              $scope.settings = data.widgetSettings.settings;
+            } else {
+              $scope.settings = api.getSettings(api.defaults);
+            }
+          } else {
+            console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
+            $scope.settings = api.getSettings(api.defaults);
+          }
+        }).error(function (data, status, headers, config) {
+          //deal with errors
+          $scope.settings = api.getSettings(api.defaults);
+      });
+    };
 
-    // if (window.location.host === "editor.wix.com") {
-    //   $scope.settings = api.getSettings(true);
-    // } else {
-    //   $scope.getDatabaseSettings();
-    // }
+    if (window.location.host === "editor.wix.com") {
+      $scope.settings = api.getSettings(true);
+    } else {
+      $scope.getDatabaseSettings();
+    }
 
     //This block below listens for changes in the settings panel and updates the widget view.
     $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
@@ -509,7 +519,7 @@ angular.module('sendFiles')
       // console.log('Input Data: ', message); //for testing communication between widget and settings
       $scope.$apply();
     });
-    $scope.settings = api.getSettings(api.defaults);
+    //$scope.settings = api.getSettings(api.defaults);
   });
 
 
