@@ -67,6 +67,12 @@ angular.module('sendFiles')
     /* If true, upload failure messages are shown. */
     $scope.uploadFailed = false;
 
+    /* Used to represent number of files tha that have been uploaded
+     * successfully or returned an error from the server.
+     */
+    var totalSuccess = 0;
+    var totalFailed = 0;
+
     /* Used to keep track of the number of files uploaded and their
      * place in various arrays. */
     var fileIndex = 0;
@@ -181,6 +187,12 @@ angular.module('sendFiles')
      */
     $scope.submitButtonStyle = function () {
       if ($scope.totalFilesAdded) {
+        
+
+
+
+
+
         var progress = false;
         for (var i = 0, n = $scope.progressIcons.length; i < n; i++) {
           if ($scope.progressIcons[i] === false) {
@@ -233,8 +245,8 @@ angular.module('sendFiles')
     /* Determines if a user is ready to submit or not. Returns true if
      * NOT ready to submit and false if ready. */
     $scope.submitNotReady = function() {
-      if (!($scope.fileForm.$invalid) && $scope.totalFilesAdded) {// &&
-            //$scope.fileUploadSubmitText === 'Files ready to Submit!') {
+      if (!($scope.fileForm.$invalid) && $scope.totalFilesAdded &&
+            $scope.fileUploadSubmitText === 'Files ready to Submit!') {
         return false;
       } else {
         return true;
@@ -376,14 +388,18 @@ angular.module('sendFiles')
               //var uploadVerified = {'fileId' : data.fileI}; //make sure this the actual format
               if ($scope.uploadedFiles[index] !== 'aborted') {
                 $scope.uploadedFiles.push(data.fileId);
+                $scope.progress[index] = 0;
+                $scope.progressIcons[index] = true;
+                totalSuccess += 1;
               }
-              $scope.progress[index] = 0;
-              $scope.progressIcons[index] = true;
             } else {
               console.log('ERROR ERROR ERROR: success failed!');
             }
         }).error(function(data, status, headers, config) {
-            $scope.progressIcons[index] = false;
+            if ($scope.uploadedFiles[index] !== 'aborted') {
+              $scope.progressIcons[index] = false;
+              totalFailed += 1;
+            }
             console.log('ERROR ERROR ERROR');
             console.log(data);
             //give try again error to user
@@ -396,12 +412,19 @@ angular.module('sendFiles')
     };
 
     /* Call this when user wants to remove file from list. */
-    $scope.abort = function(index) { /* TODO: Pass in file in HTML somehow! */
+    $scope.abort = function(index) {
       //test if you can get program to crash by aborting before the upload even occurs
       $scope.uploadedFiles[index] = 'aborted';
       $scope.totalFilesAdded -= 1;
-      //$scope.fileList[index] = null; - throws errors on ng-repeat
-      $scope.upload[index].abort();   //when should you abort???
+      if ($scope.progressIcons[index] === false) {
+        totalFailed -= 1;
+      }
+      if ($scope.progressIcons[index] === true) {
+        totalSuccess -= 1;
+      }
+      if ($scope.upload[index] !== undefined) {
+        $scope.upload[index].abort();
+      }
       $scope.upload[index] = 'aborted';
       $scope.totalBytes -= $scope.fileList[index].size;
     };
@@ -415,7 +438,7 @@ angular.module('sendFiles')
           j += 1;
         }
       }
-      console.log(uploadedFileTemp.length);
+      console.log('length: ' + uploadedFileTemp.length);
       $scope.uploadFailed = true;
     };
 
