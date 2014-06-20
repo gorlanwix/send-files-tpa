@@ -54,7 +54,7 @@
             </span>
           </span>
           <div style="clear: both;"></div>
-          <div class="progress">
+          <div class="progress" ng-if="progressIcons[$index] === undefined">
             <span style="width:{{progress[$index]}}%;"></span>
           </div>
         </li>
