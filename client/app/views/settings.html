@@ -10,13 +10,28 @@
 	        <div class="login-panel">
 	            <!-- <p class="create-account">Don't have an<br/>account? <strong><a href="#" target="_blank">Create
 	                one</a></strong></p> --> 
-	            <a ng-href="https://www.google.com" target="_blank"><button class="submit uilib-btn connect">Connect account</button></a>
+	            <form name="owner-form">
+	            	<span class="site-owner-email">Your Email:</span>
+		            <input name="userEmail" type="email" class="" placeholder="WebsiteMaker@Wix.com" required ng-model="userEmail" ng-pattern="emailRegex"> <!-- This email input field does not have email pattern verification yet -->
+		            <span class="question-mark-container" wix-tooltip=" {placement:'bottom', text:'When visitors of your website upload files, their message will be sent to this email. If you would like the message to be sent to the email attached to your Drive account, you can leave this field empty.'}">
+						<img class="question-mark" ng-mouseenter="show = true" ng-mouseleave="show = false" ng-src="images/question_mark.png">
+					</span>
+		            <a ng-href="/api/auth/login/google/:compId" target="_blank"><button class="submit uilib-btn connect">Connect account</button></a>
+		        </form>
 	        </div>
 	    </div>
-	    <div class="loggedin-container" ng-show="loggedin">
+	    <div class="loggedin-container connect" ng-show="loggedin">
 			<img class="checkmark" ng-src="images/checkmark.png">
 			<span class="connect">You are currently connected with your Google Drive account:</span> 
-			<p>{{accountName}}BarackObama@whitehouse.com  <button class="uilib-btn btn-black-text">Disconnect Account</button></p>
+			<p>{{accountName || 'BarackObama@whitehouse.com'}}</p>
+				<p class="connect">
+					<img class="checkmark" ng-src="images/checkmark.png">
+					Messages will be sent to this email:
+				</p>
+				<div class="align-with-above">
+					<p>{{userEmail || 'WebsiteOwner@Wix.com'}}</p>
+					<button class="uilib-btn btn-black-text">Reconfigure Accounts</button>
+				</div>
 		</div>
 		<!-- <p ng-show="isEmailValid && !isEmpty">Your app is active</p>
 		<p ng-hide="isEmailValid">The app will be inactive until a valid email address is entered</p> -->

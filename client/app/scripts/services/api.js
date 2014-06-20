@@ -13,7 +13,7 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
   };
 
   var headers = {
-    'X-Wix-Instance': 'whatever', //$wix.Utils.getInstanceId(),
+    'X-Wix-Instance': $wix.Utils.getInstanceId(),
     'Content-Type': 'application/json'
   };
 
@@ -33,16 +33,12 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
       return Settings.save(settings);
     },
     getSettings: function (defaults) {
-      var settings = {};
-      var data = Settings.get();
+      var settings = Settings.get();
       if (defaults === true || defaults) {
-        data.$promise.then(function () {
-          var settingsBackend = data.widgetSettings.settings;
+        settings.$promise.then(function () {
           angular.forEach(defaults, function (value, key) {
-            if (!settingsBackend.hasOwnProperty(key)) {
+            if (!settings.hasOwnProperty(key)) {
               settings[key] = value;
-            } else {
-              settings[key] = settingsBackend[key];
             }
           });
         });

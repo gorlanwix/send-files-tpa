@@ -2,7 +2,9 @@
 
 angular.module('sendFiles')
   .controller('SettingsCtrl', function ($scope, $wix, api, $http) {
-    $scope.loggedin = false;
+    $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
+    $scope.loggedin = true;
+    $scope.userEmail = 'test@testing.com'; //for testing
 
     $wix.UI.onChange('*', function (value, key) {
       $scope.settings[key] = value;
@@ -10,72 +12,75 @@ angular.module('sendFiles')
   		$wix.Utils.getOrigCompId());
       //then save here with debounce
       putSettings();
-      // api.saveSettings(compId, {});
-      // api.saveSettings(compId, $scope.settings);
     });
 
-    $scope.settings = api.getSettings(true);
-    var compId = $wix.Utils.getOrigCompId();
-    
-    
-    // api.saveSettings(compId, sendJson);
-
-    var putData = [];
-
-    var headers = {
-      'X-Wix-Instance': 'whatever', //$wix.Utils.getInstanceId(),
-      'Content-Type': 'application/json'
-    };
-
     var putSettings = function () {
-      var sendJson = JSON.stringify( $scope.settings );
-      console.log(sendJson); 
+      var combineSettings = {widgetSettings: {userEmail: $scope.userEmail, settings: $scope.settings}};
+      var settingsJson = JSON.stringify(combineSettings);
+      var compId = '12345'; // $wix.Utils.getOrigCompId()
       $http.put('/api/settings/' + compId, 
-         sendJson,  { headers: headers})
+         settingsJson,  { headers: {
+                      'X-Wix-Instance': 'whatever', //$wix.Utils.getInstanceId(),
+                      'Content-Type': 'application/json'
+                      }
+                    })
           .success(function (data, status, headers, config) {
-            console.log("Pushing data...");
-            putData.push(data);
-            console.log("data successfully pushed");
+          })
+          .error(function (data, status, headers, config) {
+            console.log("There was an error saving settings.");
           })
           .then(function (response) {
             console.log(response.data);
-          // })
-          // .error(function (data, status, headers, config) {
-          //   console.log("There was an error pushing your saved settings to the database.");
           });
       }
 
-    // uncomment the block below when app is ready to be connected to a backend database
-    // actually might be unnecessary. code in api.js seems to already do that
-    // $http({ method: 'GET',
-    //         URL: '/api/settings/' + compId,
-    //         headers: api.headers
-    // }).success(function(data, status, headers, config) {
-    //       if (status === 200) {
-    //         $scope.settings = data.widgetSettings.settings;
-    //       } else {
-    //         console.log("You successfully obtained data from the server, but the status is not 200. Not sure why this error is showing up. It should never display.");
-    //         $scope.settings = data.widgetSettings.settings;
-    //       }
-    // }).error(function(data, status, headers, config) {
-    //       console.log("There was an error obtaining your saved settings from the database.");
-    // });
+    var compId = '12345'
 
-    
-
-    $scope.settings.$promise.then(function () {
-      $wix.UI.initialize($scope.settings);
-      $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
-      $wix.Utils.getOrigCompId());
+    $http.get('/api/settings/' + compId, {
+            headers: {
+              'Content-type': 'application/json', 
+              'X-Wix-Instance': 'whatever' //$wix.Utils.getInstanceId()
+            }
+    }).success(function(data, status, headers, config) {
+          if (status === 200) {
+            if (Object.keys(data.widgetSettings.settings).length != 0) { //checks to see if there are saved settings
+              console.log('there are saved settings');
+              $scope.settings = data.widgetSettings.settings; //works (this is if everything goes as planned and settings are gotten from the server)
+              $wix.UI.initialize($scope.settings);
+              $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
+              $wix.Utils.getOrigCompId());
+            } else {
+              console.log('there are no saved settings');
+              $scope.settings = api.getSettings(api.defaults); // if user does not have any saved settings
+              $scope.settings.$promise.then(function () {
+                $wix.UI.initialize($scope.settings);
+                $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
+                $wix.Utils.getOrigCompId());
+              });
+            }
+          } else {
+            console.log("status != 200");
+            $scope.settings = api.getSettings(api.defaults);
+            $scope.settings.$promise.then(function () {
+              console.log('Initializing Wix UI Settings Panel');
+              $wix.UI.initialize($scope.settings);
+              $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
+              $wix.Utils.getOrigCompId());
+            });
+          }
+    }).error(function(data, status, headers, config) {
+        console.log("There was an error obtaining your saved settings from the database.");
+        $scope.settings.$promise.then(function () {
+          $wix.UI.initialize($scope.settings);
+          $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
+          $wix.Utils.getOrigCompId());
+        });
     });
-
-    // $scope.openModal = function () {
-    //   $wix.UI.create({ctrl: 'Popup', 
-    //     options: {modal:true, buttonSet: 'okCancel', fixed: true, title: 'Authentication',
-    //               content: 
-    //               '<div><p>hello</p><p>wtf</p></div><style>p {color: red;}</style>'
-    //               + '<p>hi</p>'
-    //               + '<iframe src="http://m.xkcd.com/"><p>iframe not supported</p></iframe>'
-    //               }}).getCtrl().open()
-    // }
+    
+    // $scope.settings.$promise.then(function () {
+    //   console.log('Initializing Wix UI Settings Panel');
+    //   $wix.UI.initialize($scope.settings);
+    //   $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
+    //   $wix.Utils.getOrigCompId());
+    // });
 });
