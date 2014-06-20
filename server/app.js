@@ -5,24 +5,28 @@ var db = require('./controllers/pg-database.js');
 var upload = require('./controllers/upload-files.js');
 var email = require('./controllers/email.js');
 var googleDrive = require('./controllers/google-drive.js');
+var config = require('./config.js');
 
 var express = require('express');
 var bodyParser = require('body-parser');
 var multer  = require('multer');
 var validator = require('validator');
 var fs = require('fs');
-var wix = require('wix');
 var httpStatus = require('http-status');
+
+
+var MAX_FILE_SIZE = config.MAX_FILE_SIZE;
+var wix = config.wix;
 
 var app = express();
 var router = express.Router();
 
-wix.secret(require('./connect-keys/wix-key.json').secretKey);
-app.use(bodyParser());
+
+// parse application/json
+app.use(bodyParser.json())
 app.use(express.static(__dirname + '../../client/app'));
 
-var MAX_FILE_SIZE = 1024 * 1024 * 1024 * 1;
-
+// parse fields and files
 app.use(multer({
   dest: './tmp/',
   limits: {
@@ -215,8 +219,6 @@ app.get('/api/files/session/:compId', function (req, res, next) {
 
 app.post('/api/files/upload/:compId', function (req, res, next) {
 
-  var MAX_FILE_SIZE = 1073741824;
-
   var newFile = req.files.file;
   var sessionId = req.query.sessionId;
 
@@ -341,11 +343,12 @@ app.post('/api/files/send/:compId', function (req, res, next) {
           if (err) {
             console.error('zipping and inserting error: ', err);
             email.sendErrors(settings.user_email, visitor, function (err, res) {
-              console.log('sent email erros');
+              console.log('sent email errors');
+              return;
             });
           } else {
             email.send(settings.user_email, visitor, downloadUrl, function (err) {
-              console.log('sent email');
+              return;
             });
           }
         });
