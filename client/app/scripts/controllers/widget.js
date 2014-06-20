@@ -14,20 +14,21 @@ angular.module('sendFiles')
     $scope.uploadLimit = GBbytes;
 
     /* Represents the Instance ID of this widget. */
-    var instanceID; //= 'whatever';
-    var url = $location.absUrl();
-    var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
-    var instance = instanceRegexp.exec(url);
-    if (instance && instance[1]) {
-      instanceID = instance[1];
-    } else {
-      console.log('All hell has broken loose.');
-      //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
-    }
+    var instanceID = 'whatever';
+    // var url = $location.absUrl();
+    // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
+    // var instance = instanceRegexp.exec(url);
+    // if (instance && instance[1]) {
+    //   instanceID = instance[1];
+    // } else {
+    //   console.log('All hell has broken loose.');
+    //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
+    // }
     // console.log(instanceID);
 
     /* Represents the Component ID of this widget. */
-    var compID = $wix.Utils.getOrigCompId(); //'12345';
+    var compID = '12345';
+    //$wix.Utils.getOrigCompId();
 
     /* Represents the user settings for the widget. */
     $scope.settings = {};
@@ -284,6 +285,9 @@ angular.module('sendFiles')
           } else {
             file.newSize = sizeInMB.toString() + 'MB';
           }
+          console.log('progress fileIndex: ' + fileIndex);
+          $scope.progress[fileIndex] = 100;
+
           $scope.fileList.push(file);
           $scope.totalBytes += file.size;
           
@@ -291,21 +295,25 @@ angular.module('sendFiles')
 
           console.log($scope.fileList.length + ' before if');
           if ($scope.fileList.length === 1) {
+            fileIndex += 1;
             $scope.verifySpace(function () {
               console.log($scope.fileList.length + 'inside callback');
               console.log('fileindex:' + fileIndex);
-              $scope.start(fileIndex);
-              fileIndex += 1;
+              $scope.start(1); //THIS IS ALWAYS 1 SO IT'S EASIER TO JUST USE 1
+              //HERE RATHER THAN A VARIABLE TO MAKE SURE THINGS WORK
+              //ASYNCHRONOUSLY
+              // fileIndex += 1;
               for (var i = 0; i < fileUploadQueue.length; i++) {
-                $scope.start(i);
+                $scope.start(fileUploadQueue[i]);
               }
             });
-          } else if ($scope.sessionId){
+          } else if ($scope.sessionId) {
+            fileIndex += 1;
             $scope.start(fileIndex);
-            fileIndex += 1;
+            //fileIndex += 1;
           } else {
-            fileUploadQueue.push(fileIndex);
             fileIndex += 1;
+            fileUploadQueue.push(fileIndex);
           }
         }
         console.log(fileIndex); //for error checking;
@@ -344,8 +352,7 @@ angular.module('sendFiles')
      * HTML element covering the progress bar has a width of 0.
      */
     $scope.start = function(index) {
-      $scope.progress[index] = 100;
-
+      index -= 1; //IMPORTANT
       console.log(index);
       if ($scope.upload[index] !== 'aborted') {
         var uploadURL = '/api/files/upload/' + compID + '?sessionId=' + $scope.sessionId;
