@@ -1,21 +1,32 @@
 'use strict';
 
-var pg = require('pg');
 var db = require('./pg-database.js');
-var connectionString = process.env.DATABASE_URL || require('../connect-keys/pg-connect.json').connectPg;
 var googleapis = require('googleapis');
 var OAuth2 = googleapis.auth.OAuth2;
-var clientId = require('../connect-keys/client-id.json').web;
-
+var googleKeys = require('../config.js').googleKeys;
+//var passport = require('passport');
+//var GoogleStrategy = require('passport-google-oauth').OAuthStrategy;
 
 function createOauth2Client(tokens) {
-  var oauth2Client = new OAuth2(clientId.client_id, clientId.client_secret, clientId.redirect_uris[0]);
+  var oauth2Client = new OAuth2(googleKeys.clientId, googleKeys.clientSecret, googleKeys.redirectUri);
   if (arguments.length === 1) {
     oauth2Client.credentials = tokens;
   }
 
   return oauth2Client;
 }
+
+// passport.use(new GoogleStrategy({
+//     consumerKey: GOOGLE_CONSUMER_KEY,
+//     consumerSecret: GOOGLE_CONSUMER_SECRET,
+//     callbackURL: "http://127.0.0.1:3000/auth/google/callback"
+//   },
+//   function(token, tokenSecret, profile, done) {
+//     User.findOrCreate({ googleId: profile.id }, function (err, user) {
+//       return done(err, user);
+//     });
+//   }
+// ));
 
 
 function getGoogleAuthUrl(instance, callback) {
@@ -25,13 +36,15 @@ function getGoogleAuthUrl(instance, callback) {
     'https://www.googleapis.com/auth/drive.file',
     'email'
   ];
-  // generate consent page url
-  var url = oauth2Client.generateAuthUrl({
+
+  var params =  {
     access_type: 'offline', // will return a refresh token
     state: instance.instanceId + '+' + instance.compId,
     display: 'popup',
     scope: scopes.join(" ")
-  });
+  };
+  // generate consent page url
+  var url = oauth2Client.generateAuthUrl(params);
 
   callback(url);
 }
