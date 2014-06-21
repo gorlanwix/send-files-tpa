@@ -347,27 +347,26 @@ app.post('/api/files/send/:compId', function (req, res, next) {
           res.status(httpStatus.ACCEPTED);
           res.json({status: httpStatus.ACCEPTED});
 
-          console.log('files to be zipped: ', files);
-
           var visitor = new Visitor(visitorName, visitorEmail, visitorMessage);
           upload.zipAndInsert(files, visitor, req.widgetIds, sessionId, tokens, function (err, downloadUrl, settings) {
             if (err) {
               console.error('zipping and inserting error: ', err);
-              email.sendErrors(settings.user_email, visitor, function (err, res) {
-                if (err) {
-                  console.error('sending error emails error', err);
-                  return;
-                }
-                console.log('sent email errors');
-                return;
-              });
+              // email.sendErrors(settings.user_email, visitor, function (err, res) {
+              //   if (err) {
+              //     console.error('sending error emails error', err);
+              //     return;
+              //   }
+              //   console.log('sent email errors');
+              //   return;
+              // });
             } else {
-              email.send(settings.user_email, visitor, downloadUrl, function (err) {
-                if (err) {
-                  console.error('sending emails error', err);
-                }
-                return;
-              });
+              console.log('normal emails sent');
+              // email.send(settings.user_email, visitor, downloadUrl, function (err) {
+              //   if (err) {
+              //     console.error('sending emails error', err);
+              //   }
+              //   return;
+              // });
             }
           });
         });
