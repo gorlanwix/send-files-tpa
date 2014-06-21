@@ -23,7 +23,7 @@ var router = express.Router();
 
 
 // parse application/json
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 app.use(express.static(__dirname + config.CLIENT_APP_DIR));
 
 // parse fields and files
@@ -229,14 +229,18 @@ app.post('/api/files/upload/:compId', function (req, res, next) {
   }
 
   if (formatError) {
-    fs.unlink(newFile.path, function () {
+    fs.unlink(newFile.path, function (err) {
+      if (err) {
+        console.error('removing temp file error: ', err);
+      }
       return next(formatError);
     });
   } else {
 
     db.files.checkSessionAndInsert(newFile, sessionId, function (err, fileId) {
       if (!fileId) {
-        fs.unlink(newFile.path, function () {
+        fs.unlink(newFile.path, function (err) {
+          console.error('removing temp file error: ', err);
           return next(error('session expired', httpStatus.BAD_REQUEST));
         });
       }
@@ -307,25 +311,24 @@ app.post('/api/files/send/:compId', function (req, res, next) {
     return next(error('invalid request format', httpStatus.BAD_REQUEST));
   }
 
-  session.isOpen(sessionId, function (err, isOpen) {
+  userAuth.getInstanceTokens(req.widgetIds, function (err, tokens) {
 
-    if (err) {
-      return callback(err, null);
+    if (!tokens) {
+      console.error('getting instance tokens error', err);
+      return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
     }
+    db.session.isOpen(sessionId, function (err, isOpen) {
 
-    if (!isOpen) {
-      return callback(new Error('session is closed'), null);
-    }
-
-    userAuth.getInstanceTokens(req.widgetIds, function (err, tokens) {
-
-      if (!tokens) {
-        console.error('getting instance tokens error', err);
-        return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
+      if (err) {
+        return next(error('cannot check if session is open', httpStatus.INTERNAL_SERVER_ERROR));
       }
+
+      if (!isOpen) {
+        return next(error('session has expired', httpStatus.BAD_REQUEST));
+      }
+
       db.files.getByIds(sessionId, toUploadFileIds, function (err, files) {
         if (!files) {
-          console.error('cannot find files', err);
           return next(error('cannot find files', httpStatus.BAD_REQUEST));
         }
 
@@ -351,11 +354,18 @@ app.post('/api/files/send/:compId', function (req, res, next) {
             if (err) {
               console.error('zipping and inserting error: ', err);
               email.sendErrors(settings.user_email, visitor, function (err, res) {
+                if (err) {
+                  console.error('sending error emails error', err);
+                  return;
+                }
                 console.log('sent email errors');
                 return;
               });
             } else {
               email.send(settings.user_email, visitor, downloadUrl, function (err) {
+                if (err) {
+                  console.error('sending emails error', err);
+                }
                 return;
               });
             }
@@ -409,7 +419,6 @@ app.put('/api/settings/:compId', function (req, res, next) {
     if (!updatedWidgetSettings) {
       db.widget.insertSettings(req.widgetIds, settingsRecieved, function (err) {
         if (err) {
-          console.error('cannot insert settings: ', err);
           return next(error('cannot insert settings', httpStatus.INTERNAL_SERVER_ERROR));
         }
 

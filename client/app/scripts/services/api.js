@@ -12,15 +12,26 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
     buttonRoundness: '5'
   };
 
+    var instanceID = "whatever";
+    // var url = $location.absUrl();
+    // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
+    // var instance = instanceRegexp.exec(url);
+    // if (instance && instance[1]) {
+    //   instanceID = instance[1];
+    // } else {
+    //   console.log('All hell has broken loose.');
+    //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
+    // }
+
   var headers = {
-    'X-Wix-Instance': $wix.Utils.getInstanceId(),
+    'X-Wix-Instance': instanceID,
     'Content-Type': 'application/json'
   };
 
   // console.log(headers); //for testing
 
   var Settings = $resource('/api/settings/:compId', {
-    compId: $wix.Utils.getOrigCompId() || $wix.Utils.getCompId() 
+    compId: '12345' //$wix.Utils.getOrigCompId() || $wix.Utils.getCompId() 
   }, {
     get: { method: 'GET', headers: headers },
     save: { method: 'PUT', headers: headers }
