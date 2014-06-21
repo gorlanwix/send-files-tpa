@@ -154,9 +154,6 @@ angular.module('sendFiles')
     /* Watches for changes in toal space visitor has left to upload files. */
     $scope.$watch('totalBytes', function () {
       $scope.totalGBLeft = ($scope.uploadLimit - $scope.totalBytes) / GBbytes;
-      if ($scope.totalBytes !== 0) {
-        $scope.totalGBLeft -= $scope.totalGBLeft%0.01;
-      }
     });
 
     /* A function to used to style the files list. Files that are loaded
@@ -187,27 +184,15 @@ angular.module('sendFiles')
      */
     $scope.submitButtonStyle = function () {
       if ($scope.totalFilesAdded) {
-        
-
-
-
-
-
-        var progress = false;
-        for (var i = 0, n = $scope.progressIcons.length; i < n; i++) {
-          if ($scope.progressIcons[i] === false) {
-            $scope.fileUploadSubmitText = 'Error! Remove the file or click on it to retry!';
-            return {'background-color' : '#FF9999'};
-          } else if ($scope.progressIcons[i] === undefined) {
-            progress = true;
-          }
-        }
-        if (progress) {
-          $scope.fileUploadSubmitText = 'Loading...';
-          return {'background-color' : '#FFFF99'};
-        } else {
+        if (totalFailed > 0) {
+          $scope.fileUploadSubmitText = 'Submit with errors';
+          return {'background-color' : '#FF9999'};
+        } else if (totalSuccess === $scope.totalFilesAdded) {
           $scope.fileUploadSubmitText = 'Files ready to submit!';
           return {'background-color' : '#93C993'};
+        } else {
+          $scope.fileUploadSubmitText = 'Loading...';
+          return {'background-color' : '#FFFF99'};
         }
       } else {
         return {};
@@ -245,8 +230,7 @@ angular.module('sendFiles')
     /* Determines if a user is ready to submit or not. Returns true if
      * NOT ready to submit and false if ready. */
     $scope.submitNotReady = function() {
-      if (!($scope.fileForm.$invalid) && $scope.totalFilesAdded &&
-            $scope.fileUploadSubmitText === 'Files ready to Submit!') {
+      if (!($scope.fileForm.$invalid) && $scope.totalFilesAdded) {
         return false;
       } else {
         return true;
@@ -290,7 +274,7 @@ angular.module('sendFiles')
         var file = $files[i];
         if ($scope.totalBytes + file.size > $scope.uploadLimit ||
             $scope.totalFilesAdded + 1 > $scope.maxFileLimit) {
-          console.log("over bitch!");
+          console.log("overload!");
           file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
           $scope.overloadedList.push(file);
         } else {
