@@ -25,8 +25,8 @@ function zip(files, newName, callback) {
 
   newName += '.zip';
   tmpName += '.zip';
-  var tmpFolder = tmpDir + tmpName;
-  var output = fs.createWriteStream(tmpFolder);
+  var tmpPath = tmpDir + tmpName;
+  var output = fs.createWriteStream(tmpPath);
 
   output.on('close', function () {
     console.log(archive.pointer() + ' total bytes');
@@ -35,7 +35,7 @@ function zip(files, newName, callback) {
       mimetype: 'application/zip',
       size: archive.pointer(),
       originalname: newName,
-      path: tmpFolder
+      path: tmpPath
     };
     callback(null, file);
   });
@@ -54,7 +54,7 @@ function zip(files, newName, callback) {
 
   async.each(files, function (file, callback) {
     archive.append(fs.createReadStream(tmpDir + file.temp_name), {name: file.original_name});
-    callback();
+    callback(null);
   }, function (err) {
     if (err) {
       console.error('async error: ', err);

@@ -62,12 +62,13 @@ function isOpen(sessionId, callback) {
 function close(sessionId, callback) {
   var q = 'UPDATE session \
            SET closed = true \
-           WHERE session_id = $1';
+           WHERE session_id = $1 \
+           RETURNING *';
   var values = [
     sessionId,
   ];
 
-  query(q, values, function (err, rows, result) {
+  query.first(q, values, function (err, rows, result) {
     if (err) {
       console.error('db session close error: ', err);
       return callback(err);

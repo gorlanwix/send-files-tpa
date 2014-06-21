@@ -317,33 +317,27 @@ app.post('/api/files/send/:compId', function (req, res, next) {
       console.error('getting instance tokens error', err);
       return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
     }
-    db.session.isOpen(sessionId, function (err, isOpen) {
 
-      if (err) {
-        return next(error('cannot check if session is open', httpStatus.INTERNAL_SERVER_ERROR));
+    db.files.getByIds(sessionId, toUploadFileIds, function (err, files) {
+      if (!files) {
+        return next(error('cannot find files', httpStatus.BAD_REQUEST));
       }
 
-      if (!isOpen) {
-        return next(error('session has expired', httpStatus.BAD_REQUEST));
+      if (files[0].sum > MAX_FILE_SIZE) {
+        return next(error('total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
       }
-
-      db.files.getByIds(sessionId, toUploadFileIds, function (err, files) {
-        if (!files) {
-          return next(error('cannot find files', httpStatus.BAD_REQUEST));
+      upload.getAvailableCapacity(tokens, function (err, capacity) {
+        if (err) {
+          return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
         }
 
-        if (files[0].sum > MAX_FILE_SIZE) {
-          return next(error('total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
+        if (capacity <= MAX_FILE_SIZE) {
+          return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
         }
-        upload.getAvailableCapacity(tokens, function (err, capacity) {
-          if (err) {
-            return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
+        db.session.close(sessionId, function (err, session) {
+          if (!session) {
+            return next(error('session has expired', httpStatus.BAD_REQUEST));
           }
-
-          if (capacity <= MAX_FILE_SIZE) {
-            return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
-          }
-
           res.status(httpStatus.ACCEPTED);
           res.json({status: httpStatus.ACCEPTED});
 
