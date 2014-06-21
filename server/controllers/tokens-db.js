@@ -28,7 +28,7 @@ function insert(instance, tokens, provider, callback) {
 
   query(q, values, function (err) {
     if (err) {
-      console.error('tokens insert error: ', err);
+      console.error('db tokens insert error: ', err);
       return callback(err);
     }
 
@@ -49,7 +49,7 @@ function get(instance, callback) {
 
   query.first(q, values, function (err, rows, result) {
     if (err) {
-      console.error('get token error: ', err);
+      console.error('db get token error: ', err);
       return callback(err, null);
     }
 
@@ -76,7 +76,7 @@ function update(instance, tokens, provider, callback) {
 
   query.first(q, values, function (err, rows, result) {
     if (err) {
-      console.error('update token error: ', err);
+      console.error('db update token error: ', err);
       return callback(err, null);
     }
 
@@ -96,7 +96,7 @@ function remove(instance, callback) {
 
   query.first(q, values, function (err, rows, result) {
     if (err) {
-      console.error('delete token error: ', err);
+      console.error('db delete token error: ', err);
       return callback(err, null);
     }
 

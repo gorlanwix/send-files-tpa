@@ -15,7 +15,7 @@ function insertSettings(instance, widgetSettings, callback) {
   ];
   query(q, values, function (err, rows, result) {
     if (err) {
-      console.error('settings insert error: ', err);
+      console.error('db settings insert error: ', err);
       return callback(err);
     }
 
@@ -44,7 +44,7 @@ function updateSettings(instance, widgetSettings, callback) {
   query.first(q, values, function (err, rows, result) {
 
     if (err) {
-      console.error('settings update error: ', err);
+      console.error('db settings update error: ', err);
       return callback(err, null);
     }
 
@@ -64,7 +64,7 @@ function getSettings(instance, callback) {
   ];
   query.first(q, values, function (err, rows, result) {
     if (err) {
-      console.error('settings update error: ', err);
+      console.error('db settings update error: ', err);
       return callback(err, null);
     }
 

@@ -133,12 +133,8 @@ app.use('/api', function (req, res, next) {
 });
 
 app.param('compId', function (req, res, next, compId) {
-  if (!compId) {
-    next(error('invalid component ID', httpStatus.UNAUTHORIZED));
-  } else {
-    req.widgetIds.compId = compId;
-    next();
-  }
+  req.widgetIds.compId = '12345';
+  next();
 });
 
 app.get('/api/auth/login/google/:compId', function (req, res, next) {
@@ -238,9 +234,11 @@ app.post('/api/files/upload/:compId', function (req, res, next) {
     });
   } else {
 
-    db.files.updateSessionAndInsert(newFile, sessionId, function (err, fileId) {
+    db.files.checkSessionAndInsert(newFile, sessionId, function (err, fileId) {
       if (!fileId) {
-        return next(error('cannot insert file', httpStatus.INTERNAL_SERVER_ERROR));
+        fs.unlink(newFile.path, function () {
+          return next(error('session expired', httpStatus.BAD_REQUEST));
+        });
       }
 
       var resJson = {
@@ -309,48 +307,59 @@ app.post('/api/files/send/:compId', function (req, res, next) {
     return next(error('invalid request format', httpStatus.BAD_REQUEST));
   }
 
-  userAuth.getInstanceTokens(req.widgetIds, function (err, tokens) {
+  session.isOpen(sessionId, function (err, isOpen) {
 
-    if (!tokens) {
-      console.error('getting instance tokens error', err);
-      return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
+    if (err) {
+      return callback(err, null);
     }
-    db.files.getByIds(sessionId, toUploadFileIds, function (err, files) {
-      if (!files) {
-        console.error('cannot find files', err);
-        return next(error('cannot find files', httpStatus.BAD_REQUEST));
-      }
 
-      if (files[0].sum > MAX_FILE_SIZE) {
-        return next(error('total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
+    if (!isOpen) {
+      return callback(new Error('session is closed'), null);
+    }
+
+    userAuth.getInstanceTokens(req.widgetIds, function (err, tokens) {
+
+      if (!tokens) {
+        console.error('getting instance tokens error', err);
+        return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
       }
-      upload.getAvailableCapacity(tokens, function (err, capacity) {
-        if (err) {
-          return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
+      db.files.getByIds(sessionId, toUploadFileIds, function (err, files) {
+        if (!files) {
+          console.error('cannot find files', err);
+          return next(error('cannot find files', httpStatus.BAD_REQUEST));
         }
 
-        if (capacity <= MAX_FILE_SIZE) {
-          return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
+        if (files[0].sum > MAX_FILE_SIZE) {
+          return next(error('total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
         }
-
-        res.status(httpStatus.ACCEPTED);
-        res.json({status: httpStatus.ACCEPTED});
-
-        console.log('files to be zipped: ', files);
-
-        var visitor = new Visitor(visitorName, visitorEmail, visitorMessage);
-        upload.zipAndInsert(files, visitor, req.widgetIds, sessionId, tokens, function (err, downloadUrl, settings) {
+        upload.getAvailableCapacity(tokens, function (err, capacity) {
           if (err) {
-            console.error('zipping and inserting error: ', err);
-            email.sendErrors(settings.user_email, visitor, function (err, res) {
-              console.log('sent email errors');
-              return;
-            });
-          } else {
-            email.send(settings.user_email, visitor, downloadUrl, function (err) {
-              return;
-            });
+            return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
           }
+
+          if (capacity <= MAX_FILE_SIZE) {
+            return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
+          }
+
+          res.status(httpStatus.ACCEPTED);
+          res.json({status: httpStatus.ACCEPTED});
+
+          console.log('files to be zipped: ', files);
+
+          var visitor = new Visitor(visitorName, visitorEmail, visitorMessage);
+          upload.zipAndInsert(files, visitor, req.widgetIds, sessionId, tokens, function (err, downloadUrl, settings) {
+            if (err) {
+              console.error('zipping and inserting error: ', err);
+              email.sendErrors(settings.user_email, visitor, function (err, res) {
+                console.log('sent email errors');
+                return;
+              });
+            } else {
+              email.send(settings.user_email, visitor, downloadUrl, function (err) {
+                return;
+              });
+            }
+          });
         });
       });
     });
