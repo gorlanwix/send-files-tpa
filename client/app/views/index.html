@@ -14,14 +14,14 @@
       </p>
       <p class="limitation-message bottom-p">
         <!-- 1GB = 1073741824 bytes -->
-        You can upload up to {{uploadLimit / 1073741824}}GB with a max of {{maxFileTotal}} files.
+        You can upload up to {{(uploadLimit / 1073741824).toFixed(2)}} GB with a max of {{maxFileTotal}} files.
       </p>
     </div>
 
   <!-- Note: Placeholder attribute is not supported in IE9 or below -->
 
     <div class="block files">
-      <p class="file-statistics" ng-style="marginStyle">Total files added: {{totalFilesAdded}} <span class="space-left">Space left: {{totalGBLeft}} GB</span></p>
+      <p class="file-statistics" ng-style="marginStyle">Total files added: {{totalFilesAdded}} <span class="space-left">Space left: {{totalGBLeft.toFixed(2)}} GB</span></p>
       <div class="tool-tip-container" ng-show="showNoFile">
           <span class="tool-tip">Please add a file</span>
       </div>
