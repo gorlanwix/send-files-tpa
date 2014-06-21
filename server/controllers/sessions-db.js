@@ -71,10 +71,10 @@ function close(sessionId, callback) {
   query.first(q, values, function (err, rows, result) {
     if (err) {
       console.error('db session close error: ', err);
-      return callback(err);
+      return callback(err, null);
     }
 
-    callback(null);
+    callback(null, rows);
   });
 }
 

@@ -420,7 +420,7 @@ describe.only('Zip', function () {
       expect(file).to.have.property('path').to.exist;
       expect(file).to.have.property('mimetype').to.equal('application/zip');
       expect(file).to.have.property('size').to.be.a('number');
-      expect(file).to.have.property('originalname').to.equal('hello.zip');
+      expect(file).to.have.property('originalname').to.equal('hello2.zip');
       expect(fs.existsSync(file.path)).to.be.true;
       done();
     });

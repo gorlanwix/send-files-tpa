@@ -5,7 +5,6 @@ var db = require('./pg-database.js');
 var fs = require('fs');
 var async = require('async');
 var archiver = require('archiver');
-var archive = archiver('zip');
 
 var tmpDir = require('../config.js').TMP_DIR;
 
@@ -20,6 +19,7 @@ function generateTmpName(filename) {
 
 
 function zip(files, newName, callback) {
+  var archive = archiver('zip');
 
   var tmpName = generateTmpName(newName);
 
