@@ -1,8 +1,8 @@
 TODO:
 
-- alter tables' colums for default values/not null
 - heroku deployment
 - scheduled temporary files clean up
+- close sessions
 - relic
 - use passport.js for general authorization
 - email templates

@@ -26,7 +26,7 @@ CREATE TABLE session (
     session_id bigserial PRIMARY KEY,
     instance_id text NOT NULL,
     component_id text NOT NULL,
-    last_access timestamp NOT NULL,
+    closed boolean NOT NULL DEFAULT false,
     created timestamp NOT NULL
 )
 
