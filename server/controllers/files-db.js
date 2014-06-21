@@ -29,9 +29,8 @@ function insert(file, sessionId, callback) {
 
   query.first(q, values, function (err, rows, result) {
     if (err) {
-      console.error('file insert error: ', err);
-      callback(err, null);
-      return;
+      console.error('db file insert error: ', err);
+      return callback(err, null);
     }
 
     callback(null, rows.file_id);
@@ -52,6 +51,7 @@ function getByIds(sessionId, fileIds, callback) {
 
   query(q, values, function (err, rows, result) {
     if (err) {
+      console.error('db file getByIds error: ', err);
       return callback(err, null);
     }
 
@@ -60,25 +60,25 @@ function getByIds(sessionId, fileIds, callback) {
 }
 
 
-function updateSessionAndInsert(file, sessionId, callback) {
+function checkSessionAndInsert(file, sessionId, callback) {
 
-  session.update(sessionId, function (err) {
+  session.isOpen(sessionId, function (err, isOpen) {
 
     if (err) {
-      // expired session or non-existing session or mistyped sessionId
-      callback(err, null);
-      return;
+      return callback(err, null);
+    }
+
+    if (!isOpen) {
+      return callback(new Error('session is closed'), null);
     }
 
     insert(file, sessionId, function (err, fileId) {
 
       if (err) {
-        callback(err, null);
-        return;
+        return callback(err, null);
       }
 
       callback(null, fileId);
-
     });
   });
 }
@@ -86,5 +86,5 @@ function updateSessionAndInsert(file, sessionId, callback) {
 module.exports = {
   insert: insert,
   getByIds: getByIds,
-  updateSessionAndInsert: updateSessionAndInsert
+  checkSessionAndInsert: checkSessionAndInsert
 };

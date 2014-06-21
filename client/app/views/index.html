@@ -10,26 +10,26 @@
       <button disabled>{{settings.addButtonText}}</button>
       <input type="file" class= "upload" title={{settings.addButtonText}} ng-file-select="onFileSelect($files)" multiple name="sendFile"> <!-- make sure name is working properly when sending to backend. -->
       <p class="drag-drop-message" ng-file-drop-available="dropSupported=true" ng-show="dropSupported">
-        Or just drop files here.
+        Or just DROP files here.
       </p>
       <p class="limitation-message bottom-p">
         <!-- 1GB = 1073741824 bytes -->
-        You can upload up to {{uploadLimit / 1073741824}}GB of files.
+        You can upload up to {{(uploadLimit / 1073741824).toFixed(2)}} GB with a max of {{maxFileTotal}} files.
       </p>
     </div>
 
   <!-- Note: Placeholder attribute is not supported in IE9 or below -->
 
     <div class="block files">
-      <p class="file-statistics" ng-style="marginStyle">Total files added: {{totalFilesAdded}} <span class="space-left">Space left: {{totalGBLeft}} GB</span></p>
+      <p class="file-statistics" ng-style="marginStyle">Total files added: {{totalFilesAdded}} <span class="space-left">Space left: {{totalGBLeft.toFixed(2)}} GB</span></p>
       <div class="tool-tip-container" ng-show="showNoFile">
           <span class="tool-tip">Please add a file</span>
       </div>
       <!-- Show uploading files here -->
-      <!-- <div class="block too-large">
+      <!-- <div class="block">
         <ul class="list-files">
-          <li ng-show="tooLargeList.length > 0">The following files can't be added due to lack of storage space:</li>
-          <li ng-repeat="file in tooLargeList">
+          <li ng-show="overLoadedList.length > 0">The following files can't be added due to lack of storage space:</li>
+          <li ng-repeat="file in overLoadedList">
             {{file.name}} - {{file.newSize}}
           </li>
         </ul>
@@ -37,7 +37,7 @@
       <ul class="list-files">
         <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
           <span class="file-text" ng-style="fileStyle($index)" hover>
-            <a class="retry-files" href="#" ng-click="start($index)">.</a>
+            <a class="retry-files" href="#" ng-click="start($index)" ng-if="progressIcons[$index] === false">.</a>
             <span class="file-info">
               {{file.name}} - {{file.newSize}}
             </span>
@@ -47,14 +47,14 @@
               {{100 - progress[$index]}}%
             </span>
             <span class="status-text" ng-if="progressIcons[$index] === false">
-              &#10008;
+              &#10008; <!-- Error X Mark -->
             </span>
             <span class="status-text checkmark" ng-if="progressIcons[$index] === true">
-              &#10004;
+              &#10004; <!-- Success Checkmark -->
             </span>
           </span>
           <div style="clear: both;"></div>
-          <div class="progress">
+          <div class="progress" ng-if="progressIcons[$index] === undefined">
             <span style="width:{{progress[$index]}}%;"></span>
           </div>
         </li>
@@ -62,7 +62,7 @@
     </div>
 
     <div class="block input-block">
-      <input name="visitorName" class="visitorName" placeholder="{{settings.yourNameText}}" ng-model="visitorName" ng-change="updateVisitorName(visitorName)" ng-pattern="nameRegex" required>
+      <input name="visitorName" class="visitorName" placeholder="{{settings.yourNameText}}" ng-model="visitorName" ng-change="updateVisitorName(visitorName)" required>
       <div class="tool-tip-container" ng-show="showNoName">
           <span class="tool-tip">Please enter a name.</span>
       </div>
@@ -83,7 +83,7 @@
     </div>
 
     <div class="block end-blocks submit">
-        <button class="submit-button" type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-style="submitButtonStyle()">
+        <button class="submit-button" type="submit" ng-disabled="submitNotReady()" ng-click="submit2()" ng-style="submitButtonStyle()">
           <span ng-show="!(totalFilesAdded)">{{settings.submitButtonText}}</span>
           <span ng-show="totalFilesAdded &amp;&amp; !uploadFailed">{{fileUploadSubmitText}}</span>
         </button>
