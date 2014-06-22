@@ -61,11 +61,14 @@ function isOpen(sessionId, callback) {
 
 function close(sessionId, callback) {
   var q = 'UPDATE session \
-           SET closed = true \
-           WHERE session_id = $1 \
+           SET closed = $1 \
+           WHERE session_id = $2 \
+           AND closed = $3 \
            RETURNING *';
   var values = [
+    true,
     sessionId,
+    false
   ];
 
   query.first(q, values, function (err, rows, result) {
