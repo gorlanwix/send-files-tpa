@@ -1,3 +1,21 @@
+.main-body {
+  position: relative;
+}
+
+.submitting {
+  position: absolute;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  height: 81.3%;
+  line-height: 400px;
+  text-align: center;
+}
+
+
 .block {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 13px;
@@ -10,6 +28,10 @@
   z-index: 0;
 }
 
+.visitorForm {
+  opacity: 0.3;
+}
+
 .end-blocks {
   background-color: #E5E9EE;
   border-bottom: none;
@@ -17,6 +39,14 @@
 
 .dropper {
   position: relative;
+}
+
+.active {
+  position: absolute;
+  background-color: #E5E9EE;
+  width: 100%;
+  height: 88%;
+  line-height: 400px;
 }
 
 .dropee {
@@ -368,7 +398,7 @@
   background-color: white;
   color: red;
   position: absolute;
-  bottom: 36px;
+  bottom: 69px;
 }
 .tool-tip-message::before {
   z-index: 2;
@@ -398,7 +428,6 @@
 .file-status {
   border-bottom: none;
   border-top: 1px solid #838486;
-
 }
 
 .success-text {
