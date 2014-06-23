@@ -9,7 +9,7 @@
   </div>
   <form name="fileForm" novalidate ng-model="fileForm">
     <div ng-style="formStyle()">
-      <div class="block end-blocks file-upload dropper">
+      <div class="block end-blocks file-upload dropper title-block">
         <div class="active" ng-if="false">
           This app is not yet active.
         </div>
@@ -109,12 +109,12 @@
     </div>
 
     <div class="block end-blocks submit">
-      <button class="submit-button" type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-if="!submitted"> <!-- ng-style="submitButtonStyle()" -->
-        <span>{{settings.submitButtonText}}</span> <!-- ng-show="!(totalFilesAdded)" -->
+      <button type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-if="!submitted"> <!-- ng-style="submitButtonStyle()" -->
+        <span class="submit-text">{{settings.submitButtonText}}</span> <!-- ng-show="!(totalFilesAdded)" -->
         <!-- <span ng-show="totalFilesAdded &amp;&amp; !uploadFailed">{{fileUploadSubmitText}}</span> -->
       </button>
-      <button class="submit-button" type="reset" ng-click="reset()" ng-if="submitted">
-        <span>Start over</span>
+      <button type="reset" ng-click="reset()" ng-show="submitted">
+        Start over
       </button>
       <div class="submit-container" ng-mouseover="enableErrorMessage()" ng-mouseleave="disableErrorMessage()" ng-show="submitNotReady()"> 
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
@@ -122,7 +122,7 @@
     </div>
     <div class="failure-end end-blocks" ng-show="uploadFailed">
       <button type="button" ng-click="submit()">Retry</button>
-      <button type="reset" ng-click="reset()" reset>Cancel</button>
+      <button type="reset" ng-click="reset()">Cancel</button>
     </div>
   </form>
 </div>

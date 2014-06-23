@@ -491,6 +491,8 @@ angular.module('sendFiles')
      * All failure/success messages will disappear and most variables are
      * completly reset. */
     $scope.reset = function() {
+      $scope.totalSuccess = 0;
+      $scope.totalFailed = 0;
       $scope.submitting = false;
       $scope.submitted = false;
 
