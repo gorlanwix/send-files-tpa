@@ -122,7 +122,7 @@
   margin-right: 8px;
 }
 
-@media all and (min-width: 475px) {
+@media all and (min-width: 450px) {
   .file-statistics {
     padding-left: 20px;
   }
@@ -130,7 +130,6 @@
     margin-right: 40px;
   }
 }
-
 
 .list-files {
   width: 100%;
@@ -334,15 +333,17 @@
 .user-message {
   padding-top: 17px;
   border-top: none;
+  padding-bottom: 0;
 }
 
 .user-message textarea {
-  height: 80px;
+  height: 95px;
   width: 90%;
   border: none;
   outline: none;
   resize: none;
   overflow: auto;
+  margin-bottom: 17px;
 }
 
 .message.ng-invalid {
@@ -394,6 +395,29 @@
   border-bottom: 10px solid white; 
 }
 
+.file-status {
+  border-bottom: none;
+  border-top: 1px solid #838486;
+
+}
+
+.success-text {
+  color: green;
+  padding-right: 5px;
+  border-right: 1px solid #838486;
+}
+
+.error-text {
+  color: red;
+  margin-left: 10px;
+  padding-right: 5px;
+  border-right: 1px solid #838486;
+}
+
+.loading-text {
+  margin-left: 10px;
+}
+
 .submit {
   padding-top: 20px;
   padding-bottom: 20px;
@@ -405,10 +429,10 @@
 .submit-container {
   position: absolute;
   z-index: 1;
-  top: 20px;
+  top: 25px;
   bottom: 20px;
-  left: 0px;
-  right: 0px;
+  left: 0;
+  right: 0;
   width: 40%;
   margin: 0 auto;
   text-align: center;

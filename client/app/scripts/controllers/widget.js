@@ -70,8 +70,8 @@ angular.module('sendFiles')
     /* Used to represent number of files tha that have been uploaded
      * successfully or returned an error from the server.
      */
-    var totalSuccess = 0;
-    var totalFailed = 0;
+    $scope.totalSuccess = 0;
+    $scope.totalFailed = 0;
 
     /* Used to keep track of the number of files uploaded and their
      * place in various arrays. */
@@ -184,10 +184,10 @@ angular.module('sendFiles')
      */
     $scope.submitButtonStyle = function () {
       if ($scope.totalFilesAdded) {
-        if (totalFailed > 0) {
+        if ($scope.totalFailed > 0) {
           $scope.fileUploadSubmitText = 'Submit with errors';
           return {'background-color' : '#FF9999'};
-        } else if (totalSuccess === $scope.totalFilesAdded) {
+        } else if ($scope.totalSuccess === $scope.totalFilesAdded) {
           $scope.fileUploadSubmitText = 'Files ready to submit!';
           return {'background-color' : '#93C993'};
         } else {
@@ -230,7 +230,8 @@ angular.module('sendFiles')
     /* Determines if a user is ready to submit or not. Returns true if
      * NOT ready to submit and false if ready. */
     $scope.submitNotReady = function() {
-      if (!($scope.fileForm.$invalid) && $scope.totalFilesAdded) {
+      if (!($scope.fileForm.$invalid) && $scope.totalFilesAdded &&
+            $scope.totalSuccess === $scope.totalFilesAdded) {
         return false;
       } else {
         return true;
@@ -374,7 +375,7 @@ angular.module('sendFiles')
                 $scope.uploadedFiles.push(data.fileId);
                 $scope.progress[index] = 0;
                 $scope.progressIcons[index] = true;
-                totalSuccess += 1;
+                $scope.totalSuccess += 1;
               }
             } else {
               console.log('ERROR ERROR ERROR: success failed!');
@@ -382,7 +383,7 @@ angular.module('sendFiles')
         }).error(function(data, status, headers, config) {
             if ($scope.uploadedFiles[index] !== 'aborted') {
               $scope.progressIcons[index] = false;
-              totalFailed += 1;
+              $scope.totalFailed += 1;
             }
             console.log('ERROR ERROR ERROR');
             console.log(data);
@@ -401,10 +402,10 @@ angular.module('sendFiles')
       $scope.uploadedFiles[index] = 'aborted';
       $scope.totalFilesAdded -= 1;
       if ($scope.progressIcons[index] === false) {
-        totalFailed -= 1;
+        $scope.totalFailed -= 1;
       }
       if ($scope.progressIcons[index] === true) {
-        totalSuccess -= 1;
+        $scope.totalSuccess -= 1;
       }
       if ($scope.upload[index] !== undefined) {
         $scope.upload[index].abort();

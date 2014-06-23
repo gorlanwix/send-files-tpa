@@ -23,7 +23,7 @@
     <div class="block files">
       <p class="file-statistics" ng-style="marginStyle">Total files added: {{totalFilesAdded}} <span class="space-left">Space left: {{totalGBLeft.toFixed(2)}} GB</span></p>
       <div class="tool-tip-container" ng-show="showNoFile">
-          <span class="tool-tip">Please add a file</span>
+          <span class="tool-tip">{{fileErrorMessage}}Please add a file</span>
       </div>
       <!-- Show uploading files here -->
       <!-- <div class="block">
@@ -80,13 +80,27 @@
        <div class="tool-tip-container-message">
           <span class="tool-tip-message" ng-show="showNoMessage">Please enter a message</span>
       </div>
+      <p class= "file-statistics file-status"> <!-- ng-if="totalFilesAdded" -->
+        <span class="no-files">
+          No files uploaded
+        </span>
+        <span class="success-text"> <!-- ng-if="totalSuccess" -->
+          {{totalSuccess}} uploaded
+        </span>
+        <span class="error-text">
+          {{totalFailed}} failed
+        </span>
+        <span class="loading-text">
+          {{totalFilesAdded - totalSuccess - totalFailed}} loading...
+        </span>
+      </p>
     </div>
 
     <div class="block end-blocks submit">
-        <button class="submit-button" type="submit" ng-disabled="submitNotReady()" ng-click="submit2()" ng-style="submitButtonStyle()">
-          <span ng-show="!(totalFilesAdded)">{{settings.submitButtonText}}</span>
-          <span ng-show="totalFilesAdded &amp;&amp; !uploadFailed">{{fileUploadSubmitText}}</span>
-        </button>
+      <button class="submit-button" type="submit" ng-disabled="submitNotReady()" ng-click="submit2()"> <!-- ng-style="submitButtonStyle()" -->
+        <span>{{settings.submitButtonText}}</span> <!-- ng-show="!(totalFilesAdded)" -->
+        <!-- <span ng-show="totalFilesAdded &amp;&amp; !uploadFailed">{{fileUploadSubmitText}}</span> -->
+      </button>
       <div class="submit-container" ng-mouseover="enableErrorMessage()" ng-mouseleave="disableErrorMessage()" ng-show="submitNotReady()"> 
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
       </div>
