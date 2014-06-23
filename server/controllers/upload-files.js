@@ -79,7 +79,6 @@ function insertFile(file, serviceSettings, sessionId, tokens, callback) {
           console.error('uploading to google error', err);
           return callback(err, null);
         }
-        result = JSON.parse(result);
         console.log('inserted file: ', result);
         callback(null, result.alternateLink);
       });
