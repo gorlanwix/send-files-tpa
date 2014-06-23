@@ -248,8 +248,13 @@ angular.module('sendFiles')
         }
         if (!($scope.totalFilesAdded)) {
           $scope.marginStyle = {'margin-bottom': 0};
+          $scope.fileMessage = 'Please add a file';
           $scope.showNoFile = true;
         }
+      } else {
+        $scope.marginStyle = {'margin-bottom': 0};
+        $scope.fileMessage = 'Please activate the app in the settings';
+        $scope.showNoFile = true;
       }
     };
 
@@ -266,7 +271,8 @@ angular.module('sendFiles')
      * NOT ready to submit and false if ready. */
     $scope.submitNotReady = function() {
       if (!($scope.fileForm.$invalid) && $scope.totalFilesAdded &&
-            $scope.totalSuccess === $scope.totalFilesAdded) {
+            ($scope.totalSuccess + $scope.totalFailed ) ===
+            $scope.totalFilesAdded) {
         if ($scope.submitting) {
           return true;
         } else {
