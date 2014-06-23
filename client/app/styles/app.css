@@ -138,7 +138,7 @@
   padding-top: 0;
   padding-bottom: 0;
   overflow: auto;
-  min-height: 50px;
+  min-height: 125px;
   max-height: 125px;
   overflow-x: hidden;
 }
@@ -372,7 +372,7 @@
 }
 
 .user-message textarea {
-  height: 95px;
+  height: 70px;
   width: 90%;
   border: none;
   outline: none;

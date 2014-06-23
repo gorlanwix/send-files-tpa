@@ -52,6 +52,9 @@
           </ul>
         </div> -->
         <ul class="list-files">
+          <p ng-if="!totalFilesAdded">
+            Uploaded files are displayed here.
+          </p>
           <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
             <span class="file-text" ng-style="fileStyle($index)" hover>
               <a class="retry-files" href="#" ng-click="start($index)" ng-if="progressIcons[$index] === false">.</a>
