@@ -403,7 +403,7 @@
   background-color: white;
   color: red;
   position: absolute;
-  bottom: 69px;
+  bottom: 45px;
 }
 .tool-tip-message::before {
   z-index: 2;
