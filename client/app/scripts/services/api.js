@@ -12,16 +12,16 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
     buttonRoundness: '5'
   };
 
-    var instanceID = "whatever";
-    // var url = $location.absUrl();
-    // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
-    // var instance = instanceRegexp.exec(url);
-    // if (instance && instance[1]) {
-    //   instanceID = instance[1];
-    // } else {
-    //   console.log('All hell has broken loose.');
-    //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
-    // }
+  var instanceID = 'whatever';
+  // var url = $location.absUrl();
+  // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
+  // var instance = instanceRegexp.exec(url);
+  // if (instance && instance[1]) {
+  //   instanceID = instance[1];
+  // } else {
+  //   console.log('All hell has broken loose.');
+  //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
+  // }
 
   var headers = {
     'X-Wix-Instance': instanceID,

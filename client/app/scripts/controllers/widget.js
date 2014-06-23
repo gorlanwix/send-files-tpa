@@ -70,8 +70,11 @@ angular.module('sendFiles')
     /* Used to represent number of files tha that have been uploaded
      * successfully or returned an error from the server.
      */
-    var totalSuccess = 0;
-    var totalFailed = 0;
+    $scope.totalSuccess = 0;
+    $scope.totalFailed = 0;
+
+    $scope.submitting = false;
+    $scope.submitted = false;
 
     /* Used to keep track of the number of files uploaded and their
      * place in various arrays. */
@@ -126,9 +129,6 @@ angular.module('sendFiles')
     /* Records the visitor's name and updates final message to server. */
     $scope.updateVisitorName = function (newValue) {
       finalSubmission.visitorName = newValue;
-      console.log($scope.fileForm.visitorName);
-      console.log(newValue === '');
-      console.log(newValue);
       if (newValue === undefined) {
         $scope.fileForm.visitorName.$invalid = true;
       } else {
@@ -155,6 +155,14 @@ angular.module('sendFiles')
     $scope.$watch('totalBytes', function () {
       $scope.totalGBLeft = ($scope.uploadLimit - $scope.totalBytes) / GBbytes;
     });
+
+    $scope.formStyle = function() {
+      if ($scope.submitting || $scope.submitted) {
+        return {'opacity' : 0.3};
+      } else {
+        return {};
+      }
+    };
 
     /* A function to used to style the files list. Files that are loaded
      * successfully are given a green background, while a red background
@@ -184,10 +192,10 @@ angular.module('sendFiles')
      */
     $scope.submitButtonStyle = function () {
       if ($scope.totalFilesAdded) {
-        if (totalFailed > 0) {
+        if ($scope.totalFailed > 0) {
           $scope.fileUploadSubmitText = 'Submit with errors';
           return {'background-color' : '#FF9999'};
-        } else if (totalSuccess === $scope.totalFilesAdded) {
+        } else if ($scope.totalSuccess === $scope.totalFilesAdded) {
           $scope.fileUploadSubmitText = 'Files ready to submit!';
           return {'background-color' : '#93C993'};
         } else {
@@ -230,7 +238,9 @@ angular.module('sendFiles')
     /* Determines if a user is ready to submit or not. Returns true if
      * NOT ready to submit and false if ready. */
     $scope.submitNotReady = function() {
-      if (!($scope.fileForm.$invalid) && $scope.totalFilesAdded) {
+      if ((!($scope.fileForm.$invalid) && $scope.totalFilesAdded &&
+            $scope.totalSuccess === $scope.totalFilesAdded) ||
+            ($scope.submitting)) {
         return false;
       } else {
         return true;
@@ -326,8 +336,8 @@ angular.module('sendFiles')
       var verifyURL = '/api/files/session/' + compID; //wait for this
       $http({method: 'GET',
              url: verifyURL,
-             headers: {'X-Wix-Instance' : instanceID}
-             // timeout: in milliseconds
+             headers: {'X-Wix-Instance' : instanceID},
+             timeout: 10000
         }).success(function (data, status, headers, config) {
           if (status === 200) {
             $scope.uploadLimit = data.uploadSizeLimit; // make sure the uploadLimit variable actually changes
@@ -374,7 +384,7 @@ angular.module('sendFiles')
                 $scope.uploadedFiles.push(data.fileId);
                 $scope.progress[index] = 0;
                 $scope.progressIcons[index] = true;
-                totalSuccess += 1;
+                $scope.totalSuccess += 1;
               }
             } else {
               console.log('ERROR ERROR ERROR: success failed!');
@@ -382,7 +392,7 @@ angular.module('sendFiles')
         }).error(function(data, status, headers, config) {
             if ($scope.uploadedFiles[index] !== 'aborted') {
               $scope.progressIcons[index] = false;
-              totalFailed += 1;
+              $scope.totalFailed += 1;
             }
             console.log('ERROR ERROR ERROR');
             console.log(data);
@@ -401,10 +411,10 @@ angular.module('sendFiles')
       $scope.uploadedFiles[index] = 'aborted';
       $scope.totalFilesAdded -= 1;
       if ($scope.progressIcons[index] === false) {
-        totalFailed -= 1;
+        $scope.totalFailed -= 1;
       }
       if ($scope.progressIcons[index] === true) {
-        totalSuccess -= 1;
+        $scope.totalSuccess -= 1;
       }
       if ($scope.upload[index] !== undefined) {
         $scope.upload[index].abort();
@@ -429,6 +439,7 @@ angular.module('sendFiles')
 
     /* Call this when user submits form with files, email, and message */
     $scope.submit = function() {
+      $scope.submitting = true;
       var uploadedFileTemp = [];
       var j = 0;
       for (var i = 0; i < $scope.uploadedFiles.length; i++) {
@@ -445,8 +456,8 @@ angular.module('sendFiles')
       $http({method: 'POST',
              url: uploadURL,
              headers: {'X-Wix-Instance' : instanceID},
-             data: finalSubmission
-             // timeout: in milliseconds
+             data: finalSubmission,
+             timeout: 10000
       }).success(function(data, status, headers, config) {
           if (status === 202) {
             $scope.success();
@@ -456,6 +467,7 @@ angular.module('sendFiles')
             console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
           }
         }).error(function(data, status, headers, config) {
+          console.log('submited and failed');
           $scope.initiateFailure();
       });
       //rebuild uploadedList, get rid of null values
@@ -468,6 +480,7 @@ angular.module('sendFiles')
      * widget to show error messages to the site visitor and gives
      * opportunity to try to upload again. */
     $scope.initiateFailure = function() {
+      $scope.submitting = false;
       //call this only if submit fails
       $scope.uploadFailed = true;
 
@@ -478,6 +491,9 @@ angular.module('sendFiles')
      * All failure/success messages will disappear and most variables are
      * completly reset. */
     $scope.reset = function() {
+      $scope.submitting = false;
+      $scope.submitted = false;
+
       $scope.fileForm.visitorName.$invalid = true;
       $scope.fileForm.email.$invalid = true;
       $scope.fileForm.message.$invalid = true;
@@ -500,7 +516,8 @@ angular.module('sendFiles')
      * A "Add more files" Button will appear to allow the user
      * to upload more files. */
     $scope.success = function() {
-      $scope.headlineText = 'Success! Your files were sent.';
+      $scope.submitting = false;
+      $scope.submitted = true;
     };
 
     /* This setting makes a call to the backend database to get the
@@ -509,8 +526,8 @@ angular.module('sendFiles')
       var urlDatabase = '/api/settings/' + compID;
       $http({method: 'GET',
              url: urlDatabase,
-             headers: {'X-Wix-Instance' : instanceID}
-             // timeout: in milliseconds
+             headers: {'X-Wix-Instance' : instanceID},
+             timeout: 10000
       }).success(function (data, status, headers, config) {
           if (status === 200) { //check if this is right status code
             if (data.widgetSettings.provider === "" || data.widgetSettings.userEmail === "") {
@@ -527,7 +544,7 @@ angular.module('sendFiles')
             $scope.settings = api.getSettings(api.defaults);
           }
         }).error(function (data, status, headers, config) {
-          //deal with errors
+          //deal with errors including timeout
           $scope.settings = api.getSettings(api.defaults);
       });
     };
