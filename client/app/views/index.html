@@ -1,4 +1,13 @@
-<div class="main-body" ng-style="viewStyle()" style="min-width: 250px;"ng-controller="WidgetCtrl">
+<div class="main-body" style="min-width: 250px;"ng-controller="WidgetCtrl">
+  <div class="active" ng-if="!active">
+    <span>
+      THIS APP IS NOT YET ACTIVE.
+    </span>
+    <div></div>
+    <span>
+      Activate it by logging in within the settings.
+    </span>
+  </div>
   <div class="submitting" ng-if="submitting || submitted">
     <span ng-if="submitting">
       Submitting...
@@ -7,12 +16,9 @@
       Submitted successfully!
     </span>
   </div>
-  <form name="fileForm" novalidate ng-model="fileForm">
+  <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()">
     <div ng-style="formStyle()">
       <div class="block end-blocks file-upload dropper title-block">
-        <div class="active" ng-if="false">
-          This app is not yet active.
-        </div>
         <div class="dropee" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">Drop files here</div>
         <!-- Make sure drag and drop is only shown on good browsers -->
         <p class="owner-message top-p">

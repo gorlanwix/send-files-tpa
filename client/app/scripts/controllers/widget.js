@@ -167,12 +167,20 @@ angular.module('sendFiles')
       $scope.totalGBLeft = ($scope.uploadLimit - $scope.totalBytes) / GBbytes;
     });
 
+    /* Changes the opacity of the entire widget. Used for when the app is not
+     * yet active.
+     */
     $scope.viewStyle = function() {
       if ($scope.active) {
-
+        return {};
+      } else {
+        return {'opacity' : 0.5};
       }
-    }
+    };
 
+    /* Used to change some of the form's opacity. Used for when submitting
+     * and displaying submit sucessful message.
+     */
     $scope.formStyle = function() {
       if ($scope.submitting || $scope.submitted) {
         return {'opacity' : 0.3};
@@ -227,19 +235,21 @@ angular.module('sendFiles')
     /* Call this to get error messages to show up if the form
      * is filled out incorrectly. */
     $scope.enableErrorMessage = function () {
-      if ($scope.fileForm.visitorName.$invalid) {
-        $scope.showNoName = true;
-      }
+      if ($scope.active) {
+        if ($scope.fileForm.visitorName.$invalid) {
+          $scope.showNoName = true;
+        }
 
-      if ($scope.fileForm.email.$invalid) {
-        $scope.showInvalidEmail = true;
-      }
-      if ($scope.fileForm.message.$invalid) {
-        $scope.showNoMessage = true;
-      }
-      if (!($scope.totalFilesAdded)) {
-        $scope.marginStyle = {'margin-bottom': 0};
-        $scope.showNoFile = true;
+        if ($scope.fileForm.email.$invalid) {
+          $scope.showInvalidEmail = true;
+        }
+        if ($scope.fileForm.message.$invalid) {
+          $scope.showNoMessage = true;
+        }
+        if (!($scope.totalFilesAdded)) {
+          $scope.marginStyle = {'margin-bottom': 0};
+          $scope.showNoFile = true;
+        }
       }
     };
 
@@ -272,21 +282,23 @@ angular.module('sendFiles')
      * file processing actually happens
      */
     $scope.onFileSelect = function($files) {
-      if (firstTimeUploading) {
-        firstTimeUploading = false;
-        $scope.verifySpace(function() {
+      if ($scope.active) {
+        if (firstTimeUploading) {
+          firstTimeUploading = false;
+          $scope.verifySpace(function() {
+            $scope.processFiles($files);
+            for (var i = 0; i < fileUploadQueue.length; i++) {
+              console.log('processing queue: ' + i);
+              $scope.processFiles(fileUploadQueue[i]);
+            }
+          }, $files);
+        } else if ($scope.sessionId) {
+          console.log('got sessionID');
           $scope.processFiles($files);
-          for (var i = 0; i < fileUploadQueue.length; i++) {
-            console.log('processing queue: ' + i);
-            $scope.processFiles(fileUploadQueue[i]);
-          }
-        }, $files);
-      } else if ($scope.sessionId) {
-        console.log('got sessionID');
-        $scope.processFiles($files);
-      } else {
-        console.log('Is this happening???');
-        fileUploadQueue.push($files);
+        } else {
+          console.log('Is this happening???');
+          fileUploadQueue.push($files);
+        }
       }
     };
 
