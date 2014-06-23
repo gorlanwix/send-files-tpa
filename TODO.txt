@@ -1,6 +1,5 @@
 TODO:
 
-- second time zipping issue
 - heroku deployment
 - scheduled temporary files clean up
 - relic

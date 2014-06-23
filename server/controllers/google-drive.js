@@ -34,13 +34,15 @@ function getAvailableCapacity(accessToken, callback) {
   };
 
   request(options, function (err, res, body) {
+    body = JSON.parse(body);
+
     if (err) {
       console.error('request for capacity error', err);
       return callback(err, null);
     }
 
     if (res.statusCode !== httpStatus.OK) {
-      console.error('request error body: ', res.body);
+      console.error('request error body: ', body);
       var errorMessage = 'Cannot retrieve Google Drive capacity: ' +
                           body.error.code + ' ' +
                           body.error.messsage;
@@ -115,13 +117,15 @@ function getUploadUrl(file, folderId, accessToken, callback) {
 
   request(options, function (err, res, body) {
 
+    body = JSON.parse(body);
+
     if (err) {
       console.error('request error', err);
       return callback(err, null);
     }
 
     if (res.statusCode !== httpStatus.OK) {
-      console.error('request error body: ', res.body);
+      console.error('request error body: ', body);
       var errorMessage = 'Cannot retrieve Google Drive upload URL: ' +
                           body.error.code + ' ' +
                           body.error.messsage;
@@ -230,14 +234,16 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
   }
 
   readStream.on('open', function () {
-    readStream.pipe(request(options, function (err, res) {
+    readStream.pipe(request(options, function (err, res, body) {
+      body = JSON.parse(body);
+
       if (err) {
         console.error('request for upload to Google Drive error: ', err);
         return callback(err, null, false); // might also set to true, should monitor this
       }
 
       if (res.statusCode === httpStatus.OK || res.statusCode === httpStatus.CREATED) {
-        return callback(null, res.body, false);
+        return callback(null, body, false);
       }
 
       console.log('google uploaded status code: ', res.statusCode);
@@ -261,7 +267,7 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
   });
 }
 
-
+// returns error and parsed result of insertion
 function insertFile(file, folderId, accessToken, callback) {
 
   console.log('insering file to google');
