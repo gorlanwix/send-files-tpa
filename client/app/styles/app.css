@@ -187,7 +187,7 @@
   border-left: none;
   border-right: none;
   height: 21px;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden; 
   position: relative;
 }

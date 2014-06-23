@@ -1,11 +1,14 @@
 <div class="main-body" style="min-width: 250px;"ng-controller="WidgetCtrl">
-  <div class="submitting" ng-if="true">
-    <span>
+  <div class="submitting" ng-if="submitting || submitted">
+    <span ng-if="submitting">
       Submitting...
+    </span>
+    <span ng-if="submitted">
+      Submitted successfully!
     </span>
   </div>
   <form name="fileForm" novalidate ng-model="fileForm">
-    <div class="visitorForm">
+    <div ng-style="formStyle()">
       <div class="block end-blocks file-upload dropper">
         <div class="active" ng-if="false">
           This app is not yet active.
@@ -106,9 +109,12 @@
     </div>
 
     <div class="block end-blocks submit">
-      <button class="submit-button" type="submit" ng-disabled="submitNotReady()" ng-click="submit2()"> <!-- ng-style="submitButtonStyle()" -->
+      <button class="submit-button" type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-if="!submitted"> <!-- ng-style="submitButtonStyle()" -->
         <span>{{settings.submitButtonText}}</span> <!-- ng-show="!(totalFilesAdded)" -->
         <!-- <span ng-show="totalFilesAdded &amp;&amp; !uploadFailed">{{fileUploadSubmitText}}</span> -->
+      </button>
+      <button class="submit-button" type="reset" ng-click="reset()" ng-if="submitted">
+        <span>Start over</span>
       </button>
       <div class="submit-container" ng-mouseover="enableErrorMessage()" ng-mouseleave="disableErrorMessage()" ng-show="submitNotReady()"> 
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
