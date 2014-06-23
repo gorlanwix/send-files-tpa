@@ -427,7 +427,6 @@ app.put('/api/settings/:compId', function (req, res, next) {
 });
 
 app.use(function (err, req, res, next) {
-  console.error('something bad happened: ', err);
   var errorStatus = err.status || httpStatus.INTERNAL_SERVER_ERROR;
   res.json(errorStatus, {status: errorStatus, error: err.message });
 });
