@@ -33,8 +33,8 @@ function getAvailableCapacity(accessToken, callback) {
     },
   };
 
-  request(options, function (err, res, body) {
-    body = JSON.parse(body);
+  request(options, function (err, res) {
+    var body = res.body;
 
     if (err) {
       console.error('request for capacity error', err);
@@ -48,9 +48,6 @@ function getAvailableCapacity(accessToken, callback) {
                           body.error.messsage;
       return callback(new Error(errorMessage), null);
     }
-
-
-    body = JSON.parse(body);
 
     var totalQuota = body.quotaBytesTotal;
     var usedQuota = body.quotaBytesUsedAggregate;
@@ -115,9 +112,9 @@ function getUploadUrl(file, folderId, accessToken, callback) {
   };
 
 
-  request(options, function (err, res, body) {
+  request(options, function (err, res) {
 
-    body = JSON.parse(body);
+    var body = res.body;
 
     if (err) {
       console.error('request error', err);
@@ -234,8 +231,8 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
   }
 
   readStream.on('open', function () {
-    readStream.pipe(request(options, function (err, res, body) {
-      body = JSON.parse(body);
+    readStream.pipe(request(options, function (err, res) {
+      var body = res.body;
 
       if (err) {
         console.error('request for upload to Google Drive error: ', err);
