@@ -443,7 +443,9 @@
 }
 
 .submit button[disabled] {
-  background-color: #BCCECE;
+  opacity: 0.5;
+  /* IE compatibility */
+  filter: alpha(opacity=0.5);
   padding: 10px;
 }
 
