@@ -1,9 +1,9 @@
 server/connect-keys
-server/tmp/
 node_modules
 bower_components
 client/dist
 client/test/coverage
+server/tmp
 .tmp
 *.log
 

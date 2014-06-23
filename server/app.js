@@ -23,7 +23,7 @@ var router = express.Router();
 
 
 // parse application/json
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 app.use(express.static(__dirname + config.CLIENT_APP_DIR));
 
 // parse fields and files
@@ -229,14 +229,18 @@ app.post('/api/files/upload/:compId', function (req, res, next) {
   }
 
   if (formatError) {
-    fs.unlink(newFile.path, function () {
+    fs.unlink(newFile.path, function (err) {
+      if (err) {
+        console.error('removing temp file error: ', err);
+      }
       return next(formatError);
     });
   } else {
 
     db.files.checkSessionAndInsert(newFile, sessionId, function (err, fileId) {
       if (!fileId) {
-        fs.unlink(newFile.path, function () {
+        fs.unlink(newFile.path, function (err) {
+          console.error('removing temp file error: ', err);
           return next(error('session expired', httpStatus.BAD_REQUEST));
         });
       }
@@ -307,57 +311,56 @@ app.post('/api/files/send/:compId', function (req, res, next) {
     return next(error('invalid request format', httpStatus.BAD_REQUEST));
   }
 
-  session.isOpen(sessionId, function (err, isOpen) {
+  userAuth.getInstanceTokens(req.widgetIds, function (err, tokens) {
 
-    if (err) {
-      return callback(err, null);
+    if (!tokens) {
+      console.error('getting instance tokens error', err);
+      return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
     }
 
-    if (!isOpen) {
-      return callback(new Error('session is closed'), null);
-    }
-
-    userAuth.getInstanceTokens(req.widgetIds, function (err, tokens) {
-
-      if (!tokens) {
-        console.error('getting instance tokens error', err);
-        return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
+    db.files.getByIds(sessionId, toUploadFileIds, function (err, files) {
+      if (!files) {
+        return next(error('cannot find files', httpStatus.BAD_REQUEST));
       }
-      db.files.getByIds(sessionId, toUploadFileIds, function (err, files) {
-        if (!files) {
-          console.error('cannot find files', err);
-          return next(error('cannot find files', httpStatus.BAD_REQUEST));
+
+      if (files[0].sum > MAX_FILE_SIZE) {
+        return next(error('total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
+      }
+      upload.getAvailableCapacity(tokens, function (err, capacity) {
+        if (err) {
+          return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
         }
 
-        if (files[0].sum > MAX_FILE_SIZE) {
-          return next(error('total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
+        if (capacity <= MAX_FILE_SIZE) {
+          return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
         }
-        upload.getAvailableCapacity(tokens, function (err, capacity) {
-          if (err) {
-            return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
+        db.session.close(sessionId, function (err, session) {
+          if (!session) {
+            return next(error('session has expired', httpStatus.BAD_REQUEST));
           }
-
-          if (capacity <= MAX_FILE_SIZE) {
-            return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
-          }
-
           res.status(httpStatus.ACCEPTED);
           res.json({status: httpStatus.ACCEPTED});
-
-          console.log('files to be zipped: ', files);
 
           var visitor = new Visitor(visitorName, visitorEmail, visitorMessage);
           upload.zipAndInsert(files, visitor, req.widgetIds, sessionId, tokens, function (err, downloadUrl, settings) {
             if (err) {
               console.error('zipping and inserting error: ', err);
-              email.sendErrors(settings.user_email, visitor, function (err, res) {
-                console.log('sent email errors');
-                return;
-              });
+              // email.sendErrors(settings.user_email, visitor, function (err, res) {
+              //   if (err) {
+              //     console.error('sending error emails error', err);
+              //     return;
+              //   }
+              //   console.log('sent email errors');
+              //   return;
+              // });
             } else {
-              email.send(settings.user_email, visitor, downloadUrl, function (err) {
-                return;
-              });
+              console.log('normal emails sent');
+              // email.send(settings.user_email, visitor, downloadUrl, function (err) {
+              //   if (err) {
+              //     console.error('sending emails error', err);
+              //   }
+              //   return;
+              // });
             }
           });
         });
@@ -409,7 +412,6 @@ app.put('/api/settings/:compId', function (req, res, next) {
     if (!updatedWidgetSettings) {
       db.widget.insertSettings(req.widgetIds, settingsRecieved, function (err) {
         if (err) {
-          console.error('cannot insert settings: ', err);
           return next(error('cannot insert settings', httpStatus.INTERNAL_SERVER_ERROR));
         }
 

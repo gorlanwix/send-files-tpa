@@ -8,6 +8,7 @@ var async = require('async');
 var googleDrive = require('../../controllers/google-drive.js');
 var userAuth = require('../../controllers/user-auth.js');
 var email = require('../../controllers/email.js');
+var upload = require('../../controllers/upload-files.js');
 var query = require('../../config.js').query;
 var pg = require('pg');
 var fs = require('fs');
@@ -359,6 +360,68 @@ describe.skip('Email', function () {
     var visitor = new Visitor('Timoha TROLOLO', 'andrey.elenskiy@gmail.com', message);
     email.sendErrors('andreye@wix.com', visitor, function (err, res) {
       expect(res).to.exist;
+      done();
+    });
+  });
+});
+
+
+describe.only('Zip', function () {
+  var files = [];
+  var files2 = [];
+
+  this.timeout(10000);
+
+  before(function (done) {
+    files.push({
+      temp_name: 'test.jpg',
+      original_name: 'test.jpg'
+    });
+
+    files.push({
+      temp_name: 'rendering.png',
+      original_name: 'rendering.png'
+    });
+
+    files2.push({
+      temp_name: 'test.jpg',
+      original_name: 'test.jpg'
+    });
+
+    files2.push({
+      temp_name: 'rendering.png',
+      original_name: 'rendering.png'
+    });
+
+    files2.push({
+      temp_name: 'engineer.jpg',
+      original_name: 'engineer.jpg'
+    });
+    done();
+  });
+
+  it('should zip the first files array', function (done) {
+    upload.zip(files, 'hello', function (err, file) {
+      expect(err).to.not.exist;
+      expect(file).to.have.property('name').to.exist;
+      expect(file).to.have.property('path').to.exist;
+      expect(file).to.have.property('mimetype').to.equal('application/zip');
+      expect(file).to.have.property('size').to.be.a('number');
+      expect(file).to.have.property('originalname').to.equal('hello.zip');
+      expect(fs.existsSync(file.path)).to.be.true;
+      done();
+    });
+  });
+
+  it('should zip the second files array', function (done) {
+    upload.zip(files2, 'hello2', function (err, file) {
+      expect(err).to.not.exist;
+      expect(file).to.have.property('name').to.exist;
+      expect(file).to.have.property('path').to.exist;
+      expect(file).to.have.property('mimetype').to.equal('application/zip');
+      expect(file).to.have.property('size').to.be.a('number');
+      expect(file).to.have.property('originalname').to.equal('hello2.zip');
+      expect(fs.existsSync(file.path)).to.be.true;
       done();
     });
   });

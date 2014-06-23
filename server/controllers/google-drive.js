@@ -133,10 +133,12 @@ function getUploadUrl(file, folderId, accessToken, callback) {
   });
 }
 
-function getUploadedSoFar(res) {
-  var range = res.headers.range;
-  var uploadedSoFar = parseInt(range.split('-')[1], 10);
-  return uploadedSoFar;
+function getStartUploadFrom(range) {
+  var startFrom = 0;
+  if (range) {
+    startFrom = parseInt(range.split('-')[1], 10) + 1;
+  }
+  return startFrom;
 }
 
 function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
@@ -149,20 +151,26 @@ function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
     }
   };
 
-  setTimeout(request(options, function (err, res) {
+  console.log('requesting upload status, waiting for ' + waitFor);
 
-    if (err) {
-      console.error('requestUploadStatus error');
-      return callback(err, 0, res.statusCode);
-    }
+  setTimeout(function () {
+    request(options, function (err, res) {
 
-    if (res.statusCode === 308) { // Resume Incomplete
-      callback(null, getUploadedSoFar(res) + 1, res.statusCode);
-    } else {
-      // restart upload from zero
-      callback(null, 0, res.statusCode);
-    }
-  }), waitFor);
+      if (err) {
+        console.error('requestUploadStatus error:', err);
+        return callback(err, 0, res.statusCode);
+      }
+      console.log('upload status headers: ', res.headers);
+      var rangeHeader = res.headers['range'];
+
+      if (res.statusCode === 308 && rangeHeader) { // Resume Incomplete
+        callback(null, getStartUploadFrom(rangeHeader), res.statusCode);
+      } else {
+        // restart upload from zero
+        callback(null, 0, res.statusCode);
+      }
+    });
+  }, waitFor);
 }
 
 
@@ -171,13 +179,15 @@ function recoverUpload(file, uploadUrl, accessToken, callback) {
   var startFrom = 0;
   var requestCount = 0;
   var statusCode = httpStatus.SERVICE_UNAVAILABLE;
+  var isError = false;
   async.whilst(
     function () {
-      return statusCode !== 308 && requestCount < watingTimes.length;
+      return statusCode !== 308 && requestCount < watingTimes.length && !isError;
     },
     function (callback) {
       requestUploadStatus(file, uploadUrl, accessToken, watingTimes[requestCount], function (err, restartFrom, newStatusCode) {
         if (err) {
+          isError = true;
           return callback(err);
         }
         startFrom = restartFrom;
@@ -188,22 +198,20 @@ function recoverUpload(file, uploadUrl, accessToken, callback) {
     },
     function (err) {
       if (err) {
-        startFrom = 0;
-        return callback(err, startFrom);
+        return callback(err, 0);
       }
       if (statusCode === 308) {
         callback(null, startFrom);
       } else {
-        startFrom = 0;
-        callback(new Error('Google Drive is unavailable'), startFrom);
+        callback(new Error('cannot recover upload to Google Drive'), 0);
       }
     }
   );
 }
 
 
-// todo set a limit to a number of recovers
-function uploadFile(file, uploadUrl, accessToken, start, maxRecovers, callback) {
+// returns error, response body, and a boolean of whether it should be recovered
+function uploadFile(file, uploadUrl, accessToken, start, callback) {
 
   var options = {
     url: uploadUrl,
@@ -224,7 +232,12 @@ function uploadFile(file, uploadUrl, accessToken, start, maxRecovers, callback) 
   readStream.on('open', function () {
     readStream.pipe(request(options, function (err, res) {
       if (err) {
-        return callback(err, null);
+        console.error('request for upload to Google Drive error: ', err);
+        return callback(err, null, false); // might also set to true, should monitor this
+      }
+
+      if (res.statusCode === httpStatus.OK || res.statusCode === httpStatus.CREATED) {
+        return callback(null, res.body, false);
       }
 
       console.log('google uploaded status code: ', res.statusCode);
@@ -235,49 +248,80 @@ function uploadFile(file, uploadUrl, accessToken, start, maxRecovers, callback) 
 
       var shouldRecover = recoverWhenStatus.indexOf(res.statusCode) > -1;
 
-      if (shouldRecover && maxRecovers > 0) {
-        recoverUpload(file, uploadUrl, accessToken, function (err, startUploadFrom) {
-          if (err) {
-            console.error('google upload recover error: ', err);
-            return callback(err, null);
-          }
-
-          uploadFile(file, uploadUrl, accessToken, startUploadFrom, maxRecovers - 1, function (err, result) {
-            if (err) {
-              return callback(err, null);
-            }
-            callback(null, result);
-          });
-        });
-      } else if (maxRecovers <= 0) {
-        callback(new Error('excided number of recovers', null));
+      if (shouldRecover) {
+        callback(new Error('upload to Google Drive was interrupted'), null, true);
       } else {
-        callback(null, res.body);
+        callback(new Error('cannot upload to google drive'), null, false);
       }
     }));
   });
 
   readStream.on('error', function (err) {
-    callback(err, null);
+    callback(err, null, false);
   });
 }
 
 
 function insertFile(file, folderId, accessToken, callback) {
-  var MAX_UPLOAD_RECOVERS = config.MAX_UPLOAD_RECOVERS;
 
   console.log('insering file to google');
   getUploadUrl(file, folderId, accessToken, function (err, uploadUrl) {
     if (err) {
-      console.error('google request error: ', err);
+      console.error('google request for upload url error: ', err);
       return callback(err, null);
     }
-    uploadFile(file, uploadUrl, accessToken, 0, MAX_UPLOAD_RECOVERS, function (err, result) {
-      if (err) {
-        console.error('upload file to google error: ', err);
-        return callback(err, null);
+
+    uploadFile(file, uploadUrl, accessToken, 0, function (err, result, isRecoverable) {
+
+      if (result) {
+        return callback(null, result);
       }
-      callback(null, result);
+
+      if (!isRecoverable) {
+        console.error('cannot recover on the first try');
+        return callback(new Error('upload to Google Drive is not recoverable'), null);
+      }
+
+      console.log('recovering google upload');
+
+      // otherwise try to recover
+      var shouldRecover = true;
+      var numRecoversTries = 0;
+      var responseBody = result;
+      async.whilst(
+        function () {
+          return shouldRecover && numRecoversTries < config.MAX_UPLOAD_RECOVERS;
+        },
+        function (callback) {
+          recoverUpload(file, uploadUrl, accessToken, function (err, startUploadFrom) {
+            if (err) {
+              return callback(err);
+            }
+            uploadFile(file, uploadUrl, accessToken, startUploadFrom, function (err, result, isRecoverable) {
+              responseBody = result;
+              shouldRecover = isRecoverable;
+              numRecoversTries++;
+              callback(null);
+            });
+          });
+        },
+        function (err) {
+          if (err) {
+            console.error('google recover upload error: ', err);
+            return callback(err, null);
+          }
+
+          if (responseBody) {
+            console.log('successfully recovered google upload: ', responseBody);
+            callback(null, responseBody);
+          } else if (shouldRecover) {
+            console.error('exceeded number of recovers to google');
+            callback(new Error('cannot upload to google drive, exceeded number of recovers'), null);
+          } else {
+            callback(new Error('cannot upload to google drive'), null);
+          }
+        }
+      );
     });
   });
 }
