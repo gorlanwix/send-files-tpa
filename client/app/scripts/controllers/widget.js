@@ -76,6 +76,11 @@ angular.module('sendFiles')
     $scope.submitting = false;
     $scope.submitted = false;
 
+    /* Tell upload function to get a sessionID before processing and
+     * uploading files.
+     */
+    var firstTimeUploading = true;
+
     /* Used to keep track of the number of files uploaded and their
      * place in various arrays. */
     var fileIndex = 0;
@@ -153,8 +158,20 @@ angular.module('sendFiles')
 
     /* Watches for changes in toal space visitor has left to upload files. */
     $scope.$watch('totalBytes', function () {
+      console.log('totalBytes is changing');
       $scope.totalGBLeft = ($scope.uploadLimit - $scope.totalBytes) / GBbytes;
     });
+
+    $scope.$watch('uploadLimit', function () {
+      console.log('uploadLimit is changing');
+      $scope.totalGBLeft = ($scope.uploadLimit - $scope.totalBytes) / GBbytes;
+    });
+
+    $scope.viewStyle = function() {
+      if ($scope.active) {
+
+      }
+    }
 
     $scope.formStyle = function() {
       if ($scope.submitting || $scope.submitted) {
@@ -238,48 +255,46 @@ angular.module('sendFiles')
     /* Determines if a user is ready to submit or not. Returns true if
      * NOT ready to submit and false if ready. */
     $scope.submitNotReady = function() {
-      if ((!($scope.fileForm.$invalid) && $scope.totalFilesAdded &&
-            $scope.totalSuccess === $scope.totalFilesAdded) ||
-            ($scope.submitting)) {
-        return false;
+      if (!($scope.fileForm.$invalid) && $scope.totalFilesAdded &&
+            $scope.totalSuccess === $scope.totalFilesAdded) {
+        if ($scope.submitting) {
+          return true;
+        } else {
+          return false;
+        }
       } else {
         return true;
       }
     };
 
-    /* Call this when the user selects file(s) to begin file upload.
-     * Use this if users can upload unlimited files as long as they don't
-     * exceed 1GB.
+    /* Call this  when users select file(s) to begin file upload.
+     * Gets the session ID and verifies capacity with server before
+     * file processing actually happens
      */
-    $scope.onFileSelectUnlimited = function($files) {
-      // add some total bytes display
-      for(var i = 0; i < $files.length; i++) {
-        var file = $files[i];
-        if (file.size > $scope.uploadLimit) { //Test with files almost 1GB
-          file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
-          $scope.overloadedList.push(file);
-          console.log(file.size);
-        } else {
-          var sizeInMB = Math.floor(file.size / MBbytes);
-          if (sizeInMB === 0) {
-            file.newSize = ' 1 MB';
-          } else {
-            file.newSize = sizeInMB.toString() + ' MB';
+    $scope.onFileSelect = function($files) {
+      if (firstTimeUploading) {
+        firstTimeUploading = false;
+        $scope.verifySpace(function() {
+          $scope.processFiles($files);
+          for (var i = 0; i < fileUploadQueue.length; i++) {
+            console.log('processing queue: ' + i);
+            $scope.processFiles(fileUploadQueue[i]);
           }
-          $scope.fileList.push(file);
-          $scope.totalFilesAdded += 1;
-          $scope.start(fileIndex, instanceID);
-          console.log(fileIndex); //error checking purposes
-          fileIndex += 1;
-          console.log(fileIndex); //for error checking;
-        } // use this symbol with a button for aborting - &otimes;
+        }, $files);
+      } else if ($scope.sessionId) {
+        console.log('got sessionID');
+        $scope.processFiles($files);
+      } else {
+        console.log('Is this happening???');
+        fileUploadQueue.push($files);
       }
     };
 
-    /* Call this  when users select file(s) to begin file upload.
-     * Use this when we only want users to upload up to 1GB of files total.
+    /* Processes each file to verify that uploading it will not violate
+     * the capacity limit or the maximum file total limit. Once that it is
+     * confirmed, the function calls the upload function on each file.
      */
-    $scope.onFileSelect = function($files) {
+    $scope.processFiles = function($files) {
       for (var i = 0; i < $files.length; i++) {
         var file = $files[i];
         if ($scope.totalBytes + file.size > $scope.uploadLimit ||
@@ -288,8 +303,8 @@ angular.module('sendFiles')
           file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
           $scope.overloadedList.push(file);
         } else {
-          $scope.totalBytes += file.size;
           $scope.totalFilesAdded += 1;
+          $scope.totalBytes += file.size;
 
           var sizeInMB = Math.floor(file.size / MBbytes);
           if (sizeInMB === 0) {
@@ -297,35 +312,12 @@ angular.module('sendFiles')
           } else {
             file.newSize = sizeInMB.toString() + 'MB';
           }
-          console.log('progress fileIndex: ' + fileIndex);
           $scope.progress[fileIndex] = 100;
 
           $scope.fileList.push(file);
-
-          console.log($scope.fileList.length + ' before if');
-          if ($scope.fileList.length === 1) {
-            fileIndex += 1;
-            $scope.verifySpace(function () {
-              console.log($scope.fileList.length + 'inside callback');
-              console.log('fileindex:' + fileIndex);
-              $scope.start(1); //THIS IS ALWAYS 1 SO IT'S EASIER TO JUST USE 1
-              //HERE RATHER THAN A VARIABLE TO MAKE SURE THINGS WORK
-              //ASYNCHRONOUSLY
-              // fileIndex += 1;
-              for (var i = 0; i < fileUploadQueue.length; i++) {
-                $scope.start(fileUploadQueue[i]);
-              }
-            });
-          } else if ($scope.sessionId) {
-            fileIndex += 1;
-            $scope.start(fileIndex);
-            //fileIndex += 1;
-          } else {
-            fileIndex += 1;
-            fileUploadQueue.push(fileIndex);
-          }
+          fileIndex += 1; //Increment first because not fast enough after $http
+          $scope.start(fileIndex);
         }
-        console.log(fileIndex); //for error checking;
       }
     };
 
@@ -340,14 +332,17 @@ angular.module('sendFiles')
              timeout: 10000
         }).success(function (data, status, headers, config) {
           if (status === 200) {
-            $scope.uploadLimit = data.uploadSizeLimit; // make sure the uploadLimit variable actually changes
-            $scope.sessionId = data.sessionId; //make sure this is the correct format
-            //do you need to check if data capacity > 0? or will server just return error?
+            console.log("upload capacity is: " + data.uploadSizeLimit);
+            $scope.uploadLimit = data.uploadSizeLimit;
+            $scope.uploadLimit = GBbytes; //DELETE THIS WHEN ANDREY FIXES CAPACITY
+            console.log("upload capacity is: " + $scope.uploadLimit);
+            $scope.sessionId = data.sessionId;
             callback();
           } else {
             console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
           }
         }).error(function (data, status, headers, config) {
+          console.log('Could not get sessionID');
           //fail everything - tell user that owner has not enough space.
           //probably should try to verify again! - but keep track of number of retrys with variable - only retry two times
           //MAKE SURE IT IS IMPOSSIBLE FOR USER TO CONTINUE UPLOADING FILES
@@ -362,7 +357,7 @@ angular.module('sendFiles')
      */
     $scope.start = function(index) {
       index -= 1; //IMPORTANT
-      console.log(index);
+      console.log('this is the index: ' + index);
       if ($scope.upload[index] !== 'aborted') {
         var uploadURL = '/api/files/upload/' + compID + '?sessionId=' + $scope.sessionId;
         $scope.upload[index] = $upload.upload({
@@ -371,13 +366,11 @@ angular.module('sendFiles')
           headers: {'X-Wix-Instance' : instanceID},
           file: $scope.fileList[index] //could technically upload all files - but only supported in HTML 5
         }).progress(function(evt) {
-          console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total, 10));
           $scope.progress[index] = (100 - Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10)));
           //fill in other 100 when sucess
           /* Use this data to implment progress bar */
         }).success(function (data, status, headers, config) {
             //assuming data is the temp ID
-            console.log(data);
             if (status === 201) {
               //var uploadVerified = {'fileId' : data.fileI}; //make sure this the actual format
               if ($scope.uploadedFiles[index] !== 'aborted') {
@@ -491,6 +484,8 @@ angular.module('sendFiles')
      * All failure/success messages will disappear and most variables are
      * completly reset. */
     $scope.reset = function() {
+      firstTimeUploading = true;
+
       $scope.totalSuccess = 0;
       $scope.totalFailed = 0;
       $scope.submitting = false;
@@ -501,6 +496,7 @@ angular.module('sendFiles')
       $scope.fileForm.message.$invalid = true;
       
       fileIndex = 0;
+      $scope.uploadLimit = GBbytes;
       $scope.totalBytes = 0;
       $scope.totalFilesAdded = 0;
       $scope.fileList = [];
@@ -518,8 +514,8 @@ angular.module('sendFiles')
      * A "Add more files" Button will appear to allow the user
      * to upload more files. */
     $scope.success = function() {
-      $scope.submitting = false;
       $scope.submitted = true;
+      $scope.submitting = false;
     };
 
     /* This setting makes a call to the backend database to get the
@@ -551,11 +547,7 @@ angular.module('sendFiles')
       });
     };
 
-    if (window.location.host === "editor.wix.com") {
-      $scope.settings = api.getSettings(true);
-    } else {
-      $scope.getDatabaseSettings();
-    }
+    $scope.getDatabaseSettings();
 
     //This block below listens for changes in the settings panel and updates the widget view.
     $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
