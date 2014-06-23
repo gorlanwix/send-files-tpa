@@ -1,8 +1,8 @@
 TODO:
 
+- second time zipping issue
 - heroku deployment
 - scheduled temporary files clean up
-- close sessions
 - relic
 - use passport.js for general authorization
 - email templates
@@ -16,4 +16,6 @@ NOTES:
 google needs offline mode to use refresh tokens
 dropbox's access token is persistent, no need for refresh token or expiration
 box has a refresh token by default, looks just like google's
+
+advisory locks for file clean up?
 
