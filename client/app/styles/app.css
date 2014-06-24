@@ -445,11 +445,19 @@
   color: red;
   margin-left: 10px;
   padding-right: 5px;
-  border-right: 1px solid #838486;
+  /*border-right: 1px solid #838486;*/
 }
 
 .loading-text {
   margin-left: 10px;
+  padding-right: 5px;
+  /*border-right: 1px solid #838486;*/
+}
+
+.file-upload-message {
+  margin-left: 10px;
+  padding-right: 5px;
+  color: red;
 }
 
 .submit {

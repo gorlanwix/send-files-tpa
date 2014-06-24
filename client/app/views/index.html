@@ -107,11 +107,14 @@
           <span class="success-text" ng-if="totalSuccess" ng-style="successTextStyle()"> <!-- ng-if="totalSuccess" -->
             {{totalSuccess}} uploaded
           </span>
-          <span class="error-text" ng-if="totalFailed"> <!-- ng-if="totalFailed" -->
+          <span class="error-text" ng-if="totalFailed" ng-style="failedTextStyle()"> <!-- ng-if="totalFailed" -->
             {{totalFailed}} failed
           </span>
-          <span class="loading-text" ng-if="totalFilesAdded - totalSuccess - totalFailed"> <!-- totalFilesAdded - totalSuccess - totalFailed -->
+          <span class="loading-text" ng-if="totalFilesAdded - totalSuccess - totalFailed" ng-style="loadingTextStyle()"> <!-- totalFilesAdded - totalSuccess - totalFailed -->
             {{totalFilesAdded - totalSuccess - totalFailed}} loading...
+          </span>
+          <span class="file-upload-message" ng-show="showFileUploadMessage">
+            {{fileUploadMessage}}
           </span>
         </p>
       </div>

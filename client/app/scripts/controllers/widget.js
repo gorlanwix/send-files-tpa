@@ -244,6 +244,23 @@ angular.module('sendFiles')
       }
     };
 
+    $scope.failedTextStyle = function () {
+      if ($scope.totalFilesAdded - $scope.totalFailed - $scope.totalSuccess ||
+          $scope.showFileUploadMessage) {
+        return {'border-right' : '1px solid #838486'};
+      } else {
+        return {};
+      }
+    };
+
+    $scope.loadingTextStyle = function () {
+      if ($scope.showFileUploadMessage) {
+        return {'border-right' : '1px solid #838486'};
+      } else {
+        return {};
+      }
+    };
+
     /* Call this to get error messages to show up if the form
      * is filled out incorrectly. */
     $scope.enableErrorMessage = function () {
@@ -263,6 +280,13 @@ angular.module('sendFiles')
           $scope.fileMessage = 'Please add a file';
           $scope.showNoFile = true;
         }
+        if ($scope.totalFilesAdded - $scope.totalSuccess - $scope.totalFailed) {
+          $scope.fileUploadMessage = 'Wait for files to finish loading';
+          $scope.showFileUploadMessage = true;
+        } else if (!$scope.totalSuccess) {
+          $scope.fileUploadMessage = 'Upload at least one file successfully';
+          $scope.showFileUploadMessage = true;
+        }
       } else {
         $scope.marginStyle = {'margin-bottom': 0};
         $scope.fileMessage = 'Please activate the app in the settings';
@@ -277,6 +301,7 @@ angular.module('sendFiles')
       $scope.showNoMessage = false;
       $scope.marginStyle = {};
       $scope.showNoFile = false;
+      $scope.showFileUploadMessage = false;
     };
 
     /* Determines if a user is ready to submit or not. Returns true if
