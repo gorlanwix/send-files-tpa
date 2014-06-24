@@ -11,8 +11,6 @@ var config = require('../config.js');
 var OAuth2 = googleapis.auth.OAuth2;
 var googleKeys = require('../config.js').googleKeys;
 
-
-
 // google drive specific constants
 var ROOT_URL = 'https://www.googleapis.com/';
 var DRIVE_API_PATH = 'upload/drive/v2/files';
@@ -125,7 +123,7 @@ function getUploadUrl(file, folderId, accessToken, callback) {
   };
 
 
-  request(options, function (err, res, body) {
+  request(options, function (err, res) {
 
     var body = res.body;
 
@@ -244,7 +242,7 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
   }
 
   readStream.on('open', function () {
-    readStream.pipe(request(options, function (err, res, body) {
+    readStream.pipe(request(options, function (err, res) {
       var body = res.body;
 
       if (err) {

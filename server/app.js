@@ -270,7 +270,7 @@ app.post('/api/files/send/:compId', function (req, res, next) {
         }
 
         if (capacity <= MAX_FILE_SIZE) {
-          return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
+          return next(error('Google Drive is full', httpStatus.REQUEST_ENTITY_TOO_LARGE));
         }
         db.session.close(sessionId, function (err, session) {
           if (!session) {
