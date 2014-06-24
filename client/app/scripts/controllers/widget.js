@@ -40,7 +40,7 @@ angular.module('sendFiles')
     // console.log(instanceID);
 
     /* Represents the Component ID of this widget. */
-    var compID = '12345';
+    var compID = '123456';
     //$wix.Utils.getOrigCompId();
 
     /* Represents the user settings for the widget. */
@@ -512,7 +512,7 @@ angular.module('sendFiles')
             $scope.submitErrorMessage = 'Something terrible happened. Try again.';
           } else if (status === 401) {
             $scope.submitErrorMessage = 'This widget isn\'t active. Contact the site owner.';
-          } else if (status === 413)
+          } else if (status === 413) {
             $scope.submitErrorMessage = 'The total file upload is too large.';
           }
           $scope.initiateFailure();
@@ -582,11 +582,13 @@ angular.module('sendFiles')
              timeout: 10000
       }).success(function (data, status, headers, config) {
           if (status === 200) { //check if this is right status code
+            console.log("code", data);
             if (data.widgetSettings.provider === "" || data.widgetSettings.userEmail === "") {
-              //$scope.active = false; CHANGE THIS
+              $scope.active = false;
             }
             console.log(data.widgetSettings.userEmail);
-            if (Object.getOwnPropertyNames(data.widgetSettings.settings).length !== 0) {
+            if (data.widgetSettings.settings !== null &&
+                Object.getOwnPropertyNames(data.widgetSettings.settings).length !== 0) {
               $scope.settings = data.widgetSettings.settings;
             } else {
               $scope.settings = api.getSettings(api.defaults);
