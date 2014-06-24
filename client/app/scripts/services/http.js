@@ -1,57 +1,8 @@
 'use strict';
 
-angular.module('sendFiles')
-  .controller('SettingsCtrl', function ($scope, $wix, api, $http, Verify) {
-    $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
-    // $scope.loggedin = false;
-    $scope.verify = Verify;
-    $scope.verify.loggedin = false;
-    // console.log($scope.verify.loggedin);
-    // $scope.userEmail = 'test@testing.com'; //for testing
+angular.module('sendFiles').factory('http', function ($scope, $wix, $http) {
 
-    $wix.UI.onChange('*', function (value, key) {
-      $scope.settings[key] = value;
-  	  $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
-  		$wix.Utils.getOrigCompId());
-      //then save here with debounce
-      http.putSettings();
-    });
-
-    var putSettings = function () {
-      var combineSettings = {widgetSettings: {userEmail: $scope.userEmail, settings: $scope.settings}};
-      var settingsJson = JSON.stringify(combineSettings);
-      var compId = $wix.Utils.getOrigCompId();
-      $http.put('/api/settings/' + compId, 
-         settingsJson,  { headers: {
-                      'X-Wix-Instance': 'whatever', //$wix.Utils.getInstanceId(),
-                      'Content-Type': 'application/json'
-                      }
-                    })
-          .success(function (data, status, headers, config) {
-          })
-          .error(function (data, status, headers, config) {
-            console.log("There was an error saving settings.");
-          })
-          .then(function (response) {
-            console.log(response.data);
-          });
-      }
-
-    $scope.compId = $wix.Utils.getOrigCompId();
-    console.log($scope.compId);
-
-    $scope.logout = function () {
-      $http.get('/api/auth/logout/' + $scope.compId)
-        .success(function(data, status, headers, config) {
-          // console.log("logged out");
-        }).error(function(data, status, headers, config) {
-          // console.log("error logging out");
-        });
-
-        $wix.Settings.refreshSettings(); // need this to be refreshSettings
-    }
-
-    var obtainSettings = function () {
+	var obtainSettings = function () {
       $http.get('/api/settings/' + $scope.compId, {
             headers: {
               'Content-type': 'application/json', 
@@ -103,12 +54,35 @@ angular.module('sendFiles')
       });
     }
 
-    obtainSettings();
-    
-    // $scope.settings.$promise.then(function () {
-    //   console.log('Initializing Wix UI Settings Panel');
-    //   $wix.UI.initialize($scope.settings);
-    //   $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
-    //   $wix.Utils.getOrigCompId());
-    // });
+    $scope.logout = function () {
+      $http.get('/api/auth/logout/' + $scope.compId)
+        .success(function(data, status, headers, config) {
+          // console.log("logged out");
+        }).error(function(data, status, headers, config) {
+          // console.log("error logging out");
+        });
+
+        $wix.Settings.refreshSettings(); // need this to be refreshSettings
+    }
+
+    var putSettings = function () {
+      var combineSettings = {widgetSettings: {userEmail: $scope.userEmail, settings: $scope.settings}};
+      var settingsJson = JSON.stringify(combineSettings);
+      var compId = $wix.Utils.getOrigCompId();
+      $http.put('/api/settings/' + compId, 
+         settingsJson,  { headers: {
+                      'X-Wix-Instance': 'whatever', //$wix.Utils.getInstanceId(),
+                      'Content-Type': 'application/json'
+                      }
+                    })
+          .success(function (data, status, headers, config) {
+          })
+          .error(function (data, status, headers, config) {
+            console.log("There was an error saving settings.");
+          })
+          .then(function (response) {
+            console.log(response.data);
+          });
+      }
 });
+

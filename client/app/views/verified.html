@@ -1,0 +1,40 @@
+<!doctype html>
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" ng-app="sendFiles"> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <!-- build:css({.tmp,app}) styles/settings.css -->
+
+    <link rel="stylesheet" href="../styles/settings.css">
+    <script src="../bower_components/jquery/dist/jquery.js"></script>
+    <script src="../bower_components/ng-file-upload-shim/angular-file-upload-shim.js"></script>
+    <script src="../bower_components/angular/angular.js"></script>
+    <script src="../bower_components/ng-file-upload/angular-file-upload.js"></script>
+    <script src="../bower_components/angular-resource/angular-resource.js"></script>
+    <script src="../bower_components/wix-ui-lib2/ui-lib.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js({.tmp,app}) scripts/settings.js -->
+    <script src="../scripts/app.js"></script>
+    <script src="../scripts/services/api.js"></script>
+    <script src="../scripts/controllers/widget.js"></script>
+    <script src="../scripts/controllers/settings.js"></script>
+    <script src="../scripts/services/wix.js"></script>
+    <script src="../scripts/controllers/verified.js"></script>
+    <script src="../scripts/services/verify.js"></script>
+    <script src="../scripts/services/http.js"></script>
+  </head>
+
+  <body ng-controller="VerifiedCtrl">
+    <div>
+    	<script>console.log('loaded scripts');</script>
+    	<h4>Authentication complete.</h4>
+        <p>You are logged in as {{userEmail}}</p>
+    	
+    </div>
+  </body>
+
+</html>
