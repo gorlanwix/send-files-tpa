@@ -44,8 +44,9 @@ function getAvailableCapacity(accessToken, callback) {
     },
   };
 
-  request(options, function (err, res) {
-    var body = res.body;
+  request(options, function (err, res, test) {
+    // for some reason it recieves unparsed res.body
+    var body = JSON.parse(res.body);
 
     if (err) {
       console.error('request for capacity error', err);
@@ -61,7 +62,7 @@ function getAvailableCapacity(accessToken, callback) {
     }
 
     var totalQuota = parseInt(body.quotaBytesTotal, 10);
-    var usedQuota = parseInt(body.quotaBytesTotal, 10);
+    var usedQuota = parseInt(body.quotaBytesUsedAggregate, 10);
     callback(null, totalQuota - usedQuota);
   });
 }
