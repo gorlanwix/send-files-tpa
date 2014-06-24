@@ -39,6 +39,7 @@ module.exports = {
   TMP_DIR: TMP_DIR,
   CLIENT_APP_DIR: CLIENT_APP_DIR,
   // api keys
+  wixKeys: wixKeys,
   googleKeys: googleKeys,
   mailgunKeys: mailgunKeys,
   // packages

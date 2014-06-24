@@ -54,7 +54,7 @@ app.get('/auth/callback/google', passport.authenticate('google', {
 
 app.use('/api', function (req, res, next) {
 
-  var instance = 'whatever';//req.header('X-Wix-Instance');
+  var instance = req.header('X-Wix-Instance');
 
   var currInstance;
   try {
@@ -80,6 +80,7 @@ var scopes = [
 
 var params =  {
   accessType: 'offline', // will return a refresh token
+  approvalPrompt: 'force', // will ask for allowing every time (in case same account but different widgets)
   state: null,
   display: 'popup',
   scope: scopes
