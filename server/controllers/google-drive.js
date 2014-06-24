@@ -62,8 +62,8 @@ function getAvailableCapacity(accessToken, callback) {
       return callback(new Error(errorMessage), null);
     }
 
-    var totalQuota = body.quotaBytesTotal;
-    var usedQuota = body.quotaBytesUsedAggregate;
+    var totalQuota = parseInt(body.quotaBytesTotal, 10);
+    var usedQuota = parseInt(body.quotaBytesTotal, 10);
     callback(null, totalQuota - usedQuota);
   });
 }
