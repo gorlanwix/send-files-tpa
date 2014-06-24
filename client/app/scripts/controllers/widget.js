@@ -583,7 +583,8 @@ angular.module('sendFiles')
       }).success(function (data, status, headers, config) {
           if (status === 200) { //check if this is right status code
             console.log("code", data);
-            if (data.widgetSettings.provider === "" || data.widgetSettings.userEmail === "") {
+            if (!data.widgetSettings.provider ||
+                !data.widgetSettings.userEmail) {
               $scope.active = false;
             }
             console.log(data.widgetSettings.userEmail);
