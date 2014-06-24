@@ -44,7 +44,8 @@ function googleAuthCallback(currInstance, tokens, profile, callback) {
         folderId: folderId
       };
       db.widget.getSettings(currInstance, function (err, widgetSettingsFromDb) {
-        var newWidgetSettings = new WidgetSettings(profile.email || null, provider, null, serviceSettings);
+        var userEmail = profile.emails[0].value;
+        var newWidgetSettings = new WidgetSettings(userEmail || null, provider, null, serviceSettings);
 
         if (widgetSettingsFromDb) {
           var isEmailSet = widgetSettingsFromDb.user_email !== '';
