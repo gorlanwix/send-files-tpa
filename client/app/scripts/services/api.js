@@ -12,16 +12,21 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
     buttonRoundness: '5'
   };
 
-  var instanceID = 'whatever';
-  // var url = $location.absUrl();
-  // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
-  // var instance = instanceRegexp.exec(url);
-  // if (instance && instance[1]) {
-  //   instanceID = instance[1];
-  // } else {
-  //   console.log('All hell has broken loose.');
-  //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
-  // }
+  // var instanceID = 'whatever';
+
+  var getInstance = function() {
+    var url = $location.absUrl();
+    var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
+    var instance = instanceRegexp.exec(url);
+    if (instance && instance[1]) {
+      var instanceId = instance[1]; //instanceId is actually the unparsed instance
+    } else {
+      console.log('All hell has broken loose.');
+      //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
+      var instanceId;
+    }
+    return instanceId; //returns the unparsed instance
+  }
 
   var headers = {
     'X-Wix-Instance': instanceID,
@@ -31,7 +36,7 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
   // console.log(headers); //for testing
 
   var Settings = $resource('/api/settings/:compId', {
-    compId: '123456' //$wix.Utils.getOrigCompId() || $wix.Utils.getCompId() 
+    compId: $wix.Utils.getOrigCompId() || $wix.Utils.getCompId() 
   }, {
     get: { method: 'GET', headers: headers },
     save: { method: 'PUT', headers: headers }
@@ -69,7 +74,9 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
           });
         });
       return settings;
-    }
+    },
+
+    getInstance: getInstance
 
   };
 });

@@ -30,9 +30,9 @@
 
   <body ng-controller="VerifiedCtrl">
     <div>
-    	<script>console.log('loaded scripts');</script>
     	<h4>Authentication complete.</h4>
-        <p>You are logged in as {{userEmail}}</p>
+        <p>You are now logged in. This window will close automatically.</p>
+        <script>window.opener.location.reload(false);</script>
     	
     </div>
   </body>

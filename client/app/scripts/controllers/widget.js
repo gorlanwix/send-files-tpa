@@ -27,7 +27,7 @@ angular.module('sendFiles')
     $scope.maxFileLimit = 50;
 
     /* Represents the Instance ID of this widget. */
-    var instanceID = 'whatever';
+    var instance = api.getInstance();//'whatever';
     // var url = $location.absUrl();
     // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
     // var instance = instanceRegexp.exec(url);
@@ -40,8 +40,8 @@ angular.module('sendFiles')
     // console.log(instanceID);
 
     /* Represents the Component ID of this widget. */
-    var compID = '123456';
-    //$wix.Utils.getOrigCompId();
+    var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
+    console.log(compId);
 
     /* Represents the user settings for the widget. */
     $scope.settings = {};
@@ -367,8 +367,8 @@ angular.module('sendFiles')
     /* Sends a request to the server to check if the Google Drive
      * has enough storage space. */
     $scope.verifySpace = function(callback) {
-      console.log("compID: " + compID);
-      var verifyURL = '/api/files/session/' + compID; //wait for this
+      console.log("compId: " + compId);
+      var verifyURL = '/api/files/session/' + compId; //wait for this
       $http({method: 'GET',
              url: verifyURL,
              headers: {'X-Wix-Instance' : instanceID},
@@ -406,7 +406,7 @@ angular.module('sendFiles')
       index -= 1; //IMPORTANT
       console.log('this is the index: ' + index);
       if ($scope.upload[index] !== 'aborted') {
-        var uploadURL = '/api/files/upload/' + compID + '?sessionId=' + $scope.sessionId;
+        var uploadURL = '/api/files/upload/' + compId + '?sessionId=' + $scope.sessionId;
         $scope.upload[index] = $upload.upload({
           url: uploadURL,
           method: 'POST',
@@ -492,7 +492,7 @@ angular.module('sendFiles')
       finalSubmission.visitorName = finalSubmission.visitorName.trim();
       finalSubmission.visitorEmail = finalSubmission.visitorEmail.trim();
       finalSubmission.visitorMessage = finalSubmission.visitorMessage.trim();
-      var uploadURL = '/api/files/send/' + compID + '?sessionId=' + $scope.sessionId;
+      var uploadURL = '/api/files/send/' + compId + '?sessionId=' + $scope.sessionId;
       $http({method: 'POST',
              url: uploadURL,
              headers: {'X-Wix-Instance' : instanceID},
@@ -575,14 +575,14 @@ angular.module('sendFiles')
     /* This setting makes a call to the backend database to get the
      * latest user settings. */
     $scope.getDatabaseSettings = function() {
-      var urlDatabase = '/api/settings/' + compID;
+      var urlDatabase = '/api/settings/' + compId;
       $http({method: 'GET',
              url: urlDatabase,
              headers: {'X-Wix-Instance' : instanceID},
              timeout: 10000
       }).success(function (data, status, headers, config) {
           if (status === 200) { //check if this is right status code
-            console.log("code", data);
+            console.log("code", data.widgetSettings);
             if (data.widgetSettings.provider === "" || data.widgetSettings.userEmail === "") {
               $scope.active = false;
             }
@@ -612,7 +612,7 @@ angular.module('sendFiles')
     });
 
     $scope.getDatabaseSettings();
-
+    console.log(compId);
   });
 
 
