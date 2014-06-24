@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('sendFiles')
-  .controller('WidgetCtrl', function ($scope, api, $wix, $upload, $http, $location) {
+  .controller('WidgetCtrl', function ($scope, api, $wix, $upload, $http, $location, $timeout) {
 
      /* Regular expression used to determine if user input is a valid email. */
     $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
@@ -264,7 +264,7 @@ angular.module('sendFiles')
         if ($scope.totalFilesAdded - $scope.totalSuccess - $scope.totalFailed) {
           $scope.fileUploadMessage = 'Wait for files to finish loading';
           $scope.showFileUploadMessage = true;
-        } else if (!$scope.totalSuccess) {
+        } else if (!$scope.totalSuccess && $scope.totalFilesAdded) {
           $scope.fileUploadMessage = 'Upload at least one file successfully';
           $scope.showFileUploadMessage = true;
         }
@@ -338,6 +338,13 @@ angular.module('sendFiles')
           console.log("overload!");
           file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
           $scope.overloadedList.push(file);
+          if ($scope.showOverloadedList) {
+            $timeout(function() {
+              $scope.showOverloadedList = true;
+            }, 5000);
+          } else {
+            $scope.showOverloadedList = true;
+          }
         } else {
           $scope.totalFilesAdded += 1;
           $scope.totalBytes += file.size;
@@ -379,6 +386,7 @@ angular.module('sendFiles')
           }
         }).error(function (data, status, headers, config) {
           console.log('Could not get sessionID');
+          console.log(status);
           if (status === 500) {
             $scope.submitErrorMessage = 'This app it not working right now.' +
              'Try again later';
