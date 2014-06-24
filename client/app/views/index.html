@@ -19,11 +19,11 @@
       {{submitErrorMessage}}
     </span>
   </div>
-  <div class="overload-list" ng-show="false">
+  <div class="overload" ng-show="false">
     <span class="overload-message">
       The following files can't be added due to lack of storage space:
     </span>
-    <ul>
+    <ul class="overload-list">
         <li ng-repeat="file in overloadedList">
             {{file.name}} - {{file.newSize}}
         </li>
