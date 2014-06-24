@@ -2,7 +2,6 @@ TODO:
 
 - heroku deployment
 - scheduled temporary files clean up
-- close sessions
 - relic
 - use passport.js for general authorization
 - email templates
@@ -27,3 +26,5 @@ adv:
 dis:
     what if they are not uploaded within 24 hours?
         should be error then.
+        
+advisory locks for file clean up?
