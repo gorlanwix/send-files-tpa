@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('sendFiles')
-  .controller('WidgetCtrl', function ($scope, api, $wix, $upload, $http, $location) {
+  .controller('WidgetCtrl', function ($scope, api, $wix, $upload, $http, $location, $timeout) {
 
      /* Regular expression used to determine if user input is a valid email. */
     $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
@@ -76,8 +76,11 @@ angular.module('sendFiles')
     $scope.totalSuccess = 0;
     $scope.totalFailed = 0;
 
+    /* Represents the possible submit stages. At various stages, messages
+     * are shown to the user. */
     $scope.submitting = false;
     $scope.submitted = false;
+    $scope.uploadFailed = false;
 
     /* Tell upload function to get a sessionID before processing and
      * uploading files.
@@ -185,7 +188,7 @@ angular.module('sendFiles')
      * and displaying submit sucessful message.
      */
     $scope.formStyle = function() {
-      if ($scope.submitting || $scope.submitted) {
+      if ($scope.submitting || $scope.submitted || $scope.uploadFailed) {
         return {'opacity' : 0.3};
       } else {
         return {};
@@ -213,31 +216,26 @@ angular.module('sendFiles')
       }
     };
 
-    /* A function that is used to style the submit button. A red button is
-     * displayed while an error exists, a yellow button during typical file
-     * upload, and a green button after a successful upload. A unique message
-     * is displayed on the button during each situation.
-     */
-    $scope.submitButtonStyle = function () {
-      if ($scope.totalFilesAdded) {
-        if ($scope.totalFailed > 0) {
-          $scope.fileUploadSubmitText = 'Submit with errors';
-          return {'background-color' : '#FF9999'};
-        } else if ($scope.totalSuccess === $scope.totalFilesAdded) {
-          $scope.fileUploadSubmitText = 'Files ready to submit!';
-          return {'background-color' : '#93C993'};
-        } else {
-          $scope.fileUploadSubmitText = 'Loading...';
-          return {'background-color' : '#FFFF99'};
-        }
+    $scope.successTextStyle = function () {
+      if ($scope.totalFilesAdded - $scope.totalSuccess ||
+          $scope.showFileUploadMessage) {
+        return {'border-right' : '1px solid #838486'};
       } else {
         return {};
       }
     };
 
-    $scope.successTextStyle = function () {
-      if ($scope.totalFilesAdded - $scope.totalSuccess ||
+    $scope.failedTextStyle = function () {
+      if ($scope.totalFilesAdded - $scope.totalFailed - $scope.totalSuccess ||
           $scope.showFileUploadMessage) {
+        return {'border-right' : '1px solid #838486'};
+      } else {
+        return {};
+      }
+    };
+
+    $scope.loadingTextStyle = function () {
+      if ($scope.showFileUploadMessage) {
         return {'border-right' : '1px solid #838486'};
       } else {
         return {};
@@ -263,6 +261,13 @@ angular.module('sendFiles')
           $scope.fileMessage = 'Please add a file';
           $scope.showNoFile = true;
         }
+        if ($scope.totalFilesAdded - $scope.totalSuccess - $scope.totalFailed) {
+          $scope.fileUploadMessage = 'Wait for files to finish loading';
+          $scope.showFileUploadMessage = true;
+        } else if (!$scope.totalSuccess && $scope.totalFilesAdded) {
+          $scope.fileUploadMessage = 'Upload at least one file successfully';
+          $scope.showFileUploadMessage = true;
+        }
       } else {
         $scope.marginStyle = {'margin-bottom': 0};
         $scope.fileMessage = 'Please activate the app in the settings';
@@ -277,6 +282,7 @@ angular.module('sendFiles')
       $scope.showNoMessage = false;
       $scope.marginStyle = {};
       $scope.showNoFile = false;
+      $scope.showFileUploadMessage = false;
     };
 
     /* Determines if a user is ready to submit or not. Returns true if
@@ -332,6 +338,13 @@ angular.module('sendFiles')
           console.log("overload!");
           file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
           $scope.overloadedList.push(file);
+          if ($scope.showOverloadedList) {
+            $timeout(function() {
+              $scope.showOverloadedList = true;
+            }, 5000);
+          } else {
+            $scope.showOverloadedList = true;
+          }
         } else {
           $scope.totalFilesAdded += 1;
           $scope.totalBytes += file.size;
@@ -364,7 +377,7 @@ angular.module('sendFiles')
           if (status === 200) {
             console.log("upload capacity is: " + data.uploadSizeLimit);
             $scope.uploadLimit = data.uploadSizeLimit;
-            $scope.uploadLimit = GBbytes; //DELETE THIS WHEN ANDREY FIXES CAPACITY
+            //$scope.uploadLimit = GBbytes; //DELETE THIS WHEN ANDREY FIXES CAPACITY
             console.log("upload capacity is: " + $scope.uploadLimit);
             $scope.sessionId = data.sessionId;
             callback();
@@ -373,6 +386,10 @@ angular.module('sendFiles')
           }
         }).error(function (data, status, headers, config) {
           console.log('Could not get sessionID');
+          console.log(status);
+          $scope.submitErrorMessage = 'This app it not working right now - ' +
+           'Try again later';
+          $scope.uploadFailed = true;
           //fail everything - tell user that owner has not enough space.
           //probably should try to verify again! - but keep track of number of retrys with variable - only retry two times
           //MAKE SURE IT IS IMPOSSIBLE FOR USER TO CONTINUE UPLOADING FILES
@@ -491,6 +508,13 @@ angular.module('sendFiles')
           }
         }).error(function(data, status, headers, config) {
           console.log('submited and failed');
+          if (status === 400 || status === 500) {
+            $scope.submitErrorMessage = 'Something terrible happened. Try again.';
+          } else if (status === 401) {
+            $scope.submitErrorMessage = 'This widget isn\'t active. Contact the site owner.';
+          } else if (status === 413)
+            $scope.submitErrorMessage = 'The total file upload is too large.';
+          }
           $scope.initiateFailure();
       });
       //rebuild uploadedList, get rid of null values
@@ -559,7 +583,7 @@ angular.module('sendFiles')
       }).success(function (data, status, headers, config) {
           if (status === 200) { //check if this is right status code
             if (data.widgetSettings.provider === "" || data.widgetSettings.userEmail === "") {
-              $scope.active = false;
+              //$scope.active = false; CHANGE THIS
             }
             console.log(data.widgetSettings.userEmail);
             if (Object.getOwnPropertyNames(data.widgetSettings.settings).length !== 0) {
