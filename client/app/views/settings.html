@@ -1,7 +1,7 @@
 <div ng-controller="SettingsCtrl">
 	<div class="box description-box">
 		<img class="logo" width="86" src="images/wix_icon.png">
-		<div class="notloggedin-container" ng-hide="loggedin">
+		<div class="notloggedin-container" ng-hide="provider">
 			<p class="description">Connect with your Google account. This process is secure and completely private. Login authentication is encrypted using Google API. Wix will not have access to your account name or password.
 				<span class="question-mark-container" wix-tooltip=" {placement:'bottom', text:'This is the account that users will upload files to.'}">
 					<img class="question-mark" ng-mouseenter="show = true" ng-mouseleave="show = false" ng-src="images/question_mark.png">
@@ -11,27 +11,29 @@
 	            <!-- <p class="create-account">Don't have an<br/>account? <strong><a href="#" target="_blank">Create
 	                one</a></strong></p> --> 
 	            <form name="owner-form">
-	            	<span class="site-owner-email">Your Email:</span>
+	            	<span class="site-owner-email">Your Email:</span><a href="views/verified.html">.</a>
 		            <input name="userEmail" type="email" class="userEmail" placeholder="WebsiteMaker@Wix.com" required ng-model="userEmail" ng-pattern="emailRegex"> <!-- This email input field does not have email pattern verification yet -->
 		            <span class="question-mark-container" wix-tooltip=" {placement:'bottom', text:'When visitors of your website upload files, their message will be sent to this email. If you would like the message to be sent to the email attached to your Drive account, you can leave this field empty.'}">
 						<img class="question-mark" ng-mouseenter="show = true" ng-mouseleave="show = false" ng-src="images/question_mark.png">
 					</span>
 				</form>	
-	            <a ng-href="/api/auth/login/google/:compId" target="_blank|_parent"><button class="submit uilib-btn connect-button floatright">Connect account</button></a>
+	            <a ng-href="/api/auth/login/google/{{compId}}" target="_blank|_parent"><button class="submit uilib-btn connect-button floatright">Connect account</button></a>
 		        
 	        </div>
 	    </div>
-	    <div class="loggedin-container connect" ng-show="loggedin">
+	    <div class="loggedin-container connect" ng-show="provider">
 			<img class="checkmark" ng-src="images/checkmark.png">
 			<span class="connect">You are currently connected with your Google Drive account:</span> 
-			<p>{{accountName || 'BarackObama@whitehouse.com'}}</p>
+			<p>{{accountName || 'There was an error retrieving your file repository account name.'}}</p>
 				<p class="connect">
 					<img class="checkmark" ng-src="images/checkmark.png">
 					Messages will be sent to this email:
 				</p>
 				<div class="align-with-above">
-					<p>{{userEmail || 'WebsiteOwner@Wix.com'}}</p>
-					<button class="uilib-btn btn-black-text">Reconfigure Accounts</button>
+					<p>{{userEmail || 'There was an error retrieving your email.'}}</p>
+					<!--<a ng-href="/api/auth/logout/{{compId}}">-->
+					<button ng-click="logout()" class="uilib-btn btn-black-text">Reconfigure Accounts</button>
+					<!--</a>-->
 				</div>
 		</div>
 		<!-- <p ng-show="isEmailValid && !isEmpty">Your app is active</p>

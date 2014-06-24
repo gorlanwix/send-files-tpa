@@ -13,6 +13,7 @@ TODO:
 - add javascript to detect whether the site owner has connected an account to the send-files widget and display acc-content accordingly
 - add new page to call "refreshApp()" when pop up window closes
 - add debounce to save settings
+- add refreshSettings() on an HTML page after google authentication
 
 NOTES:
 
