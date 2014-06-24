@@ -8,13 +8,26 @@
       Activate it by logging in within the settings.
     </span>
   </div>
-  <div class="submitting" ng-if="submitting || submitted">
+  <div class="submitting" ng-if="submitting || submitted || uploadFailed">
     <span ng-if="submitting">
       Submitting...
     </span>
     <span ng-if="submitted">
       Submitted successfully!
     </span>
+    <span ng-if="uploadFailed">
+      {{submitErrorMessage}}
+    </span>
+  </div>
+  <div class="overload-list" ng-show="false">
+    <span class="overload-message">
+      The following files can't be added due to lack of storage space:
+    </span>
+    <ul>
+        <li ng-repeat="file in overloadedList">
+            {{file.name}} - {{file.newSize}}
+        </li>
+      </ul>
   </div>
   <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()">
     <div ng-style="formStyle()">
@@ -107,20 +120,22 @@
           <span class="success-text" ng-if="totalSuccess" ng-style="successTextStyle()"> <!-- ng-if="totalSuccess" -->
             {{totalSuccess}} uploaded
           </span>
-          <span class="error-text" ng-if="totalFailed"> <!-- ng-if="totalFailed" -->
+          <span class="error-text" ng-if="totalFailed" ng-style="failedTextStyle()"> <!-- ng-if="totalFailed" -->
             {{totalFailed}} failed
           </span>
-          <span class="loading-text" ng-if="totalFilesAdded - totalSuccess - totalFailed"> <!-- totalFilesAdded - totalSuccess - totalFailed -->
+          <span class="loading-text" ng-if="totalFilesAdded - totalSuccess - totalFailed" ng-style="loadingTextStyle()"> <!-- totalFilesAdded - totalSuccess - totalFailed -->
             {{totalFilesAdded - totalSuccess - totalFailed}} loading...
+          </span>
+          <span class="file-upload-message" ng-show="showFileUploadMessage">
+            {{fileUploadMessage}}
           </span>
         </p>
       </div>
     </div>
 
     <div class="block end-blocks submit">
-      <button type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-if="!submitted"> <!-- ng-style="submitButtonStyle()" -->
-        <span class="submit-text">{{settings.submitButtonText}}</span> <!-- ng-show="!(totalFilesAdded)" -->
-        <!-- <span ng-show="totalFilesAdded &amp;&amp; !uploadFailed">{{fileUploadSubmitText}}</span> -->
+      <button type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-if="!submitted">
+        <span>{{settings.submitButtonText}}</span>
       </button>
       <button type="reset" ng-click="reset()" ng-show="submitted">
         Start over

@@ -31,7 +31,7 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
   // console.log(headers); //for testing
 
   var Settings = $resource('/api/settings/:compId', {
-    compId: '12345' //$wix.Utils.getOrigCompId() || $wix.Utils.getCompId() 
+    compId: '123456' //$wix.Utils.getOrigCompId() || $wix.Utils.getCompId() 
   }, {
     get: { method: 'GET', headers: headers },
     save: { method: 'PUT', headers: headers }
