@@ -27,20 +27,20 @@ angular.module('sendFiles')
     $scope.maxFileLimit = 50;
 
     /* Represents the Instance ID of this widget. */
-    var instanceID = 'whatever';
+    var instanceId = 'whatever';
     // var url = $location.absUrl();
     // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
     // var instance = instanceRegexp.exec(url);
     // if (instance && instance[1]) {
-    //   instanceID = instance[1];
+    //   instanceId = instance[1];
     // } else {
     //   console.log('All hell has broken loose.');
     //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
     // }
-    // console.log(instanceID);
+    // console.log(instanceId);
 
     /* Represents the Component ID of this widget. */
-    var compID = '123456';
+    var compId = '123456';
     //$wix.Utils.getOrigCompId();
 
     /* Represents the user settings for the widget. */
@@ -189,7 +189,7 @@ angular.module('sendFiles')
      */
     $scope.formStyle = function() {
       if ($scope.submitting || $scope.submitted || $scope.uploadFailed ||
-          $scope.showOverloadedList || true) {
+          $scope.showOverloadedList) {
         return {'opacity' : 0.3};
       } else {
         return {};
@@ -368,11 +368,11 @@ angular.module('sendFiles')
     /* Sends a request to the server to check if the Google Drive
      * has enough storage space. */
     $scope.verifySpace = function(callback) {
-      console.log("compID: " + compID);
-      var verifyURL = '/api/files/session/' + compID; //wait for this
+      console.log("compId: " + compId);
+      var verifyURL = '/api/files/session/' + compId; //wait for this
       $http({method: 'GET',
              url: verifyURL,
-             headers: {'X-Wix-Instance' : instanceID},
+             headers: {'X-Wix-Instance' : instanceId},
              timeout: 10000
         }).success(function (data, status, headers, config) {
           if (status === 200) {
@@ -407,11 +407,11 @@ angular.module('sendFiles')
       index -= 1; //IMPORTANT
       console.log('this is the index: ' + index);
       if ($scope.upload[index] !== 'aborted') {
-        var uploadURL = '/api/files/upload/' + compID + '?sessionId=' + $scope.sessionId;
+        var uploadURL = '/api/files/upload/' + compId + '?sessionId=' + $scope.sessionId;
         $scope.upload[index] = $upload.upload({
           url: uploadURL,
           method: 'POST',
-          headers: {'X-Wix-Instance' : instanceID},
+          headers: {'X-Wix-Instance' : instanceId},
           file: $scope.fileList[index] //could technically upload all files - but only supported in HTML 5
         }).progress(function(evt) {
           $scope.progress[index] = (100 - Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10)));
@@ -493,10 +493,10 @@ angular.module('sendFiles')
       finalSubmission.visitorName = finalSubmission.visitorName.trim();
       finalSubmission.visitorEmail = finalSubmission.visitorEmail.trim();
       finalSubmission.visitorMessage = finalSubmission.visitorMessage.trim();
-      var uploadURL = '/api/files/send/' + compID + '?sessionId=' + $scope.sessionId;
+      var uploadURL = '/api/files/send/' + compId + '?sessionId=' + $scope.sessionId;
       $http({method: 'POST',
              url: uploadURL,
-             headers: {'X-Wix-Instance' : instanceID},
+             headers: {'X-Wix-Instance' : instanceId},
              data: finalSubmission,
              timeout: 10000
       }).success(function(data, status, headers, config) {
@@ -576,17 +576,17 @@ angular.module('sendFiles')
     /* This setting makes a call to the backend database to get the
      * latest user settings. */
     $scope.getDatabaseSettings = function() {
-      var urlDatabase = '/api/settings/' + compID;
+      var urlDatabase = '/api/settings/' + compId;
       $http({method: 'GET',
              url: urlDatabase,
-             headers: {'X-Wix-Instance' : instanceID},
+             headers: {'X-Wix-Instance' : instanceId},
              timeout: 10000
       }).success(function (data, status, headers, config) {
           if (status === 200) { //check if this is right status code
             console.log("code", data);
             if (!data.widgetSettings.provider ||
                 !data.widgetSettings.userEmail) {
-              //$scope.active = false;
+              $scope.active = false;
             }
             console.log(data.widgetSettings.userEmail);
             if (data.widgetSettings.settings !== null &&

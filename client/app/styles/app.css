@@ -26,20 +26,44 @@
   text-align: center;
 }
 
-.overload-list {
-  border: 1px solid #838486;
+.overload {
   position: absolute;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  border: 1px solid #838486;
   top: 27%;
   left: 8%;
   z-index: 1;
   width: 84%;
   background-color: #EAEAEA;
+  overflow-y: scroll; 
 }
 
 .overload-message {
   display: block;
   margin: 5px;
   margin-top: 10px;
+}
+
+.overload-list {
+  padding: 10px;
+  padding-top: 0;
+  display: block;
+  text-decoration: none;
+  width: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  overflow-y: scroll; 
+  text-overflow: ellipsis;
+}
+
+.overload-list li {
+  display: inline;
+  text-overflow: ellipsis;
+  /*width: 200px;*/
+  white-space: nowrap;
+  overflow: hidden;
+  overflow-y: scroll; 
 }
 
 
