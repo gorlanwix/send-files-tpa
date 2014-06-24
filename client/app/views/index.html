@@ -104,7 +104,7 @@
           <span class="no-files" ng-if="!totalFilesAdded">
             No files uploaded
           </span>
-          <span class="success-text" ng-if="totalSuccess"> <!-- ng-if="totalSuccess" -->
+          <span class="success-text" ng-if="totalSuccess" ng-style="successTextStyle()"> <!-- ng-if="totalSuccess" -->
             {{totalSuccess}} uploaded
           </span>
           <span class="error-text" ng-if="totalFailed"> <!-- ng-if="totalFailed" -->

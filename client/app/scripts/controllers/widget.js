@@ -67,6 +67,9 @@ angular.module('sendFiles')
     /* If true, upload failure messages are shown. */
     $scope.uploadFailed = false;
 
+    /* If true, file upload messages are shown in the file status bar. */
+    $scope.showFileUploadMessage = false;
+
     /* Used to represent number of files tha that have been uploaded
      * successfully or returned an error from the server.
      */
@@ -227,6 +230,15 @@ angular.module('sendFiles')
           $scope.fileUploadSubmitText = 'Loading...';
           return {'background-color' : '#FFFF99'};
         }
+      } else {
+        return {};
+      }
+    };
+
+    $scope.successTextStyle = function () {
+      if ($scope.totalFilesAdded - $scope.totalSuccess ||
+          $scope.showFileUploadMessage) {
+        return {'border-right' : '1px solid #838486'};
       } else {
         return {};
       }
@@ -568,6 +580,7 @@ angular.module('sendFiles')
     //This block below listens for changes in the settings panel and updates the widget view.
     $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
       $scope.settings = message;
+      console.log('hello world'); //DO BORDER AND BORDER RADIUS CHANGES HERE
       // console.log('Input Data: ', message); //for testing communication between widget and settings
       $scope.$apply();
     });
