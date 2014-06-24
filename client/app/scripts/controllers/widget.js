@@ -32,12 +32,12 @@ angular.module('sendFiles')
     // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
     // var instance = instanceRegexp.exec(url);
     // if (instance && instance[1]) {
-    //   instanceID = instance[1];
+    //   instanceId = instance[1];
     // } else {
     //   console.log('All hell has broken loose.');
     //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
     // }
-    // console.log(instanceID);
+    // console.log(instanceId);
 
     /* Represents the Component ID of this widget. */
     var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
@@ -371,7 +371,7 @@ angular.module('sendFiles')
       var verifyURL = '/api/files/session/' + compId; //wait for this
       $http({method: 'GET',
              url: verifyURL,
-             headers: {'X-Wix-Instance' : instanceID},
+             headers: {'X-Wix-Instance' : instanceId},
              timeout: 10000
         }).success(function (data, status, headers, config) {
           if (status === 200) {
@@ -410,7 +410,7 @@ angular.module('sendFiles')
         $scope.upload[index] = $upload.upload({
           url: uploadURL,
           method: 'POST',
-          headers: {'X-Wix-Instance' : instanceID},
+          headers: {'X-Wix-Instance' : instanceId},
           file: $scope.fileList[index] //could technically upload all files - but only supported in HTML 5
         }).progress(function(evt) {
           $scope.progress[index] = (100 - Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10)));
@@ -495,7 +495,7 @@ angular.module('sendFiles')
       var uploadURL = '/api/files/send/' + compId + '?sessionId=' + $scope.sessionId;
       $http({method: 'POST',
              url: uploadURL,
-             headers: {'X-Wix-Instance' : instanceID},
+             headers: {'X-Wix-Instance' : instanceId},
              data: finalSubmission,
              timeout: 10000
       }).success(function(data, status, headers, config) {
@@ -578,12 +578,13 @@ angular.module('sendFiles')
       var urlDatabase = '/api/settings/' + compId;
       $http({method: 'GET',
              url: urlDatabase,
-             headers: {'X-Wix-Instance' : instanceID},
+             headers: {'X-Wix-Instance' : instanceId},
              timeout: 10000
       }).success(function (data, status, headers, config) {
           if (status === 200) { //check if this is right status code
-            console.log("code", data.widgetSettings);
-            if (data.widgetSettings.provider === "" || data.widgetSettings.userEmail === "") {
+            console.log("code", data);
+            if (!data.widgetSettings.provider ||
+                !data.widgetSettings.userEmail) {
               $scope.active = false;
             }
             console.log(data.widgetSettings.userEmail);
