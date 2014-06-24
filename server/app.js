@@ -6,6 +6,7 @@ var upload = require('./controllers/upload-files.js');
 var email = require('./controllers/email.js');
 var googleDrive = require('./controllers/google-drive.js');
 var config = require('./config.js');
+var utils = require('./utils.js');
 
 var express = require('express');
 var bodyParser = require('body-parser');
@@ -14,7 +15,6 @@ var validator = require('validator');
 var fs = require('fs');
 var httpStatus = require('http-status');
 var passport = require('passport');
-var wix = config.wix;
 
 
 var MAX_FILE_SIZE = config.MAX_FILE_SIZE;
@@ -22,11 +22,15 @@ var MAX_FILE_SIZE = config.MAX_FILE_SIZE;
 var app = express();
 var router = express.Router();
 
+var error = utils.error;
+var Visitor = utils.Visitor;
+var WidgetSettings = utils.WidgetSettings;
+var WixWidget = utils.WixWidget;
+
 
 // parse application/json
 app.use(bodyParser.json());
 app.use(express.static(__dirname + config.CLIENT_APP_DIR));
-
 app.use(passport.initialize());
 
 // parse fields and files
@@ -36,43 +40,6 @@ app.use(multer({
     fileSize: MAX_FILE_SIZE,
   }
 }));
-
-
-// parse instance and sets parsed insatnceId
-function WixWidget(instance, compId) {
-
-  if (instance === 'whatever') { // for testing purposes
-    this.instanceId = instance;
-  } else {
-    var parsedInstance = wix.parse(instance);
-    if (!parsedInstance) {
-      throw new Error('invalid instance');
-    }
-    this.instanceId = parsedInstance.instanceId;
-  }
-  this.compId = compId;
-}
-
-function Visitor(name, email, message) {
-  this.name = name;
-  this.email = email;
-  this.message = message;
-}
-
-// set any param to null to avoid it's update
-function WidgetSettings(userEmail, provider, settings, serviceSettings) {
-  this.userEmail = userEmail;
-  this.provider = provider;
-  this.settings = settings;
-  this.serviceSettings = serviceSettings;
-}
-
-
-function error(message, statusCode) {
-  var err = new Error(message);
-  err.status = statusCode;
-  return err;
-}
 
 
 passport.use('google', userAuth.googleStrategy);
@@ -127,7 +94,7 @@ app.get('/api/auth/logout/:compId', function (req, res, next) {
       return next(error('not logged in', httpStatus.BAD_REQUEST));
     }
 
-    var widgetSettings = new WidgetSettings(null, '', null, {});
+    var widgetSettings = new WidgetSettings(null, '', null, null);
 
     db.widget.updateSettings(req.widgetIds, widgetSettings, function (err) {
       if (err) {
@@ -303,7 +270,7 @@ app.post('/api/files/send/:compId', function (req, res, next) {
         }
 
         if (capacity <= MAX_FILE_SIZE) {
-          return next(error('Google Drive is full', httpStatus.BAD_REQUEST));
+          return next(error('Google Drive is full', httpStatus.REQUEST_ENTITY_TOO_LARGE));
         }
         db.session.close(sessionId, function (err, session) {
           if (!session) {
