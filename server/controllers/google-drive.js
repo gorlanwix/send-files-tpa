@@ -44,7 +44,7 @@ function getAvailableCapacity(accessToken, callback) {
     },
   };
 
-  request(options, function (err, res, test) {
+  request(options, function (err, res) {
     // for some reason it recieves unparsed res.body
     var body = JSON.parse(res.body);
 
