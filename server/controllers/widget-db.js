@@ -4,7 +4,7 @@ var query = require('../config.js').query;
 
 function insertSettings(instance, widgetSettings, callback) {
   var q = 'INSERT INTO widget_settings (instance_id, component_id, settings, service_settings, user_email, curr_provider, updated, created) \
-           VALUES ($1, $2, $3, $4, $5, NOW(), NOW())';
+           VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())';
   var values = [
     instance.instanceId,
     instance.compId,
