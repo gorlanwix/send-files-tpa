@@ -3,12 +3,17 @@
 var db = require('./pg-database.js');
 var googleapis = require('googleapis');
 var googleKeys = require('../config.js').googleKeys;
-//var passport = require('passport');
-//var GoogleStrategy = require('passport-google-oauth').OAuthStrategy;
+var utils = require('../utils.js');
 var googleDrive = require('./google-drive.js');
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var TokenProvider = require('./refresh-token.js');
+var httpStatus = require('http-status');
 
+
+
+var WixWidget = utils.WixWidget;
+var WidgetSettings = utils.WidgetSettings;
+var error = utils.error;
 
 
 
@@ -22,56 +27,8 @@ function setParamsIfNotLoggedIn(params) {
         next(error('already logged in to ' + tokensFromDb.provider, httpStatus.BAD_REQUEST));
       }
     });
-  }
+  };
 }
-
-
-function WixWidget(instance, compId) {
-
-  if (instance === 'whatever') { // for testing purposes
-    this.instanceId = instance;
-  } else {
-    var parsedInstance = wix.parse(instance);
-    if (!parsedInstance) {
-      throw new Error('invalid instance');
-    }
-    this.instanceId = parsedInstance.instanceId;
-  }
-  this.compId = compId;
-}
-
-var googleStrategy = new GoogleStrategy({
-  clientID: googleKeys.clientId,
-  clientSecret: googleKeys.clientSecret,
-  callbackURL: googleKeys.redirectUri,
-  passReqToCallback: true
-}, function (req, accessToken, refreshToken, params, profile, done) {
-    console.log('oauth2callback state: ', req.query.state);
-    console.log('tokens: ', params);
-    console.log('refreshToken: ', refreshToken);
-
-    var wixIds = req.query.state.split('+');
-    var currInstance = new WixWidget(wixIds[0], wixIds[1]);
-    params.refresh_token = refreshToken;
-    googleAuthCallback(currInstance, params, profile, function (err) {
-      if (err) {
-        return console.error('googleAuthCallback error: ', err);
-        done(err, null);
-      }
-
-      done(null, profile);
-    });
-  }
-);
-
-
-function WidgetSettings(userEmail, provider, settings, serviceSettings) {
-  this.userEmail = userEmail;
-  this.provider = provider;
-  this.settings = settings;
-  this.serviceSettings = serviceSettings;
-}
-
 
 function googleAuthCallback(currInstance, tokens, profile, callback) {
   var provider = 'google';
@@ -80,6 +37,9 @@ function googleAuthCallback(currInstance, tokens, profile, callback) {
       return callback(err);
     }
     googleDrive.createFolder(tokens.access_token, function (err, folderId) {
+      if (err) {
+        return callback(err);
+      }
       var serviceSettings = {
         folderId: folderId
       };
@@ -104,6 +64,32 @@ function googleAuthCallback(currInstance, tokens, profile, callback) {
   });
 }
 
+var googleStrategy = new GoogleStrategy({
+  clientID: googleKeys.clientId,
+  clientSecret: googleKeys.clientSecret,
+  callbackURL: googleKeys.redirectUri,
+  passReqToCallback: true
+}, function (req, accessToken, refreshToken, params, profile, done) {
+  console.log('oauth2callback state: ', req.query.state);
+  console.log('tokens: ', params);
+  console.log('refreshToken: ', refreshToken);
+
+  var wixIds = req.query.state.split('+');
+  var currInstance = new WixWidget(wixIds[0], wixIds[1]);
+  params.refresh_token = refreshToken;
+  googleAuthCallback(currInstance, params, profile, function (err) {
+    if (err) {
+      console.error('googleAuthCallback error: ', err);
+      return done(err, null);
+    }
+
+    done(null, profile);
+  });
+});
+
+
+
+
 
 function getInstanceTokens(instance, callback) {
 
@@ -120,15 +106,26 @@ function getInstanceTokens(instance, callback) {
 
     var tokenProvider;
 
-
     if (tokens.provider === 'google') {
       tokenProvider = new TokenProvider.GoogleTokenProvider({
-          refresh_token: tokens.refresh_token,
-          client_id:     googleKeys.clientId,
-          client_secret: googleKeys.clientSecret
+        refresh_token: tokens.refresh_token,
+        client_id:     googleKeys.clientId,
+        client_secret: googleKeys.clientSecret
       });
-      tokenProvider.getToken(function (refreshedTokens) {
-        if (err) { console.error('token refreshing error: ', err); }
+      tokenProvider.refreshToken(function (err, refreshedTokens, revoked) {
+        if (err) {
+          console.error('token refreshing error: ', err);
+          if (revoked) { // log out user
+            db.token.remove(instance, function () {
+              var widgetSettings = new WidgetSettings(null, '', null, null);
+              db.widget.updateSettings(req.widgetIds, widgetSettings, function () {
+                return callback(err, null);
+              });
+            });
+          } else {
+            return callback(err, null);
+          }
+        }
         console.log('Got new token from google: ', refreshedTokens);
 
         db.token.update(instance, refreshedTokens, 'google', callback);

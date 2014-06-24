@@ -11,37 +11,26 @@ var request = require('request');
  *  refresh_token
  *  client_id
  *  client_secret
- *
- *  optionals
- *    access_token
- *    expires_in
  */
-function TokenProvider (url, options) {
+function TokenProvider(url, options) {
 
-  if(!(this instanceof TokenProvider)){
+  if (!(this instanceof TokenProvider)) {
     //when calling as a function, force new.
     return new TokenProvider(url, options);
   }
 
-  if(!url){
+  if (!url) {
     throw new Error('missing url parameter');
   }
 
   ['refresh_token', 'client_id', 'client_secret'].forEach(function (k) {
-    if(!(k in options)){
+    if (!(k in options)) {
       throw new Error('missing ' + k + ' parameter');
     }
   });
 
   this.url = url;
   this.options = options;
-
-  if(this.options.access_token){
-    this.currentToken = {
-      access_token:    this.options.access_token,
-      expires_in:      this.options.expires_in,
-    };
-  }
 }
 
 
@@ -51,9 +40,9 @@ function TokenProvider (url, options) {
  * If the current access token is expired,
  * fetch a new one.
  *
- * @param  {Function} done
+ * @param  {Function} callback
  */
-TokenProvider.prototype.getToken = function (callback) {
+TokenProvider.prototype.refreshToken = function (callback) {
 
   request.post({
     url: this.url,
@@ -63,14 +52,17 @@ TokenProvider.prototype.getToken = function (callback) {
       client_secret: this.options.client_secret,
       grant_type:    'refresh_token'
     }
-  }, function (err, response, body) {
+  }, function (err, res, body) {
     if (err) {
-      return callback(err)
-    };
+      return callback(err, null, false);
+    }
+
+    if (res.statusCode === 401) {
+      return callback(new Error('access was revoked'), null, true);
+    }
 
     this.currentToken = JSON.parse(body);
-
-    return callback(null, this.currentToken);
+    return callback(null, this.currentToken, false);
 
   }.bind(this));
 };
