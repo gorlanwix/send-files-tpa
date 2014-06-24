@@ -15,8 +15,8 @@ CREATE TABLE widget_settings (
     component_id text NOT NULL,
     settings json DEFAULT '{}',
     service_settings json DEFAULT '{}',
-    user_email text DEFAULT '',
-    curr_provider text DEFAULT '',
+    user_email text DEFAULT '' NOT NULL,
+    curr_provider text,
     updated timestamp NOT NULL,
     created timestamp NOT NULL,
     PRIMARY KEY (instance_id, component_id)
