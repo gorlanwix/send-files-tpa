@@ -2,6 +2,17 @@
   position: relative;
 }
 
+.active {
+  position: absolute;
+  background-color: black;
+  top: 15px;
+  height: 19%;
+  text-align: center;
+  width: 100%;
+  color: white;
+  line-height: 40px;
+}
+
 .submitting {
   position: absolute;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -41,14 +52,6 @@
   position: relative;
 }
 
-.active {
-  position: absolute;
-  background-color: #E5E9EE;
-  width: 100%;
-  height: 88%;
-  line-height: 400px;
-}
-
 .dropee {
   position: absolute;
   vertical-align: middle;
@@ -85,6 +88,7 @@
   border: 0;
   border-radius: 5px;
   outline: none;
+  min-height: 24px;
 }
 
 .file-upload {
@@ -118,6 +122,7 @@
 
 .owner-message {
   margin-top: 0;
+  min-height: 14px;
 }
 
 .drag-drop-message {
@@ -133,7 +138,7 @@
   padding-top: 0;
   padding-bottom: 0;
   overflow: auto;
-  min-height: 50px;
+  min-height: 125px;
   max-height: 125px;
   overflow-x: hidden;
 }
@@ -367,7 +372,7 @@
 }
 
 .user-message textarea {
-  height: 95px;
+  height: 70px;
   width: 90%;
   border: none;
   outline: none;
@@ -398,7 +403,7 @@
   background-color: white;
   color: red;
   position: absolute;
-  bottom: 69px;
+  bottom: 45px;
 }
 .tool-tip-message::before {
   z-index: 2;
@@ -433,7 +438,7 @@
 .success-text {
   color: green;
   padding-right: 5px;
-  border-right: 1px solid #838486;
+  /*border-right: 1px solid #838486;*/
 }
 
 .error-text {
@@ -469,6 +474,7 @@
 
 .submit button {
   padding: 10px;
+  min-height: 34px;
 }
 
 .submit button[disabled] {
