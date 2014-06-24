@@ -13,6 +13,7 @@ var multer  = require('multer');
 var validator = require('validator');
 var fs = require('fs');
 var httpStatus = require('http-status');
+var passport = require('passport');
 var wix = config.wix;
 
 
@@ -25,6 +26,8 @@ var router = express.Router();
 // parse application/json
 app.use(bodyParser.json());
 app.use(express.static(__dirname + config.CLIENT_APP_DIR));
+
+app.use(passport.initialize());
 
 // parse fields and files
 app.use(multer({
@@ -72,49 +75,14 @@ function error(message, statusCode) {
 }
 
 
-app.get('/auth/callback/google', function (req, res, next) {
-  if (req.query.error) {
-    res.redirect('/');
-    return;
-  }
-  userAuth.exchangeCodeForTokens(req.query.code, function (err, tokens) {
-    console.log('tokens from google: ', tokens);
-    console.log('oauth2callback state: ', req.query.state);
+passport.use('google', userAuth.googleStrategy);
 
-    var wixIds = req.query.state.split('+');
-    var currInstance = new WixWidget(wixIds[0], wixIds[1]);
 
-    var provider = 'google';
-
-    db.token.insert(currInstance, tokens, provider, function (err) {
-      userAuth.getGoogleEmail(tokens, function (err, widgetEmail) {
-        googleDrive.createFolder(tokens.access_token, function (err, folderId) {
-          var serviceSettings = {
-            folderId: folderId
-          };
-          var widgetSettings = new WidgetSettings(widgetEmail || '', provider, null, serviceSettings);
-          db.widget.getSettings(currInstance, function (err, widgetSettingsFromDb) {
-            if (widgetSettingsFromDb) {
-              var isEmailSet = widgetSettingsFromDb.user_email !== '';
-              // do not update if email already set
-              if (isEmailSet) { widgetSettings.userEmail = null; }
-              db.widget.updateSettings(currInstance, widgetSettings, function (err) {
-
-                res.redirect('/');
-              });
-            } else {
-              widgetSettings.settings = null;
-              db.widget.insertSettings(currInstance, widgetSettings, function (err) {
-
-                res.redirect('/');
-              });
-            }
-          });
-        });
-      });
-    });
-  });
-});
+app.get('/auth/callback/google', passport.authenticate('google', {
+  failureRedirect: '/error',
+  successRedirect: '/',
+  session: false
+}));
 
 
 app.use('/api', function (req, res, next) {
@@ -133,21 +101,24 @@ app.use('/api', function (req, res, next) {
 });
 
 app.param('compId', function (req, res, next, compId) {
-  req.widgetIds.compId = '12345';
+  req.widgetIds.compId = compId;
   next();
 });
 
-app.get('/api/auth/login/google/:compId', function (req, res, next) {
-  db.token.get(req.widgetIds, function (err, tokensFromDb) {
-    if (!tokensFromDb) {
-      userAuth.getGoogleAuthUrl(req.widgetIds, function (url) {
-        res.redirect(url);
-      });
-    } else {
-      next(error('already logged in to ' + tokensFromDb.provider, httpStatus.BAD_REQUEST));
-    }
-  });
-});
+
+var scopes = [
+  'https://www.googleapis.com/auth/drive.file',
+  'email'
+];
+
+var params =  {
+  accessType: 'offline', // will return a refresh token
+  state: null,
+  display: 'popup',
+  scope: scopes
+};
+
+app.get('/api/auth/login/google/:compId', userAuth.setParamsIfNotLoggedIn(params), passport.authenticate('google', params));
 
 app.get('/api/auth/logout/:compId', function (req, res, next) {
 
@@ -163,7 +134,7 @@ app.get('/api/auth/logout/:compId', function (req, res, next) {
         return next(error('settings update error', httpStatus.INTERNAL_SERVER_ERROR));
       }
       if (removedTokens.provider === 'google') {
-        var oauth2Client = userAuth.createOauth2Client();
+        var oauth2Client = googleDrive.createOauth2Client();
         oauth2Client.revokeToken(removedTokens.refresh_token, function (err) {
           if (err) {
             console.error('token revoking error', err);
@@ -395,7 +366,6 @@ app.get('/api/settings/:compId', function (req, res, next) {
 
 app.put('/api/settings/:compId', function (req, res, next) {
 
-  console.log(req.body);
   var widgetSettings = req.body.widgetSettings;
   var userEmail = widgetSettings.userEmail;
   var isValidSettings = widgetSettings && userEmail !== undefined &&

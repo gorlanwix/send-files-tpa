@@ -1,9 +1,9 @@
 TODO:
 
+- use passport.js for general authorization
 - heroku deployment
 - scheduled temporary files clean up
 - relic
-- use passport.js for general authorization
 - email templates
 - more tests
 - comments

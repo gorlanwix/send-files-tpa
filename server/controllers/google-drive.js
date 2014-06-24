@@ -8,12 +8,25 @@ var async = require('async');
 var httpStatus = require('http-status');
 var userAuth = require('./user-auth.js');
 var config = require('../config.js');
+var OAuth2 = googleapis.auth.OAuth2;
+var googleKeys = require('../config.js').googleKeys;
+
+
 
 // google drive specific constants
 var ROOT_URL = 'https://www.googleapis.com/';
 var DRIVE_API_PATH = 'upload/drive/v2/files';
 var DRIVE_ABOUT_PATH = 'drive/v2/about';
 
+
+function createOauth2Client(tokens) {
+  var oauth2Client = new OAuth2(googleKeys.clientId, googleKeys.clientSecret, googleKeys.redirectUri);
+  if (arguments.length === 1) {
+    oauth2Client.credentials = tokens;
+  }
+
+  return oauth2Client;
+}
 
 function constructUrl(root, path, params) {
   var paramsString = '';
@@ -33,8 +46,8 @@ function getAvailableCapacity(accessToken, callback) {
     },
   };
 
-  request(options, function (err, res, body) {
-    body = JSON.parse(body);
+  request(options, function (err, res) {
+    var body = res.body;
 
     if (err) {
       console.error('request for capacity error', err);
@@ -49,9 +62,6 @@ function getAvailableCapacity(accessToken, callback) {
       return callback(new Error(errorMessage), null);
     }
 
-
-    body = JSON.parse(body);
-
     var totalQuota = body.quotaBytesTotal;
     var usedQuota = body.quotaBytesUsedAggregate;
     callback(null, totalQuota - usedQuota);
@@ -61,7 +71,7 @@ function getAvailableCapacity(accessToken, callback) {
 // returns id of the folder
 function createFolder(accessToken, callback) {
 
-  var oauth2Client = userAuth.createOauth2Client();
+  var oauth2Client = createOauth2Client();
 
   oauth2Client.setCredentials({
     access_token: accessToken
@@ -117,7 +127,7 @@ function getUploadUrl(file, folderId, accessToken, callback) {
 
   request(options, function (err, res, body) {
 
-    body = JSON.parse(body);
+    var body = res.body;
 
     if (err) {
       console.error('request error', err);
@@ -235,7 +245,7 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
 
   readStream.on('open', function () {
     readStream.pipe(request(options, function (err, res, body) {
-      body = JSON.parse(body);
+      var body = res.body;
 
       if (err) {
         console.error('request for upload to Google Drive error: ', err);
@@ -336,5 +346,6 @@ function insertFile(file, folderId, accessToken, callback) {
 module.exports = {
   insertFile: insertFile,
   getAvailableCapacity: getAvailableCapacity,
-  createFolder: createFolder
+  createFolder: createFolder,
+  createOauth2Client: createOauth2Client
 };
