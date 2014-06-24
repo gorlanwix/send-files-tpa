@@ -387,11 +387,9 @@ angular.module('sendFiles')
         }).error(function (data, status, headers, config) {
           console.log('Could not get sessionID');
           console.log(status);
-          if (status === 500) {
-            $scope.submitErrorMessage = 'This app it not working right now.' +
-             'Try again later';
-            $scope.uploadFailed = true;
-          }
+          $scope.submitErrorMessage = 'This app it not working right now - ' +
+           'Try again later';
+          $scope.uploadFailed = true;
           //fail everything - tell user that owner has not enough space.
           //probably should try to verify again! - but keep track of number of retrys with variable - only retry two times
           //MAKE SURE IT IS IMPOSSIBLE FOR USER TO CONTINUE UPLOADING FILES
@@ -511,9 +509,11 @@ angular.module('sendFiles')
         }).error(function(data, status, headers, config) {
           console.log('submited and failed');
           if (status === 400 || status === 500) {
-            $scope.submitErrorMessage = "Something terrible happened. Try again.";
+            $scope.submitErrorMessage = 'Something terrible happened. Try again.';
           } else if (status === 401) {
-            $scope.submitErrorMessage = "This widget isn't active. Contact the site owner.";
+            $scope.submitErrorMessage = 'This widget isn\'t active. Contact the site owner.';
+          } else if (status === 413)
+            $scope.submitErrorMessage = 'The total file upload is too large.';
           }
           $scope.initiateFailure();
       });
@@ -583,7 +583,7 @@ angular.module('sendFiles')
       }).success(function (data, status, headers, config) {
           if (status === 200) { //check if this is right status code
             if (data.widgetSettings.provider === "" || data.widgetSettings.userEmail === "") {
-              $scope.active = false;
+              //$scope.active = false; CHANGE THIS
             }
             console.log(data.widgetSettings.userEmail);
             if (Object.getOwnPropertyNames(data.widgetSettings.settings).length !== 0) {
