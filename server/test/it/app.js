@@ -15,7 +15,7 @@ var fs = require('fs');
 var connectionString = process.env.DATABASE_URL || require('../../connect-keys/pg-connect.json').connectPg;
 
 var instanceId = 'whatever';
-var compId = '12345'
+var compId = '1234567'
 
 describe('requests', function () {
   it('should be not found', function (done) {
@@ -312,7 +312,7 @@ describe('Google Drive', function () {
     });
   });
 
-  it('should get available capacity from Google', function (done) {
+  it.only('should get available capacity from Google', function (done) {
     googleDrive.getAvailableCapacity(accessToken, function (err, capacity) {
       if (err) {
         console.log('capacity error: ', err);
@@ -336,7 +336,7 @@ describe('Google Drive', function () {
 });
 
 
-describe.skip('Email', function () {
+describe('Email', function () {
 
   function Visitor(name, email, message) {
     this.name = name;
@@ -366,7 +366,7 @@ describe.skip('Email', function () {
 });
 
 
-describe.only('Zip', function () {
+describe('Zip', function () {
   var files = [];
   var files2 = [];
 
