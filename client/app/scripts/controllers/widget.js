@@ -377,7 +377,7 @@ angular.module('sendFiles')
           if (status === 200) {
             console.log("upload capacity is: " + data.uploadSizeLimit);
             $scope.uploadLimit = data.uploadSizeLimit;
-            $scope.uploadLimit = GBbytes; //DELETE THIS WHEN ANDREY FIXES CAPACITY
+            //$scope.uploadLimit = GBbytes; //DELETE THIS WHEN ANDREY FIXES CAPACITY
             console.log("upload capacity is: " + $scope.uploadLimit);
             $scope.sessionId = data.sessionId;
             callback();

@@ -19,6 +19,16 @@
       {{submitErrorMessage}}
     </span>
   </div>
+  <div class="overload-list">
+    <span class="overload-message">
+      The following files can't be added due to lack of storage space:
+    </span>
+    <ul>
+        <li ng-repeat="file in overloadedList">
+            {{file.name}} - {{file.newSize}}
+        </li>
+      </ul>
+  </div>
   <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()">
     <div ng-style="formStyle()">
       <div class="block end-blocks file-upload dropper title-block">

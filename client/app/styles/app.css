@@ -26,6 +26,20 @@
   text-align: center;
 }
 
+.overload-list {
+  border: 1px solid #838486;
+  position: absolute;
+  top: 26%;
+  left: 8%;
+  z-index: 1;
+  width: 84%;
+}
+
+.overload-message {
+  display: block;
+  margin-top: 10px;
+}
+
 
 .block {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -53,6 +67,7 @@
 }
 
 .dropee {
+  z-index: 2;
   position: absolute;
   vertical-align: middle;
   line-height: 110px;
