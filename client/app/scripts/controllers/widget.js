@@ -27,7 +27,7 @@ angular.module('sendFiles')
     $scope.maxFileLimit = 50;
 
     /* Represents the Instance ID of this widget. */
-    var instanceId = 'whatever';
+    var instance = api.getInstance();//'whatever';
     // var url = $location.absUrl();
     // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
     // var instance = instanceRegexp.exec(url);
@@ -40,8 +40,8 @@ angular.module('sendFiles')
     // console.log(instanceId);
 
     /* Represents the Component ID of this widget. */
-    var compId = '123456';
-    //$wix.Utils.getOrigCompId();
+    var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
+    console.log(compId);
 
     /* Represents the user settings for the widget. */
     $scope.settings = {};
@@ -188,8 +188,7 @@ angular.module('sendFiles')
      * and displaying submit sucessful message.
      */
     $scope.formStyle = function() {
-      if ($scope.submitting || $scope.submitted || $scope.uploadFailed ||
-          $scope.showOverloadedList) {
+      if ($scope.submitting || $scope.submitted || $scope.uploadFailed) {
         return {'opacity' : 0.3};
       } else {
         return {};
@@ -614,5 +613,7 @@ angular.module('sendFiles')
     });
 
     $scope.getDatabaseSettings();
-
+    console.log(compId);
   });
+
+
