@@ -46,8 +46,8 @@ passport.use('google', userAuth.googleStrategy);
 
 
 app.get('/auth/callback/google', passport.authenticate('google', {
-  failureRedirect: '/error',
-  successRedirect: '/',
+  failureRedirect: '/views/verified.html',
+  successRedirect: '/views/verified.html',
   session: false
 }));
 
