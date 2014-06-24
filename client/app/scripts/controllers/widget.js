@@ -76,8 +76,11 @@ angular.module('sendFiles')
     $scope.totalSuccess = 0;
     $scope.totalFailed = 0;
 
+    /* Represents the possible submit stages. At various stages, messages
+     * are shown to the user. */
     $scope.submitting = false;
     $scope.submitted = false;
+    $scope.uploadFailed = false;
 
     /* Tell upload function to get a sessionID before processing and
      * uploading files.
@@ -185,7 +188,7 @@ angular.module('sendFiles')
      * and displaying submit sucessful message.
      */
     $scope.formStyle = function() {
-      if ($scope.submitting || $scope.submitted) {
+      if ($scope.submitting || $scope.submitted || $scope.uploadFailed) {
         return {'opacity' : 0.3};
       } else {
         return {};
@@ -207,28 +210,6 @@ angular.module('sendFiles')
           return {'border-top': 0, 'background-color': '#FF9999'};
         } else {
           return {'background-color': '#FF9999'};
-        }
-      } else {
-        return {};
-      }
-    };
-
-    /* A function that is used to style the submit button. A red button is
-     * displayed while an error exists, a yellow button during typical file
-     * upload, and a green button after a successful upload. A unique message
-     * is displayed on the button during each situation.
-     */
-    $scope.submitButtonStyle = function () {
-      if ($scope.totalFilesAdded) {
-        if ($scope.totalFailed > 0) {
-          $scope.fileUploadSubmitText = 'Submit with errors';
-          return {'background-color' : '#FF9999'};
-        } else if ($scope.totalSuccess === $scope.totalFilesAdded) {
-          $scope.fileUploadSubmitText = 'Files ready to submit!';
-          return {'background-color' : '#93C993'};
-        } else {
-          $scope.fileUploadSubmitText = 'Loading...';
-          return {'background-color' : '#FFFF99'};
         }
       } else {
         return {};
@@ -398,6 +379,11 @@ angular.module('sendFiles')
           }
         }).error(function (data, status, headers, config) {
           console.log('Could not get sessionID');
+          if (status === 500) {
+            $scope.submitErrorMessage = 'This app it not working right now.' +
+             'Try again later';
+            $scope.uploadFailed = true;
+          }
           //fail everything - tell user that owner has not enough space.
           //probably should try to verify again! - but keep track of number of retrys with variable - only retry two times
           //MAKE SURE IT IS IMPOSSIBLE FOR USER TO CONTINUE UPLOADING FILES
@@ -516,6 +502,11 @@ angular.module('sendFiles')
           }
         }).error(function(data, status, headers, config) {
           console.log('submited and failed');
+          if (status === 400 || status === 500) {
+            $scope.submitErrorMessage = "Something terrible happened. Try again.";
+          } else if (status === 401) {
+            $scope.submitErrorMessage = "This widget isn't active. Contact the site owner.";
+          }
           $scope.initiateFailure();
       });
       //rebuild uploadedList, get rid of null values

@@ -8,12 +8,15 @@
       Activate it by logging in within the settings.
     </span>
   </div>
-  <div class="submitting" ng-if="submitting || submitted">
+  <div class="submitting" ng-if="submitting || submitted || uploadFailed">
     <span ng-if="submitting">
       Submitting...
     </span>
     <span ng-if="submitted">
       Submitted successfully!
+    </span>
+    <span ng-if="uploadFailed">
+      {{submitErrorMessage}}
     </span>
   </div>
   <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()">
@@ -121,9 +124,8 @@
     </div>
 
     <div class="block end-blocks submit">
-      <button type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-if="!submitted"> <!-- ng-style="submitButtonStyle()" -->
-        <span class="submit-text">{{settings.submitButtonText}}</span> <!-- ng-show="!(totalFilesAdded)" -->
-        <!-- <span ng-show="totalFilesAdded &amp;&amp; !uploadFailed">{{fileUploadSubmitText}}</span> -->
+      <button type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-if="!submitted">
+        <span>{{settings.submitButtonText}}</span>
       </button>
       <button type="reset" ng-click="reset()" ng-show="submitted">
         Start over
