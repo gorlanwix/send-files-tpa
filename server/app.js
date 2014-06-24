@@ -137,10 +137,10 @@ app.get('/api/files/session/:compId', function (req, res, next) {
         if (err) {
           return next(error('cannot open session', httpStatus.INTERNAL_SERVER_ERROR));
         }
-        var capacity = (!capacity && capacity > MAX_FILE_SIZE) ? MAX_FILE_SIZE : capacity;
+        var uploadSizeLimit = (!capacity || capacity > MAX_FILE_SIZE) ? MAX_FILE_SIZE : capacity;
         var resJson = {
           sessionId: sessionId,
-          uploadSizeLimit: capacity,
+          uploadSizeLimit: uploadSizeLimit,
           status: httpStatus.OK
         };
         res.status(httpStatus.OK);
