@@ -29,14 +29,16 @@
 .overload-list {
   border: 1px solid #838486;
   position: absolute;
-  top: 26%;
+  top: 27%;
   left: 8%;
   z-index: 1;
   width: 84%;
+  background-color: #EAEAEA;
 }
 
 .overload-message {
   display: block;
+  margin: 5px;
   margin-top: 10px;
 }
 

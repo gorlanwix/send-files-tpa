@@ -188,7 +188,8 @@ angular.module('sendFiles')
      * and displaying submit sucessful message.
      */
     $scope.formStyle = function() {
-      if ($scope.submitting || $scope.submitted || $scope.uploadFailed) {
+      if ($scope.submitting || $scope.submitted || $scope.uploadFailed ||
+          $scope.showOverloadedList || true) {
         return {'opacity' : 0.3};
       } else {
         return {};
@@ -585,7 +586,7 @@ angular.module('sendFiles')
             console.log("code", data);
             if (!data.widgetSettings.provider ||
                 !data.widgetSettings.userEmail) {
-              $scope.active = false;
+              //$scope.active = false;
             }
             console.log(data.widgetSettings.userEmail);
             if (data.widgetSettings.settings !== null &&
@@ -615,5 +616,3 @@ angular.module('sendFiles')
     $scope.getDatabaseSettings();
 
   });
-
-
