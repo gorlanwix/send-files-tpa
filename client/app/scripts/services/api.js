@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('sendFiles').factory('api', function ($resource, $wix) {
+angular.module('sendFiles').factory('api', function ($resource, $wix, $location) {
   var defaults = {
     headlineText: 'Upload the file and send it to us. We will review it as soon as possible.',
     addButtonText: '+ Add Files',
