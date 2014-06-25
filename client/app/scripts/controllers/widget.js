@@ -27,11 +27,22 @@ angular.module('sendFiles')
     $scope.maxFileLimit = 75;
 
     /* Represents the Instance ID of this widget. */
-    var instance = 'whatever'; //api.getInstance();
+
+    var instance = api.getInstance();//'whatever';
+    // var url = $location.absUrl();
+    // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
+    // var instance = instanceRegexp.exec(url);
+    // if (instance && instance[1]) {
+    //   instanceId = instance[1];
+    // } else {
+    //   console.log('All hell has broken loose.');
+    //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
+    // }
+    // console.log(instanceId);
 
     /* Represents the Component ID of this widget. */
-    var compId = '123456';
-    //$wix.Utils.getOrigCompId() || $wix.Utils.getCompId;
+    var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
+    console.log(compId);
 
     /* Represents the user settings for the widget. */
     $scope.settings = {};
@@ -623,5 +634,7 @@ angular.module('sendFiles')
     });
 
     $scope.getDatabaseSettings();
-
+    console.log(compId);
   });
+
+

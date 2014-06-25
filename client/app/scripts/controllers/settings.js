@@ -6,16 +6,16 @@ angular.module('sendFiles')
     // $scope.loggedin = false;
     $scope.verify = Verify;
     $scope.verify.loggedin = false;
-    // console.log($scope.verify.loggedin);
-    // $scope.userEmail = 'test@testing.com'; //for testing
 
     $wix.UI.onChange('*', function (value, key) {
       $scope.settings[key] = value;
   	  $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
   		$wix.Utils.getOrigCompId());
       //then save here with debounce
-      http.putSettings();
+      putSettings();
     });
+
+    var instance = api.getInstance();
 
     var putSettings = function () {
       var combineSettings = {widgetSettings: {userEmail: $scope.userEmail, settings: $scope.settings}};
@@ -23,7 +23,7 @@ angular.module('sendFiles')
       var compId = $wix.Utils.getOrigCompId();
       $http.put('/api/settings/' + compId, 
          settingsJson,  { headers: {
-                      'X-Wix-Instance': 'whatever', //$wix.Utils.getInstanceId(),
+                      'X-Wix-Instance': instance,//'whatever', //$wix.Utils.getInstanceId(),
                       'Content-Type': 'application/json'
                       }
                     })
@@ -37,7 +37,7 @@ angular.module('sendFiles')
           });
       }
 
-    $scope.compId = $wix.Utils.getOrigCompId();
+    $scope.compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
     console.log($scope.compId);
 
     $scope.logout = function () {
@@ -48,14 +48,15 @@ angular.module('sendFiles')
           // console.log("error logging out");
         });
 
-        $wix.Settings.refreshSettings(); // need this to be refreshSettings
+        $wix.Settings.refreshApp();
+        location.reload();
     }
 
     var obtainSettings = function () {
       $http.get('/api/settings/' + $scope.compId, {
             headers: {
               'Content-type': 'application/json', 
-              'X-Wix-Instance': 'whatever' //$wix.Utils.getInstanceId()
+              'X-Wix-Instance': instance //'whatever' //$wix.Utils.getInstanceId()
             }
       }).success(function(data, status, headers, config) {
         console.log(data.widgetSettings.settings == null);
@@ -99,7 +100,7 @@ angular.module('sendFiles')
           });
           $scope.provider = false;
           console.log('provider error: ' + $scope.provider);
-          alert("There was an error obtaining your account settings.");
+          // alert("There was an error obtaining your account settings.");
       });
     }
 
@@ -111,4 +112,5 @@ angular.module('sendFiles')
     //   $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
     //   $wix.Utils.getOrigCompId());
     // });
+    $wix.Settings.refreshApp();
 });

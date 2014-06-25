@@ -44,33 +44,29 @@ app.use(multer({
 
 passport.use('google', userAuth.googleStrategy);
 
+app.use('/auth', function (req, res, next) {
+
+  var instance = req.query.instance;
+
+  if (instance) {
+    var currInstance;
+    try {
+      currInstance = new WixWidget(instance, null);
+    } catch (e) {
+      return next(error('invalid instance', httpStatus.UNAUTHORIZED));
+    }
+
+    req.widgetIds = currInstance;
+  }
+
+  next();
+});
 
 app.get('/auth/callback/google', passport.authenticate('google', {
   failureRedirect: '/views/verified.html',
   successRedirect: '/views/verified.html',
   session: false
 }));
-
-
-app.use('/api', function (req, res, next) {
-
-  var instance = 'whatever';//req.header('X-Wix-Instance');
-
-  var currInstance;
-  try {
-    currInstance = new WixWidget(instance, null);
-  } catch (e) {
-    return next(error('invalid instance', httpStatus.UNAUTHORIZED));
-  }
-
-  req.widgetIds = currInstance;
-  next();
-});
-
-app.param('compId', function (req, res, next, compId) {
-  req.widgetIds.compId = compId;
-  next();
-});
 
 
 var scopes = [
@@ -80,14 +76,15 @@ var scopes = [
 
 var params =  {
   accessType: 'offline', // will return a refresh token
+  approvalPrompt: 'force', // will ask for allowing every time (in case same account but different widgets)
   state: null,
   display: 'popup',
   scope: scopes
 };
 
-app.get('/api/auth/login/google/:compId', userAuth.setParamsIfNotLoggedIn(params), passport.authenticate('google', params));
+app.get('/auth/login/google/:compId', userAuth.setParamsIfNotLoggedIn(params), passport.authenticate('google', params));
 
-app.get('/api/auth/logout/:compId', function (req, res, next) {
+app.get('/auth/logout/:compId', function (req, res, next) {
 
   db.token.remove(req.widgetIds, function (err, removedTokens) {
     if (!removedTokens) {
@@ -114,6 +111,27 @@ app.get('/api/auth/logout/:compId', function (req, res, next) {
       }
     });
   });
+});
+
+
+app.use('/api', function (req, res, next) {
+
+  var instance = req.header('X-Wix-Instance');
+
+  var currInstance;
+  try {
+    currInstance = new WixWidget(instance, null);
+  } catch (e) {
+    return next(error('invalid instance', httpStatus.UNAUTHORIZED));
+  }
+
+  req.widgetIds = currInstance;
+  next();
+});
+
+app.param('compId', function (req, res, next, compId) {
+  req.widgetIds.compId = compId;
+  next();
 });
 
 
@@ -284,22 +302,22 @@ app.post('/api/files/send/:compId', function (req, res, next) {
           upload.zipAndInsert(files, visitor, req.widgetIds, sessionId, tokens, function (err, downloadUrl, settings) {
             if (err) {
               console.error('zipping and inserting error: ', err);
-              // email.sendErrors(settings.user_email, visitor, function (err, res) {
-              //   if (err) {
-              //     console.error('sending error emails error', err);
-              //     return;
-              //   }
-              //   console.log('sent email errors');
-              //   return;
-              // });
+              email.sendErrors(settings.user_email, visitor, function (err, res) {
+                if (!downloadUrl) {
+                  console.error('sending error emails error', err);
+                  return;
+                }
+                console.log('sent email errors');
+                return;
+              });
             } else {
               console.log('normal emails sent');
-              // email.send(settings.user_email, visitor, downloadUrl, function (err) {
-              //   if (err) {
-              //     console.error('sending emails error', err);
-              //   }
-              //   return;
-              // });
+              email.send(settings.user_email, visitor, downloadUrl, function (err) {
+                if (err) {
+                  console.error('sending emails error', err);
+                }
+                return;
+              });
             }
           });
         });

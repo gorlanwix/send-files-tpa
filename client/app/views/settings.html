@@ -11,7 +11,7 @@
 	            <!-- <p class="create-account">Don't have an<br/>account? <strong><a href="#" target="_blank">Create
 	                one</a></strong></p> --> 
 	            <form name="owner-form">
-	            	<span class="site-owner-email">Your Email:</span><a href="views/verified.html">.</a>
+	            	<span class="site-owner-email">Your Email:</span><a href="views/verified.html" target="_blank"></a>
 		            <input name="userEmail" type="email" class="userEmail" placeholder="WebsiteMaker@Wix.com" required ng-model="userEmail" ng-pattern="emailRegex"> <!-- This email input field does not have email pattern verification yet -->
 		            <span class="question-mark-container" wix-tooltip=" {placement:'bottom', text:'When visitors of your website upload files, their message will be sent to this email. If you would like the message to be sent to the email attached to your Drive account, you can leave this field empty.'}">
 						<img class="question-mark" ng-mouseenter="show = true" ng-mouseleave="show = false" ng-src="images/question_mark.png">
@@ -24,7 +24,7 @@
 	    <div class="loggedin-container connect" ng-show="provider">
 			<img class="checkmark" ng-src="images/checkmark.png">
 			<span class="connect">You are currently connected with your Google Drive account:</span> 
-			<p>{{accountName || 'There was an error retrieving your file repository account name.'}}</p>
+			<p>{{accountName || 'yourAccount@gmail.com'}}<!-- || 'There was an error retrieving your file repository account name.'}}--></p>
 				<p class="connect">
 					<img class="checkmark" ng-src="images/checkmark.png">
 					Messages will be sent to this email:
