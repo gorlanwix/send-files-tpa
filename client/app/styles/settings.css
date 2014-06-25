@@ -12,8 +12,9 @@
 }
 
 .description-box {
-	overflow: hidden;
-	padding: 10px;
+	/*overflow: hidden;*/
+	padding: 10px 10px 20px 10px;
+  /*padding-bottom: 20px;*/
 }
 
 .site-owner-email {
@@ -37,14 +38,15 @@
 
 .connect-button {
   margin-top: -25px;
+  z-index: 2;
 }
 
-.question-mark-container {
+.mark-icon-container {
   height: 21px;
   width: 21px;
 }
 
-.question-mark {
+.mark-icon {
 	width: 20px;
 	height: 20px;
 	margin-bottom: -5px;
@@ -103,6 +105,11 @@
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
   border-bottom: 10px solid white; 
+}
+
+.configuration-email {
+  display: inline;
+  width: 300px;
 }
 
 input[type="text"].uilib-input {
