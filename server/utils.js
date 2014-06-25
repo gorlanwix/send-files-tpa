@@ -11,6 +11,7 @@ function WixWidget(instance, compId) {
     this.instanceId = instance;
   } else {
     var parsedInstance = wix.parse(instance);
+    console.log('parsedInstance: ', parsedInstance)
     if (!parsedInstance) {
       throw new Error('invalid instance');
     }
