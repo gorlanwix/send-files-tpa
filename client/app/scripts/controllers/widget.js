@@ -24,24 +24,14 @@ angular.module('sendFiles')
     $scope.totalFilesAdded = 0;
 
     /* Max amount of files than can be uploaded at a time. */
-    $scope.maxFileLimit = 50;
+    $scope.maxFileLimit = 75;
 
     /* Represents the Instance ID of this widget. */
-    var instanceId = 'whatever';
-    // var url = $location.absUrl();
-    // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
-    // var instance = instanceRegexp.exec(url);
-    // if (instance && instance[1]) {
-    //   instanceId = instance[1];
-    // } else {
-    //   console.log('All hell has broken loose.');
-    //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
-    // }
-    // console.log(instanceId);
+    var instance = 'whatever'; //api.getInstance();
 
     /* Represents the Component ID of this widget. */
     var compId = '123456';
-    //$wix.Utils.getOrigCompId();
+    //$wix.Utils.getOrigCompId() || $wix.Utils.getCompId;
 
     /* Represents the user settings for the widget. */
     $scope.settings = {};
@@ -63,6 +53,9 @@ angular.module('sendFiles')
 
     /* If true, "no file chosen" message is shown. */
     $scope.showNoFile = false;
+
+    /* If true, show overload file list */
+    $scope.showOverloadedList = false;
 
     /* If true, upload failure messages are shown. */
     $scope.uploadFailed = false;
@@ -177,7 +170,7 @@ angular.module('sendFiles')
      * yet active.
      */
     $scope.viewStyle = function() {
-      if ($scope.active) {
+      if ($scope.active && !$scope.showOverloadedList) {
         return {};
       } else {
         return {'opacity' : 0.5};
@@ -188,8 +181,7 @@ angular.module('sendFiles')
      * and displaying submit sucessful message.
      */
     $scope.formStyle = function() {
-      if ($scope.submitting || $scope.submitted || $scope.uploadFailed ||
-          $scope.showOverloadedList) {
+      if ($scope.submitting || $scope.submitted || $scope.uploadFailed) {
         return {'opacity' : 0.3};
       } else {
         return {};
@@ -286,6 +278,12 @@ angular.module('sendFiles')
       $scope.showFileUploadMessage = false;
     };
 
+    /* Hides and clears the list of files that violate the file limits. */
+    $scope.removeOverload = function () {
+      $scope.showOverloadedList = false;
+      $scope.overloadedList = [];
+    };
+
     /* Determines if a user is ready to submit or not. Returns true if
      * NOT ready to submit and false if ready. */
     $scope.submitNotReady = function() {
@@ -340,9 +338,9 @@ angular.module('sendFiles')
           file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
           $scope.overloadedList.push(file);
           if ($scope.showOverloadedList) {
-            $timeout(function() {
-              $scope.showOverloadedList = true;
-            }, 5000);
+            // $timeout(function() {
+            //   $scope.showOverloadedList = true;
+            // }, 5000);
           } else {
             $scope.showOverloadedList = true;
           }
@@ -372,13 +370,15 @@ angular.module('sendFiles')
       var verifyURL = '/api/files/session/' + compId; //wait for this
       $http({method: 'GET',
              url: verifyURL,
-             headers: {'X-Wix-Instance' : instanceId},
+             headers: {'X-Wix-Instance' : instance},
              timeout: 10000
         }).success(function (data, status, headers, config) {
           if (status === 200) {
             console.log("upload capacity is: " + data.uploadSizeLimit);
             $scope.uploadLimit = data.uploadSizeLimit;
-            //$scope.uploadLimit = GBbytes; //DELETE THIS WHEN ANDREY FIXES CAPACITY
+        
+            //$scope.uploadLimit = 0; //DELETE THIS
+
             console.log("upload capacity is: " + $scope.uploadLimit);
             $scope.sessionId = data.sessionId;
             callback();
@@ -411,7 +411,7 @@ angular.module('sendFiles')
         $scope.upload[index] = $upload.upload({
           url: uploadURL,
           method: 'POST',
-          headers: {'X-Wix-Instance' : instanceId},
+          headers: {'X-Wix-Instance' : instance},
           file: $scope.fileList[index] //could technically upload all files - but only supported in HTML 5
         }).progress(function(evt) {
           $scope.progress[index] = (100 - Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10)));
@@ -426,6 +426,7 @@ angular.module('sendFiles')
                 $scope.progress[index] = 0;
                 $scope.progressIcons[index] = true;
                 $scope.totalSuccess += 1;
+                console.log('uploaded!');
               }
             } else {
               console.log('ERROR ERROR ERROR: success failed!');
@@ -444,6 +445,13 @@ angular.module('sendFiles')
             }, false); //check if this is necessary
         });
       }
+    };
+
+    $scope.retry = function(index) {
+      console.log('restarting!');
+      $scope.progress[index] = 100;
+      $scope.progressIcons[index] = undefined;
+      $scope.start(index + 1);
     };
 
     /* Call this when user wants to remove file from list. */
@@ -496,12 +504,13 @@ angular.module('sendFiles')
       var uploadURL = '/api/files/send/' + compId + '?sessionId=' + $scope.sessionId;
       $http({method: 'POST',
              url: uploadURL,
-             headers: {'X-Wix-Instance' : instanceId},
+             headers: {'X-Wix-Instance' : instance},
              data: finalSubmission,
              timeout: 10000
       }).success(function(data, status, headers, config) {
           if (status === 202) {
             $scope.success();
+            $scope.reset();
             //deal with capacity errors (google drive ran out of space as we
               //were uploading after the verification) status: 400
           } else {
@@ -579,14 +588,14 @@ angular.module('sendFiles')
       var urlDatabase = '/api/settings/' + compId;
       $http({method: 'GET',
              url: urlDatabase,
-             headers: {'X-Wix-Instance' : instanceId},
+             headers: {'X-Wix-Instance' : instance},
              timeout: 10000
       }).success(function (data, status, headers, config) {
           if (status === 200) { //check if this is right status code
             console.log("code", data);
             if (!data.widgetSettings.provider ||
                 !data.widgetSettings.userEmail) {
-              $scope.active = false;
+              // $scope.active = false;
             }
             console.log(data.widgetSettings.userEmail);
             if (data.widgetSettings.settings !== null &&
