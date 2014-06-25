@@ -6,6 +6,7 @@ angular.module('sendFiles')
     // $scope.loggedin = false;
     $scope.verify = Verify;
     $scope.verify.loggedin = false;
+    $scope.provider = true; //for testing right now
 
     $wix.UI.onChange('*', function (value, key) {
       $scope.settings[key] = value;
@@ -16,6 +17,8 @@ angular.module('sendFiles')
     });
 
     var instance = api.getInstance();
+    $scope.compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
+    $scope.instance = instance;
 
     var putSettings = function () {
       var combineSettings = {widgetSettings: {userEmail: $scope.userEmail, settings: $scope.settings}};
@@ -23,7 +26,7 @@ angular.module('sendFiles')
       var compId = $wix.Utils.getOrigCompId();
       $http.put('/api/settings/' + compId, 
          settingsJson,  { headers: {
-                      'X-Wix-Instance': instance,//'whatever', //$wix.Utils.getInstanceId(),
+                      'X-Wix-Instance': instance,
                       'Content-Type': 'application/json'
                       }
                     })
@@ -37,11 +40,8 @@ angular.module('sendFiles')
           });
       }
 
-    $scope.compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
-    console.log($scope.compId);
-
     $scope.logout = function () {
-      $http.get('/api/auth/logout/' + $scope.compId)
+      $http.get('/auth/logout/' + $scope.compId + '?instance=' + instance)
         .success(function(data, status, headers, config) {
           // console.log("logged out");
         }).error(function(data, status, headers, config) {
@@ -56,7 +56,7 @@ angular.module('sendFiles')
       $http.get('/api/settings/' + $scope.compId, {
             headers: {
               'Content-type': 'application/json', 
-              'X-Wix-Instance': instance //'whatever' //$wix.Utils.getInstanceId()
+              'X-Wix-Instance': instance
             }
       }).success(function(data, status, headers, config) {
         console.log(data.widgetSettings.settings == null);
@@ -105,6 +105,16 @@ angular.module('sendFiles')
     }
 
     obtainSettings();
+    $scope.provider = true; //for testing right now
+    console.log($scope.provider);
+
+    $scope.isValidEmail = function () {
+      if ($scope.ownerForm.email.$invalid === true) {
+        return false
+      } else {
+        return true
+      }
+    }
     
     // $scope.settings.$promise.then(function () {
     //   console.log('Initializing Wix UI Settings Panel');
