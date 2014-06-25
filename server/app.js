@@ -49,14 +49,14 @@ app.use('/auth', function (req, res, next) {
   var instance = req.query.instance;
 
   if (instance) {
-    var currInstance;
+    var instanceId = null;
     try {
-      currInstance = new WixWidget(instance, null);
+      instanceId = utils.getInstanceId(instance);
     } catch (e) {
       return next(error('invalid instance', httpStatus.UNAUTHORIZED));
     }
 
-    req.widgetIds = currInstance;
+    req.widgetIds = new WixWidget(instanceId, null);
   }
 
   next();
@@ -118,14 +118,14 @@ app.use('/api', function (req, res, next) {
 
   var instance = req.header('X-Wix-Instance');
 
-  var currInstance;
+  var instanceId = null;
   try {
-    currInstance = new WixWidget(instance, null);
+    instanceId = utils.getInstanceId(instance);
   } catch (e) {
     return next(error('invalid instance', httpStatus.UNAUTHORIZED));
   }
 
-  req.widgetIds = currInstance;
+  req.widgetIds = new WixWidget(instanceId, null);
   next();
 });
 
