@@ -244,7 +244,7 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
 
   readStream.on('open', function () {
     readStream.pipe(request(options, function (err, res) {
-      var body = res.body;
+      var body = JSON.parse(res.body);
 
       if (err) {
         console.error('request for upload to Google Drive error: ', err);

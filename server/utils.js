@@ -5,29 +5,19 @@ var wix = config.wix;
 
 
 // parse instance and sets parsed insatnceId
-function WixWidget(instance, compId) {
-
-  if (instance === 'whatever') { // for testing purposes
-    this.instanceId = instance;
-  } else {
-    var parsedInstance = wix.parse(instance);
-    console.log('parsedInstance: ', parsedInstance)
-    if (!parsedInstance) {
-      throw new Error('invalid instance');
-    }
-    this.instanceId = parsedInstance.instanceId;
-  }
+module.exports.WixWidget = function (instanceId, compId) {
+  this.instanceId = instanceId;
   this.compId = compId;
 }
 
-function Visitor(name, email, message) {
+module.exports.Visitor = function (name, email, message) {
   this.name = name;
   this.email = email;
   this.message = message;
 }
 
 // set any param to null to avoid it's update
-function WidgetSettings(userEmail, provider, settings, serviceSettings) {
+module.exports.WidgetSettings = function (userEmail, provider, settings, serviceSettings) {
   this.userEmail = userEmail;
   this.provider = provider;
   this.settings = settings;
@@ -35,17 +25,23 @@ function WidgetSettings(userEmail, provider, settings, serviceSettings) {
 }
 
 
-function error(message, statusCode) {
+module.exports.error = function (message, statusCode) {
   var err = new Error(message);
   err.status = statusCode;
   return err;
 }
 
+module.exports.getInstanceId = function (instance) {
+  var instanceId;
+  if (instance === 'whatever') { // for testing purposes
+    instanceId = instance;
+  } else {
+    var parsedInstance = wix.parse(instance);
+    if (!parsedInstance) {
+      throw new Error('invalid instance');
+    }
+    instanceId = parsedInstance.instanceId;
+  }
 
-
-module.exports = {
-  Visitor: Visitor,
-  WidgetSettings: WidgetSettings,
-  WixWidget: WixWidget,
-  error: error
-};
+  return instanceId;
+}
