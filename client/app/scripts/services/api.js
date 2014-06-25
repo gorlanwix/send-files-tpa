@@ -27,7 +27,7 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
   }
 
   var headers = {
-    'X-Wix-Instance': instanceId,
+    'X-Wix-Instance': getInstance(),
     'Content-Type': 'application/json'
   };
 
