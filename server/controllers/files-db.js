@@ -16,7 +16,7 @@ function createFileIdsValuesSelectQuery(valLength) {
   return query.substring(0, query.length - 1);
 }
 
-module.exports.insert = function (file, sessionId, callback) {
+var insert = module.exports.insert = function (file, sessionId, callback) {
   var q = 'INSERT INTO file (session_id, temp_name, original_name, size, created) \
            VALUES ($1, $2, $3, $4, NOW()) \
            RETURNING file_id';

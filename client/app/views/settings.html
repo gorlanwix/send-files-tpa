@@ -1,7 +1,7 @@
 <div ng-controller="SettingsCtrl">
 	<div class="box description-box">
 		<img class="logo" width="86" src="images/wix_icon.png">
-		<div class="notloggedin-container" ng-hide="true">
+		<div class="notloggedin-container" ng-hide="provider">
 			<p class="description">Connect with your Google account. This process is secure and completely private. Login authentication is encrypted using Google API. Wix will not have access to your account name or password.
 				<span class="mark-icon-container" wix-tooltip=" {placement:'bottom', text:'This is the account that users will upload files to.'}">
 					<img class="question-mark" ng-mouseenter="show = true" ng-mouseleave="show = false" ng-src="images/question_mark.png">
@@ -11,7 +11,8 @@
                 one</a></strong></p> --> 
             <a ng-href="/auth/login/google/{{compId}}?instance={{instance}}" target="_blank|_parent"><button class="submit uilib-btn connect-button floatright">Connect account</button></a>
 	    </div>
-	    <div class="loggedin-container connect" ng-src="images/checkmark.png">
+	    <div class="loggedin-container connect" ng-show="provider">
+	    	<img src="images/checkmark.png" />
 			<span class="connect">You are currently connected with your Google Drive account:</span> 
 			<p>{{accountName || 'yourAccount@gmail.com'}}<!-- || 'There was an error retrieving your file repository account name.'}}--></p>
 				<!-- <p class="connect">
@@ -124,7 +125,7 @@
 	        	</ul>
 	        </div>
 	    </div>
-	    <div class="acc-pane" ng-show="true">
+	    <div class="acc-pane" ng-show="provider">
 			<h3>Configuration Settings</h3>
 			<div class="acc-content">
 				<ul class="list">

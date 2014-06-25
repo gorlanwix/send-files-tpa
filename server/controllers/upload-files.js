@@ -128,7 +128,7 @@ function handleError(error, file, settings, visitor, callback) {
 }
 
 
-module.exports.serviceInsertAndEmail = function serviceInsertAndEmail(file, settings, visitor, tokens, callback) {
+var serviceInsertAndEmail = module.exports.serviceInsertAndEmail = function (file, settings, visitor, tokens, callback) {
   serviceInsert(file, settings.service_settings, tokens, function (err, downloadUrl) {
     if (err) {
       err.type = 'insert';
