@@ -1,46 +1,36 @@
 <div ng-controller="SettingsCtrl">
 	<div class="box description-box">
 		<img class="logo" width="86" src="images/wix_icon.png">
-		<div class="notloggedin-container" ng-hide="provider">
+		<div class="notloggedin-container" ng-hide="true">
 			<p class="description">Connect with your Google account. This process is secure and completely private. Login authentication is encrypted using Google API. Wix will not have access to your account name or password.
-				<span class="question-mark-container" wix-tooltip=" {placement:'bottom', text:'This is the account that users will upload files to.'}">
+				<span class="mark-icon-container" wix-tooltip=" {placement:'bottom', text:'This is the account that users will upload files to.'}">
 					<img class="question-mark" ng-mouseenter="show = true" ng-mouseleave="show = false" ng-src="images/question_mark.png">
 				</span>
 			</p>
-	        <div class="login-panel">
-	            <!-- <p class="create-account">Don't have an<br/>account? <strong><a href="#" target="_blank">Create
-	                one</a></strong></p> --> 
-	            <form name="owner-form">
-	            	<span class="site-owner-email">Your Email:</span><a href="views/verified.html" target="_blank"></a>
-		            <input name="userEmail" type="email" class="userEmail" placeholder="WebsiteMaker@Wix.com" required ng-model="userEmail" ng-pattern="emailRegex"> <!-- This email input field does not have email pattern verification yet -->
-		            <span class="question-mark-container" wix-tooltip=" {placement:'bottom', text:'When visitors of your website upload files, their message will be sent to this email. If you would like the message to be sent to the email attached to your Drive account, you can leave this field empty.'}">
-						<img class="question-mark" ng-mouseenter="show = true" ng-mouseleave="show = false" ng-src="images/question_mark.png">
-					</span>
-				</form>	
-	            <a ng-href="/api/auth/login/google/{{compId}}" target="_blank|_parent"><button class="submit uilib-btn connect-button floatright">Connect account</button></a>
-		        
-	        </div>
+            <!-- <p class="create-account">Don't have an<br/>account? <strong><a href="#" target="_blank">Create
+                one</a></strong></p> --> 
+            <a ng-href="/auth/login/google/{{compId}}?instance={{instance}}" target="_blank|_parent"><button class="submit uilib-btn connect-button floatright">Connect account</button></a>
 	    </div>
-	    <div class="loggedin-container connect" ng-show="provider">
-			<img class="checkmark" ng-src="images/checkmark.png">
+	    <div class="loggedin-container connect" ng-src="images/checkmark.png">
 			<span class="connect">You are currently connected with your Google Drive account:</span> 
 			<p>{{accountName || 'yourAccount@gmail.com'}}<!-- || 'There was an error retrieving your file repository account name.'}}--></p>
-				<p class="connect">
+				<!-- <p class="connect">
 					<img class="checkmark" ng-src="images/checkmark.png">
 					Messages will be sent to this email:
 				</p>
 				<div class="align-with-above">
 					<p>{{userEmail || 'There was an error retrieving your email.'}}</p>
-					<!--<a ng-href="/api/auth/logout/{{compId}}">-->
-					<button ng-click="logout()" class="uilib-btn btn-black-text">Reconfigure Accounts</button>
-					<!--</a>--><a href="views/verified.html">.</a>
+					<a ng-href="/api/auth/logout/{{compId}}">
+					<button ng-click="logout()" class="uilib-btn btn-black-text">Reconfigure Accounts</button> -->
+					<a class="floatright" ng-click="logout()" ng-href="#">Disconnect Account</a>
+					<!--</a>--><a href="views/verified.html">_</a>
 				</div>
 		</div>
 		<!-- <p ng-show="isEmailValid && !isEmpty">Your app is active</p>
 		<p ng-hide="isEmailValid">The app will be inactive until a valid email address is entered</p> -->
 	</div>
 	<div wix-ctrl="Accordion">
-		<!-- <div class="acc-pane">
+		<!--<div class="acc-pane">
 			<h3>Account Settings</h3>
 			<div class="acc-content">
 				<ul class="list">
@@ -63,19 +53,22 @@
 	        <h3>Content Settings</h3>
 	        <div class="acc-content">
 	        	<ul class="list">
-	        		<li wix-label="Your Name Text">
-			        	<div wix-model="yourNameText" wix-ctrl="Input" wix-options="{placeholder: 'Your name'}"></div>
+	        		<li wix-label="Title">
+			        	<div wix-model="title" wix-ctrl="Input" wix-options="{placeholder: 'This is my title.'}"></div>
 			        </li>
-		        	<li wix-label="Email Address Text">
-			        	<div wix-model="emailAddressText" wix-ctrl="Input" wix-options="{placeholder: 'Your email address'}"></div>
-			        </li>
-		        	<li wix-label="Headline Text">
-			        	<div wix-model="headlineText" wix-ctrl="Input" wix-options="{placeholder: 'Upload the file and send it to us. We will review it as soon as possible'}"></div>
+			        <li wix-label="Description">
+			        	<div wix-model="description" wix-ctrl="Input" wix-options="{placeholder: 'This is my description.'}"></div>
 			        </li>
 			        <li wix-label="Add Button Text">
-			        	<div wix-model="addButtonText" wix-ctrl="Input" wix-options="{placeholder: 'Submit'}"></div>
+			        	<div wix-model="addButtonText" wix-ctrl="Input" wix-options="{placeholder: '+ Add Files'}"></div>
 			        </li>
-			        <li wix-label="Message To Recipient">
+	        		<li wix-label="Your Name">
+			        	<div wix-model="yourNameText" wix-ctrl="Input" wix-options="{placeholder: 'Your name'}"></div>
+			        </li>
+		        	<li wix-label="Email Address">
+			        	<div wix-model="emailAddressText" wix-ctrl="Input" wix-options="{placeholder: 'Your email address'}"></div>
+			        </li>
+			        <li wix-label="Message">
 			        	<div wix-model="messageText" wix-ctrl="Input" wix-options="{placeholder: 'You can add a message to site owner'}"></div>
 			        </li>
 			        <li wix-label="Submit Button Text">
@@ -91,8 +84,8 @@
 		        	<li wix-label="Fill Color &amp; Opacity">
 		        		<div wix-param="fillColor" wix-ctrl="ColorPickerWithOpacity" wix-options="{startWithColor: 'color-8', startWithOpacity:100}"></div>
 		        	</li>
-		        	<li wix-label="Border Color">
-		        		<div wix-param="borderColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-3'}"></div>
+		        	<li wix-label="Border Color &amp; Opacity">
+		        		<div wix-param="borderOpacity" wix-ctrl="ColorPickerWithOpacity" wix-options="{startWithColor: 'color-3', startWithOpacity:90}"></div>
 		        	</li>
 		        	<li wix-label="Divider Width">
 		        		<div wix-model="dividerWidth" wix-ctrl="ButtonGroup">
@@ -102,10 +95,17 @@
 						    <button value="8">Large</button>
 						</div>
 		        	</li>
-			        <li wix-label="Headline Color &amp; Font">
-		        		<div wix-param="headlineColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-15'}"></div>
-			        	<div wix-param="headlineFont" wix-ctrl="FontStylePicker"></div>
+			        <li wix-label="Title">
+		        		<div wix-param="titleColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-15'}"></div>
+			        	<div wix-param="titleFont" wix-ctrl="FontStylePicker"></div>
 			        </li>
+			        <li wix-label="Description">
+		        		<div wix-param="descriptionColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-15'}"></div>
+			        	<div wix-param="descriptionFont" wix-ctrl="FontStylePicker"></div>
+			        </li>
+			        <li wix-label="Form Background &amp; Opacity">
+		        		<div wix-param="borderOpacity" wix-ctrl="ColorPickerWithOpacity" wix-options="{startWithColor: 'color-3', startWithOpacity:90}"></div>
+		        	</li>
 		        	<li wix-label="Button Roundness">
 		        		<div wix-model="buttonRoundness" wix-ctrl="ButtonGroup">
 						    <button value="0">Sharp</button>
@@ -124,5 +124,26 @@
 	        	</ul>
 	        </div>
 	    </div>
+	    <div class="acc-pane" ng-show="true">
+			<h3>Configuration Settings</h3>
+			<div class="acc-content">
+				<ul class="list">
+					<li wix-label="Messages To">
+						<div class="configuration-email">
+							<form name="ownerForm">
+				            	<span class="site-owner-email"></span><a href="views/verified.html" target="_blank"></a>
+					            <input name="userEmail" type="email" class="userEmail" placeholder=" WebsiteMaker@Wix.com" required ng-model="userEmail" ng-pattern="emailRegex">
+					            <span class="mark-icon-container" wix-tooltip=" {placement:'bottom', text:'When visitors of your website upload files, their message will be sent to this email. If you would like the message to be sent to the email attached to your Drive account, you can leave this field empty.'}">
+									<img ng-show="isValidEmail()" class="mark-icon" ng-src="images/question_mark.png">
+								</span>
+								<span class="mark-icon-container" wix-tooltip=" {placement:'bottom', text:' Messages will be sent to this email.'}">
+									<img ng-hide="isValidEmail()" class="mark-icon" ng-src="images/email_checkmark.png">
+								</span>
+							</form>
+						</div>
+					</li>
+				</ul>
+			</div>
+		</div>
 	</div>
 </div>

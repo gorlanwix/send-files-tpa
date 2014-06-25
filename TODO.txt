@@ -21,6 +21,7 @@ TODO:
 - form background / form text
 - disconnect link
 - accordion to put site owner email (last one: configuration settings)
+- {{compId}}?instance=12345 for login and logout
 
 NOTES:
 
