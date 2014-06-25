@@ -16,7 +16,7 @@ function createFileIdsValuesSelectQuery(valLength) {
   return query.substring(0, query.length - 1);
 }
 
-function insert(file, sessionId, callback) {
+module.exports.insert = function (file, sessionId, callback) {
   var q = 'INSERT INTO file (session_id, temp_name, original_name, size, created) \
            VALUES ($1, $2, $3, $4, NOW()) \
            RETURNING file_id';
@@ -38,7 +38,7 @@ function insert(file, sessionId, callback) {
 }
 
 
-function getByIds(sessionId, fileIds, callback) {
+module.exports.getByIds = function (sessionId, fileIds, callback) {
   var queryValues = createFileIdsValuesSelectQuery(fileIds.length);
 
   var q = 'SELECT *, SUM(size) \
@@ -60,7 +60,7 @@ function getByIds(sessionId, fileIds, callback) {
 }
 
 
-function checkSessionAndInsert(file, sessionId, callback) {
+module.exports.checkSessionAndInsert = function (file, sessionId, callback) {
 
   session.isOpen(sessionId, function (err, isOpen) {
 
@@ -82,9 +82,3 @@ function checkSessionAndInsert(file, sessionId, callback) {
     });
   });
 }
-
-module.exports = {
-  insert: insert,
-  getByIds: getByIds,
-  checkSessionAndInsert: checkSessionAndInsert
-};

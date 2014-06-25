@@ -1,14 +1,18 @@
 TODO:
 
-- use passport.js for general authorization
+- handle zipping failures independently
+- restore failed uploads every 10 minutes with task scheduler
+- handle revoked token case when still have new access token (important for upload retry's)?
+- dropbox support
+- comments and better organization
 - heroku deployment
 - scheduled temporary files clean up
 - relic
 - email templates
 - more tests
-- comments
 
 - allow site owner to choose upload file size limit (an essay grader doesn't need 1 GB file limits)
+- add new page to call "refreshApp()" when pop up window closes
 - add debounce to save settings
 - name placeholder
 - order content settings 

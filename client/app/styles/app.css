@@ -27,73 +27,72 @@
 }
 
 .overload {
+  text-align: center;
   position: absolute;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 13px;
   border: 1px solid #838486;
-  top: 27%;
+  top: 29%;
   left: 8%;
   z-index: 1;
   width: 84%;
   background-color: #EAEAEA;
-  overflow-y: scroll; 
+  max-height: 53%; 
 }
 
 .overload-message {
+  position: fixed;
   display: block;
-  margin: 5px;
-  margin-top: 10px;
+  margin: 10px;
+  width: 78%;
+}
+
+.list-container {
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 .overload-list {
-  padding: 10px;
-  padding-top: 0;
   display: block;
   text-decoration: none;
-  width: 90%;
+  margin-top: 60px;
+  padding: 10px;
+  padding-top: 0;
+  width: 95%;
   white-space: nowrap;
   overflow: hidden;
-  overflow-y: scroll; 
+  overflow-y: auto; 
   text-overflow: ellipsis;
+  max-height: 170px;
+}
+
+@media all and (min-width: 255px) and (max-width: 479px){
+  .overload-list {
+    margin-top: 45px;
+  }
+}
+
+@media all and (min-width: 479px) {
+  .overload-list {
+    margin-top: 35px;
+  }
 }
 
 .overload-list li {
   display: inline;
   text-overflow: ellipsis;
-  /*width: 200px;*/
   white-space: nowrap;
   overflow: hidden;
   overflow-y: scroll; 
 }
 
-
-.block {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 13px;
-  color: #282828;
-  text-align: center;
-  border: 1px solid #838486;
-  padding-top: 15px;
-  padding-bottom: 15px;
-  background-color: white; 
-  z-index: 0;
-}
-
-.visitorForm {
-  opacity: 0.3;
-}
-
-.end-blocks {
-  background-color: #E5E9EE;
-  border-bottom: none;
+.overload-button {
+  margin: 5px;
+  margin-top: 0;
 }
 
 .dropper {
-  position: relative;
-}
-
-.dropee {
-  z-index: 2;
+  z-index: 1;
   position: absolute;
   vertical-align: middle;
   line-height: 110px;
@@ -105,7 +104,6 @@
   opacity: 0;
   /* IE compatibility */
   filter: alpha(opacity=0);
-  bottom: 0px;
   margin: 0 auto;
   text-align: center;
 }
@@ -116,10 +114,31 @@
   /* IE compatibility */
   filter: alpha(opacity=1);
   line-height: 135px;
+  z-index: 4;
 }
 
-.end-blocks button {
-  z-index: 0;
+.block {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  color: #282828;
+  text-align: center;
+  border: 1px solid #838486;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.visitorForm {
+  opacity: 0.3;
+}
+
+.end-blocks {
+  background-color: #E5E9EE;
+  border-bottom: none;
+}
+
+.buttons {
+  position: relative;
+  z-index: 2;
   background-color: #62D8BF;
   color: white;
   width: 40%;
@@ -138,31 +157,29 @@
 
 .file-upload input {
   position: absolute;
-  top: 40px;
+  top: 60%;
   right: 0;
   left: 0;
-  bottom: 23px;
+  bottom: 10%;
   cursor: pointer;
-  cursor: hand;
   opacity: 0;
   width: 40%;
   margin: 0 auto;
-  margin-bottom: 35px;
   text-align: center;
   /* For IE Compatibility */
   filter: alpha(opacity=0);
+  background-color: red;
+  z-index: 2;
 }
 
-.top-p {
-  margin-bottom: 7px; 
-}
-
-.bottom-p {
-  margin-top: 7px;
-}
-
-.owner-message {
+.title {
   margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.description {
+  margin-top: 0;
+  margin-bottom: 7px; 
   min-height: 14px;
 }
 
@@ -170,12 +187,10 @@
   margin-bottom: 0;
 }
 
-.limitation-message {
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
 .files {
+  position: relative;
+  z-index: 2;
+  background-color: white;
   padding-top: 0;
   padding-bottom: 0;
   overflow: auto;
@@ -287,9 +302,9 @@
   white-space:nowrap;
   width: 13px;
   float: right;
-  border-left: 1px solid #838486;
   padding: 4px;
   padding-top: 0;
+  padding-right: 10px;
   margin-left: 4px;
   color: white;
 }
@@ -344,10 +359,13 @@
 }
 
 .input-block input {
+  position: relative;
   height: 100%;
   width: 90%;
   border: none;
   outline: none;
+  z-index: 2;
+  position: relative;
 }
 
 .visitorName.ng-invalid {
@@ -363,9 +381,9 @@
 }
 
 .tool-tip-container {
+  position: relative;
   width: 90%;
   margin: 0 auto;
-  position: relative;
 }
 
 .tool-tip {
@@ -413,6 +431,7 @@
 }
 
 .user-message textarea {
+  position: relative;
   height: 70px;
   width: 90%;
   border: none;
@@ -420,6 +439,7 @@
   resize: none;
   overflow: auto;
   margin-bottom: 17px;
+  z-index: 1;
 }
 
 .message.ng-invalid {
@@ -474,6 +494,7 @@
 .file-status {
   border-bottom: none;
   border-top: 1px solid #838486;
+  width: 95%;
 }
 
 .success-text {
@@ -511,8 +532,8 @@
 
 .submit-container {
   position: absolute;
-  z-index: 1;
-  top: 25px;
+  z-index: 2;
+  top: 20px;
   bottom: 20px;
   left: 0;
   right: 0;
@@ -521,12 +542,12 @@
   text-align: center;
 }
 
-.submit button {
+.bottom-buttons {
   padding: 10px;
   min-height: 34px;
 }
 
-.submit button[disabled] {
+.bottom-buttons[disabled] {
   opacity: 0.5;
   /* IE compatibility */
   filter: alpha(opacity=0.5);

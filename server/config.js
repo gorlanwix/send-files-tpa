@@ -30,9 +30,7 @@ exports.mailgunKeys = {
 
 
 query.connectionParameters = process.env.DATABASE_URL || require('./connect-keys/pg-connect.json').connectPg;
-wix.secret(wixKeys.secretKey);
+wix.secret(exports.wixKeys.secretKey);
 
-module.exports = {
-  query: query,
-  wix: wix,
-};
+module.exports.query = query;
+module.exports.wix = wix;
