@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('sendFiles').factory('api', function ($resource, $wix) {
+angular.module('sendFiles').factory('api', function ($resource, $wix, $location) {
   var defaults = {
     headlineText: 'Upload the file and send it to us. We will review it as soon as possible.',
     addButtonText: '+ Add Files',
@@ -33,7 +33,9 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
 
   // console.log(headers); //for testing
 
-  var Settings = $resource('/api/settings/:compId', {
+  var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
+
+  var Settings = $resource('/api/settings/' + compId, {
     compId: $wix.Utils.getOrigCompId() || $wix.Utils.getCompId() 
   }, {
     get: { method: 'GET', headers: headers },
