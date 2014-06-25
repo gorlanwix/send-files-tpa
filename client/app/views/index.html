@@ -1,4 +1,4 @@
-<div class="main-body" style="min-width: 250px;"ng-controller="WidgetCtrl">
+<div class="main-body" style="min-width: 255px;"ng-controller="WidgetCtrl">
   <div class="active" ng-if="!active">
     <span>
       THIS APP IS NOT YET ACTIVE.
@@ -19,39 +19,42 @@
       {{submitErrorMessage}}
     </span>
   </div>
-  <div class="overload" ng-show="false">
+  <div class="overload" ng-show="showOverloadedList">
     <span class="overload-message">
       The following files can't be added due to lack of storage space:
     </span>
-    <ul class="overload-list">
+    <div class="list-container">
+      <ul class="overload-list">
         <li ng-repeat="file in overloadedList">
-            {{file.name}} - {{file.newSize}}
+          <span>{{file.name}} - {{file.newSize}}</span><br>
         </li>
       </ul>
+    </div>
+    <div class="button-container">
+      <button class="buttons overload-button" ng-click="removeOverload()">OK</button>
+    </div>
+  </div>
+  <div class="dropper" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">
+    Drop files here
   </div>
   <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()">
     <div ng-style="formStyle()">
-      <div class="block end-blocks file-upload dropper title-block">
-        <div class="dropee" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">Drop files here</div>
-        <!-- Make sure drag and drop is only shown on good browsers -->
-        <p class="owner-message top-p">
-          {{settings.headlineText}}
+      <div class="block end-blocks file-upload">
+        <h2 class="title">
+          {{settings.title}}This is my title.
+        </h2>
+        <p class="description">
+          {{settings.description}}This is my description.
         </p>
-        <button disabled>{{settings.addButtonText}}</button>
-        <input type="file" class= "upload" title={{settings.addButtonText}} ng-file-select="onFileSelect($files)" multiple name="sendFile"> <!-- make sure name is working properly when sending to backend. -->
-        <p class="drag-drop-message" ng-file-drop-available="dropSupported=true" ng-show="dropSupported">
-          Or just DROP files here.
-        </p>
-        <p class="limitation-message bottom-p">
-          <!-- 1GB = 1073741824 bytes -->
-          You can upload up to {{(uploadLimit / 1073741824).toFixed(2)}} GB with a max of {{maxFileTotal}} files.
-        </p>
+        <button class="buttons" disabled>
+          {{settings.addButtonText}}
+        </button>
+        <input type="file" title={{settings.addButtonText}} ng-file-select="onFileSelect($files)" multiple name="sendFile">
       </div>
 
     <!-- Note: Placeholder attribute is not supported in IE9 or below -->
 
       <div class="block files">
-        <p class="file-statistics" ng-style="marginStyle">Total files added: {{totalFilesAdded}} <span class="space-left">Space left: {{totalGBLeft.toFixed(2)}} GB</span></p>
         <div class="tool-tip-container" ng-show="showNoFile">
             <span class="tool-tip">{{fileMessage}}</span>
         </div>
@@ -70,20 +73,14 @@
           </p>
           <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
             <span class="file-text" ng-style="fileStyle($index)" hover>
-              <a class="retry-files" href="#" ng-click="start($index)" ng-if="progressIcons[$index] === false">.</a>
+              <a class="retry-files" href="#" ng-click="retry($index)" ng-if="progressIcons[$index] === false">.</a>
               <span class="file-info">
-                {{file.name}} - {{file.newSize}}
+                {{file.name}}
               </span>
               <a class="remove" href="#" ng-click="abort($index)">.</a>
               <span class="status-text progress-text" ng-if="progressIcons[$index]
               === undefined">
                 {{100 - progress[$index]}}%
-              </span>
-              <span class="status-text" ng-if="progressIcons[$index] === false">
-                &#10008; <!-- Error X Mark -->
-              </span>
-              <span class="status-text checkmark" ng-if="progressIcons[$index] === true">
-                &#10004; <!-- Success Checkmark -->
               </span>
             </span>
             <div style="clear: both;"></div>
@@ -134,19 +131,17 @@
     </div>
 
     <div class="block end-blocks submit">
-      <button type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-if="!submitted">
-        <span>{{settings.submitButtonText}}</span>
-      </button>
-      <button type="reset" ng-click="reset()" ng-show="submitted">
-        Start over
+      <button class="buttons bottom-buttons"  type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-if="!uploadFailed">
+        <span ng-show="!submitting">{{settings.submitButtonText}}</span>
+        <span ng-show="submitting">Submitting...</span>
       </button>
       <div class="submit-container" ng-mouseover="enableErrorMessage()" ng-mouseleave="disableErrorMessage()" ng-show="submitNotReady()"> 
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
       </div>
     </div>
     <div class="failure-end end-blocks" ng-show="uploadFailed">
-      <button type="button" ng-click="submit()">Retry</button>
-      <button type="reset" ng-click="reset()">Cancel</button>
+      <button class="buttons bottom-buttons" type="button" ng-click="submit()">Retry</button>
+      <button class="buttons bottom-buttons" type="reset" ng-click="reset()">Cancel</button>
     </div>
   </form>
 </div>
