@@ -18,7 +18,7 @@ function generateTmpName(filename) {
 }
 
 
-function zip(files, newName, callback) {
+module.exports.zip = function (files, newName, callback) {
   var archive = archiver('zip');
 
   var tmpName = generateTmpName(newName);
@@ -66,7 +66,7 @@ function zip(files, newName, callback) {
 }
 
 // returns link to file
-function insertFile(file, serviceSettings, sessionId, tokens, callback) {
+module.exports.insertFile = function (file, serviceSettings, sessionId, tokens, callback) {
   db.files.insert(file, sessionId, function (err) {
     if (err) {
       console.error('db inserting zip to database error', err);
@@ -86,8 +86,7 @@ function insertFile(file, serviceSettings, sessionId, tokens, callback) {
   });
 }
 
-
-function getAvailableCapacity(tokens, callback) {
+module.exports.getAvailableCapacity = function (tokens, callback) {
   if (tokens.provider === 'google') {
     googleDrive.getAvailableCapacity(tokens.access_token, function (err, capacity) {
       if (err) {
@@ -100,7 +99,8 @@ function getAvailableCapacity(tokens, callback) {
 
 // returns downloadUrl and widget settings object
 
-function zipAndInsert(files, visitor, instance, sessionId, tokens, callback) {
+
+module.exports.zipAndInsert = function (files, visitor, instance, sessionId, tokens, callback) {
   db.widget.getSettings(instance, function (err, settings) {
     if (!settings) {
       return callback(err, null, null);
@@ -123,10 +123,3 @@ function zipAndInsert(files, visitor, instance, sessionId, tokens, callback) {
     });
   });
 }
-
-module.exports = {
-  zip: zip,
-  insertFile: insertFile,
-  zipAndInsert: zipAndInsert,
-  getAvailableCapacity: getAvailableCapacity
-};

@@ -1,7 +1,7 @@
 TODO:
 
-- instance as a query param for auth/
-- restore failed uploads every 10 minutes with task scheduler (upload_failure table: file_id, resolved)
+- handle zipping failures independently
+- restore failed uploads every 10 minutes with task scheduler
 - dropbox support
 - comments and better organization
 - heroku deployment
