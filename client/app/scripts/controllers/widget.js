@@ -410,7 +410,7 @@ angular.module('sendFiles')
         $scope.upload[index] = $upload.upload({
           url: uploadURL,
           method: 'POST',
-          headers: {'X-Wix-Instance' : instanceId},
+          headers: {'X-Wix-Instance' : instance},
           file: $scope.fileList[index] //could technically upload all files - but only supported in HTML 5
         }).progress(function(evt) {
           $scope.progress[index] = (100 - Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10)));
@@ -495,7 +495,7 @@ angular.module('sendFiles')
       var uploadURL = '/api/files/send/' + compId + '?sessionId=' + $scope.sessionId;
       $http({method: 'POST',
              url: uploadURL,
-             headers: {'X-Wix-Instance' : instanceId},
+             headers: {'X-Wix-Instance' : instance},
              data: finalSubmission,
              timeout: 10000
       }).success(function(data, status, headers, config) {
@@ -578,7 +578,7 @@ angular.module('sendFiles')
       var urlDatabase = '/api/settings/' + compId;
       $http({method: 'GET',
              url: urlDatabase,
-             headers: {'X-Wix-Instance' : instanceId},
+             headers: {'X-Wix-Instance' : instance},
              timeout: 10000
       }).success(function (data, status, headers, config) {
           if (status === 200) { //check if this is right status code

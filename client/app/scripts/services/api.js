@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('sendFiles').factory('api', function ($resource, $wix) {
+angular.module('sendFiles').factory('api', function ($resource, $wix, $location) {
   var defaults = {
     headlineText: 'Upload the file and send it to us. We will review it as soon as possible.',
     addButtonText: '+ Add Files',
@@ -12,8 +12,6 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
     buttonRoundness: '5'
   };
 
-<<<<<<< HEAD
-  // var instanceID = 'whatever';
 
   var getInstance = function() {
     var url = $location.absUrl();
@@ -28,8 +26,6 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
     }
     return instanceId; //returns the unparsed instance
   }
-=======
-  var instanceId = 'whatever';
   // var url = $location.absUrl();
   // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
   // var instance = instanceRegexp.exec(url);
@@ -39,16 +35,17 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
   //   console.log('All hell has broken loose.');
   //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
   // }
->>>>>>> upstream/master
 
   var headers = {
-    'X-Wix-Instance': instanceId,
+    'X-Wix-Instance': getInstance(),
     'Content-Type': 'application/json'
   };
 
   // console.log(headers); //for testing
 
-  var Settings = $resource('/api/settings/:compId', {
+  var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
+
+  var Settings = $resource('/api/settings/' + compId, {
     compId: $wix.Utils.getOrigCompId() || $wix.Utils.getCompId() 
   }, {
     get: { method: 'GET', headers: headers },
