@@ -12,9 +12,6 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
     buttonRoundness: '5'
   };
 
-<<<<<<< HEAD
-  // var instanceID = 'whatever';
-
   var getInstance = function() {
     var url = $location.absUrl();
     var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
@@ -28,18 +25,6 @@ angular.module('sendFiles').factory('api', function ($resource, $wix) {
     }
     return instanceId; //returns the unparsed instance
   }
-=======
-  var instanceId = 'whatever';
-  // var url = $location.absUrl();
-  // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
-  // var instance = instanceRegexp.exec(url);
-  // if (instance && instance[1]) {
-  //   instanceId = instance[1];
-  // } else {
-  //   console.log('All hell has broken loose.');
-  //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
-  // }
->>>>>>> upstream/master
 
   var headers = {
     'X-Wix-Instance': instanceId,
