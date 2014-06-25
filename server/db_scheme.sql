@@ -39,6 +39,21 @@ CREATE TABLE file (
     created timestamp NOT NULL
 )
 
+CREATE TABLE upload_failure (
+    file_id bigint PRIMARY KEY REFERENCES file ON DELETE CASCADE,
+    resolved boolean NOT NULL DEFAULT false
+)
+
+
+SELECT s.instance_id, s.component_id, file.file_id, file.temp_name, file.original_name, w.curr_provider, w.service_settings, w.user_email
+FROM session AS s, file, widget_settings AS w, upload_failure AS fail
+WHERE fail.resolved = $1
+AND file.file_id = fail.file_id
+AND file.created > $2
+AND s.session_id = file.session_id
+AND w.instance_id = s.instance_id
+AND w.component_id = s.component_id
+
 INSERT INTO file (session_id, temp_name, original_name, created) \
 VALUES ($1, $2, $3, NOW())
 

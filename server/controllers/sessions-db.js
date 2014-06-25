@@ -2,7 +2,7 @@
 
 var query = require('../config.js').query;
 
-function open(instance, callback) {
+module.exports.open = function (instance, callback) {
   var q = 'INSERT INTO session (instance_id, component_id, created) \
            VALUES ($1, $2, NOW()) \
            RETURNING session_id';
@@ -22,7 +22,7 @@ function open(instance, callback) {
 }
 
 
-function isOpen(sessionId, callback) {
+module.exports.isOpen = function (sessionId, callback) {
   var q = 'SELECT closed \
            FROM session \
            WHERE session_id = $1';
@@ -59,7 +59,7 @@ function isOpen(sessionId, callback) {
 //   });
 // }
 
-function close(sessionId, callback) {
+module.exports.close = function (sessionId, callback) {
   var q = 'UPDATE session \
            SET closed = $1 \
            WHERE session_id = $2 \
@@ -80,10 +80,3 @@ function close(sessionId, callback) {
     callback(null, rows);
   });
 }
-
-
-module.exports = {
-  open: open,
-  close: close,
-  isOpen: isOpen
-};
