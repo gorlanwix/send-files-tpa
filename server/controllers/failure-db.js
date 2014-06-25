@@ -11,7 +11,12 @@ module.exports.insert = function (fileId, callback) {
     fileId
   ];
 
-  query(q, values, callback);
+  query(q, values, function(err) {
+    if (err) {
+      console.error('inserting failure error: ', err);
+    }
+    callback(err);
+  });
 }
 
 
@@ -29,7 +34,7 @@ module.exports.resolve = function (fileId, callback) {
 
 
 module.exports.getAll = function (callback) {
-  var q = 'SELECT s.instance_id, s.component_id, file.file_id, file.temp_name, file.original_name, w.curr_provider, w.service_settings, w.user_email \
+  var q = 'SELECT s.instance_id, s.component_id, file.file_id, file.temp_name, file.original_name, file.size, w.curr_provider, w.service_settings, w.user_email \
            FROM session AS s, file, widget_settings AS w, upload_failure AS fail \
            WHERE fail.resolved = $1 \
            AND file.file_id = fail.file_id \

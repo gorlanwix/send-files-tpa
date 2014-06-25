@@ -401,26 +401,28 @@ describe('Zip', function () {
   });
 
   it('should zip the first files array', function (done) {
-    upload.zip(files, 'hello', function (err, file) {
+    upload.zipAndRecord(files, 'hello', function (err, file) {
       expect(err).to.not.exist;
       expect(file).to.have.property('name').to.exist;
       expect(file).to.have.property('path').to.exist;
       expect(file).to.have.property('mimetype').to.equal('application/zip');
       expect(file).to.have.property('size').to.be.a('number');
       expect(file).to.have.property('originalname').to.equal('hello.zip');
+      expect(file).to.have.property('fileId').to.be.a('number');
       expect(fs.existsSync(file.path)).to.be.true;
       done();
     });
   });
 
   it('should zip the second files array', function (done) {
-    upload.zip(files2, 'hello2', function (err, file) {
+    upload.zipAndRecord(files2, 'hello2', function (err, file) {
       expect(err).to.not.exist;
       expect(file).to.have.property('name').to.exist;
       expect(file).to.have.property('path').to.exist;
       expect(file).to.have.property('mimetype').to.equal('application/zip');
       expect(file).to.have.property('size').to.be.a('number');
       expect(file).to.have.property('originalname').to.equal('hello2.zip');
+      expect(file).to.have.property('fileId').to.be.a('number');
       expect(fs.existsSync(file.path)).to.be.true;
       done();
     });

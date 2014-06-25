@@ -299,26 +299,12 @@ app.post('/api/files/send/:compId', function (req, res, next) {
           res.json({status: httpStatus.ACCEPTED});
 
           var visitor = new Visitor(visitorName, visitorEmail, visitorMessage);
-          upload.zipAndInsert(files, visitor, req.widgetIds, sessionId, tokens, function (err, downloadUrl, settings) {
+          upload.sendFiles(files, visitor, req.widgetIds, sessionId, tokens, function (err) {
             if (err) {
-              console.error('zipping and inserting error: ', err);
-              email.sendErrors(settings.user_email, visitor, function (err, res) {
-                if (!downloadUrl) {
-                  console.error('sending error emails error', err);
-                  return;
-                }
-                console.log('sent email errors');
-                return;
-              });
-            } else {
-              console.log('normal emails sent');
-              email.send(settings.user_email, visitor, downloadUrl, function (err) {
-                if (err) {
-                  console.error('sending emails error', err);
-                }
-                return;
-              });
+              console.error('something went terribly wrong during upload: ', err);
             }
+
+            return;
           });
         });
       });

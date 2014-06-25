@@ -2,6 +2,7 @@ TODO:
 
 - handle zipping failures independently
 - restore failed uploads every 10 minutes with task scheduler
+- handle revoked token case when still have new access token (important for upload retry's)?
 - dropbox support
 - comments and better organization
 - heroku deployment
