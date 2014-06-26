@@ -43,7 +43,7 @@ module.exports.session = function (req, res, next) {
       });
     });
   });
-}
+};
 
 
 
@@ -87,7 +87,7 @@ module.exports.upload = function (req, res, next) {
       res.json(resJson);
     });
   }
-}
+};
 
 /*
 
@@ -187,7 +187,7 @@ module.exports.send = function (req, res, next) {
       });
     });
   });
-}
+};
 
 
 

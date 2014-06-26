@@ -142,7 +142,7 @@ var serviceInsertAndEmail = module.exports.serviceInsertAndEmail = function (fil
       callback(err);
     });
   });
-}
+};
 
 
 module.exports.sendFiles = function (files, visitor, instance, sessionId, tokens, callback) {
@@ -160,7 +160,7 @@ module.exports.sendFiles = function (files, visitor, instance, sessionId, tokens
       serviceInsertAndEmail(archive, settings, visitor, tokens, callback);
     });
   });
-}
+};
 
 
 
@@ -173,4 +173,4 @@ module.exports.getAvailableCapacity = function (tokens, callback) {
       callback(null, capacity);
     });
   }
-}
+};

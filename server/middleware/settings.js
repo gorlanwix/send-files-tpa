@@ -31,7 +31,7 @@ module.exports.get = function (req, res) {
     res.status(httpStatus.OK);
     res.json({widgetSettings: settingsResponse, status: httpStatus.OK});
   });
-}
+};
 
 
 module.exports.put = function (req, res, next) {
@@ -64,4 +64,4 @@ module.exports.put = function (req, res, next) {
       res.json({status: httpStatus.CREATED});
     }
   });
-}
+};

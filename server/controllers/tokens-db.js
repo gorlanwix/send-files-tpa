@@ -3,8 +3,12 @@
 var query = require('../config.js').query;
 
 function calcTokenExpiresDate(expiresIn) {
-  var date = new Date();
-  return new Date(date.getTime() + (expiresIn - 60) * 1000);
+  var expiresDate = null;
+  if (expiresIn) {
+    var date = new Date();
+    expiresDate = new Date(date.getTime() + (expiresIn - 60) * 1000);
+  }
+  return expiresDate;
 }
 
 function isAccessTokenExpired(token) {

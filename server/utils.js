@@ -8,13 +8,13 @@ var wix = config.wix;
 module.exports.WixWidget = function (instanceId, compId) {
   this.instanceId = instanceId;
   this.compId = compId;
-}
+};
 
 module.exports.Visitor = function (name, email, message) {
   this.name = name;
   this.email = email;
   this.message = message;
-}
+};
 
 // set any param to null to avoid it's update
 module.exports.WidgetSettings = function (userEmail, provider, settings, serviceSettings) {
@@ -22,14 +22,14 @@ module.exports.WidgetSettings = function (userEmail, provider, settings, service
   this.provider = provider;
   this.settings = settings;
   this.serviceSettings = serviceSettings;
-}
+};
 
 
 module.exports.error = function (message, statusCode) {
   var err = new Error(message);
   err.status = statusCode;
   return err;
-}
+};
 
 module.exports.getInstanceId = function (instance) {
   var instanceId;
@@ -45,4 +45,4 @@ module.exports.getInstanceId = function (instance) {
   }
 
   return instanceId;
-}
+};

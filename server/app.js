@@ -75,26 +75,28 @@ app.param('compId', function (req, res, next, compId) {
 });
 
 
-var scopes = [
-  'https://www.googleapis.com/auth/drive.file',
-  'email'
-];
-
-var params =  {
-  accessType: 'offline', // will return a refresh token
-  approvalPrompt: 'force', // will ask for allowing every time (in case same account but different widgets)
-  state: null,
-  display: 'popup',
-  scope: scopes
-};
-
 // Authentication
-
-app.get('/auth/login/google/:compId', auth.setParamsIfNotLoggedIn(params), passport.authenticate('google', params));
 
 app.get('/auth/logout/:compId', auth.logout);
 
-app.get('/callback/google', passport.authenticate('google', {
+// Google
+
+var googleParams = config.auth.google.params;
+
+app.get('/auth/login/google/:compId', auth.setParamsIfNotLoggedIn(googleParams), passport.authenticate('google', googleParams));
+
+app.get('/auth/callback/google', passport.authenticate('google', {
+  failureRedirect: '/views/verified.html',
+  successRedirect: '/views/verified.html',
+  session: false
+}));
+
+// Dropbox
+
+var dropboxParams = config.auth.dropbox.params;
+app.get('/auth/login/dropbox/:compId', auth.setParamsIfNotLoggedIn(dropboxParams), passport.authenticate('dropbox', dropboxParams));
+
+app.get('/auth/callback/dropbox', passport.authenticate('dropbox', {
   failureRedirect: '/views/verified.html',
   successRedirect: '/views/verified.html',
   session: false
