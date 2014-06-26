@@ -25,7 +25,7 @@ var googleStrategy = new GoogleStrategy({
 }, function (req, accessToken, refreshToken, tokens, profile, done) {
   console.log('google state: ', req.query.state);
   console.log('google tokens: ', tokens);
-  console.log('googl erefreshToken: ', refreshToken);
+  console.log('google refreshToken: ', refreshToken);
 
   var currInstance = parseStateForWidgetIds(req.query.state);
   tokens.refresh_token = refreshToken;

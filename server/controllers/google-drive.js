@@ -9,7 +9,7 @@ var httpStatus = require('http-status');
 var userAuth = require('./user-auth.js');
 var config = require('../config.js');
 var OAuth2 = googleapis.auth.OAuth2;
-var googleKeys = require('../config.js').googleKeys;
+var googleKeys = require('../config.js').auth.google;
 
 // google drive specific constants
 var ROOT_URL = 'https://www.googleapis.com/';
