@@ -28,7 +28,7 @@ angular.module('sendFiles')
 
     /* Represents the Instance ID of this widget. */
 
-    var instance = api.getInstance();//'whatever';
+    var instance = 'whatever';//api.getInstance();//'whatever';
     // var url = $location.absUrl();
     // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
     // var instance = instanceRegexp.exec(url);
@@ -39,9 +39,10 @@ angular.module('sendFiles')
     //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
     // }
     // console.log(instanceId);
+    console.log('hello' + api.getInstance());
 
     /* Represents the Component ID of this widget. */
-    var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
+    var compId = '[UNKNOWN]'; //$wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
     console.log(compId);
 
     /* Represents the user settings for the widget. */

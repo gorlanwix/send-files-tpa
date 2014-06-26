@@ -26,7 +26,7 @@
     <div class="list-container">
       <ul class="overload-list">
         <li ng-repeat="file in overloadedList">
-          <span>{{file.name}} - {{file.newSize}}</span><br>
+          <span>{{file.name}}</span><br>
         </li>
       </ul>
     </div>
@@ -78,8 +78,7 @@
                 {{file.name}}
               </span>
               <a class="remove" href="#" ng-click="abort($index)">.</a>
-              <span class="status-text progress-text" ng-if="progressIcons[$index]
-              === undefined">
+              <span class="status-text progress-text" ng-if="progressIcons[$index]=== undefined">
                 {{100 - progress[$index]}}%
               </span>
             </span>

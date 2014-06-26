@@ -21,19 +21,19 @@ angular.module('sendFiles').factory('api', function ($resource, $wix, $location)
     } else {
       console.log('All hell has broken loose.');
       //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
-      var instanceId;
+      var instanceId = 'whatever'; //REMOVE THIS IN PRODUCTION CODE
     }
     return instanceId; //returns the unparsed instance
-  }
+  };
 
   var headers = {
-    'X-Wix-Instance': getInstance(),
+    'X-Wix-Instance': 'whatever', //getInstance(),
     'Content-Type': 'application/json'
   };
 
   // console.log(headers); //for testing
 
-  var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
+  var compId = '123456'; //$wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
 
   var Settings = $resource('/api/settings/' + compId, {
     compId: $wix.Utils.getOrigCompId() || $wix.Utils.getCompId() 
@@ -49,6 +49,7 @@ angular.module('sendFiles').factory('api', function ($resource, $wix, $location)
       return Settings.save(settings);
     },
     getSettings: function (defaults) {
+      console.log('i\'m doing stuff');
       var settings = Settings.get();
       if (defaults === true || defaults) {
         settings.$promise.then(function () {

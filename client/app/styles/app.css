@@ -125,6 +125,7 @@
   border: 1px solid #838486;
   padding-top: 15px;
   padding-bottom: 15px;
+  background-color: white;
 }
 
 .visitorForm {
@@ -239,6 +240,7 @@
   text-align: left;
   float: left;
   min-width: 99%;
+  width: 95%;
   padding: 3px;
   padding-right: 0;
   padding-top: 4px;
@@ -251,11 +253,14 @@
   overflow-y: hidden;
   overflow-x: hidden; 
   position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @media all and (min-width: 600px) {
   .file-text {
-    min-width: 99.5%;
+    width: 100%;
   }
 }
 
@@ -288,7 +293,22 @@
 
 .file-info {
   display: inline-block;
-  max-width: 75%;
+  max-width: 70%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+@media all and (min-width: 400px) and (max-width: 650px) {
+  .file-info {
+    max-width: 80%;
+  }
+}
+
+@media all and (min-width: 650px) {
+  .file-info {
+    max-width: 87%;
+  }
 }
 
 .remove {
