@@ -19,19 +19,19 @@
       {{submitErrorMessage}}
     </span>
   </div>
-  <div class="overload" ng-show="showOverloadedList">
-    <span class="overload-message">
+  <div class="popup" ng-show="showOverloadedList">
+    <span class="popup-message">
       The following files can't be added due to lack of storage space:
     </span>
-    <div class="list-container">
-      <ul class="overload-list">
+    <div class="popup-list-container">
+      <ul class="popup-list">
         <li ng-repeat="file in overloadedList">
           <span>{{file.name}}</span><br>
         </li>
       </ul>
     </div>
-    <div class="button-container">
-      <button class="buttons overload-button" ng-click="removeOverload()">OK</button>
+    <div>
+      <button class="buttons popup-button" ng-click="removeOverload()">OK</button>
     </div>
   </div>
   <div class="dropper" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">

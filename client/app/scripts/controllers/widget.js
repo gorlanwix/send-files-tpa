@@ -66,8 +66,11 @@ angular.module('sendFiles')
     /* If true, "no file chosen" message is shown. */
     $scope.showNoFile = false;
 
-    /* If true, show overload file list */
+    /* If true, show overload file list. */
     $scope.showOverloadedList = false;
+
+    /* If true, show files that have failed to upload message. */
+    $scope.showfailedUploadMessage = true;
 
     /* If true, upload failure messages are shown. */
     $scope.uploadFailed = false;
@@ -131,6 +134,16 @@ angular.module('sendFiles')
      */
     var fileUploadQueue = [];
 
+    /* A list of indices representing files that need to be reuploaded
+     * due to failures.
+     */
+    $scope.uploadRetryList = [];
+
+    /* A list of indices representing files that have failed to upload
+     * even after 5 additional retry attempts.
+     */
+    $scope.failedAfterRetryList = [];
+
     /* An alternate message that is displayed on the submit button that only
      * appears during file uploaidng to give messages to the user. */
     $scope.fileUploadSubmitText = $scope.settings.submitButtonText;
@@ -182,7 +195,7 @@ angular.module('sendFiles')
      * yet active.
      */
     $scope.viewStyle = function() {
-      if ($scope.active && !$scope.showOverloadedList) {
+      if ($scope.active && !$scope.showOverloadedList || $scope.submitted) {
         return {};
       } else {
         return {'opacity' : 0.5};
@@ -193,8 +206,8 @@ angular.module('sendFiles')
      * and displaying submit sucessful message.
      */
     $scope.formStyle = function() {
-      if ($scope.submitting || $scope.submitted || $scope.uploadFailed) {
-        return {'opacity' : 0.3};
+      if ($scope.submitting || $scope.uploadFailed) {
+        return {'opacity' : 0.4};
       } else {
         return {};
       }
@@ -389,7 +402,7 @@ angular.module('sendFiles')
             console.log("upload capacity is: " + data.uploadSizeLimit);
             $scope.uploadLimit = data.uploadSizeLimit;
         
-            //$scope.uploadLimit = 0; //DELETE THIS
+            $scope.uploadLimit = 0; //DELETE THIS
 
             console.log("upload capacity is: " + $scope.uploadLimit);
             $scope.sessionId = data.sessionId;
@@ -415,7 +428,9 @@ angular.module('sendFiles')
      * "uncovered" as progress goes on so by completion, the 
      * HTML element covering the progress bar has a width of 0.
      */
+    var totalruns = 0;
     $scope.start = function(index) {
+      totalruns += 1;
       index -= 1; //IMPORTANT
       console.log('this is the index: ' + index);
       if ($scope.upload[index] !== 'aborted') {
@@ -439,6 +454,17 @@ angular.module('sendFiles')
                 $scope.progressIcons[index] = true;
                 $scope.totalSuccess += 1;
                 console.log('uploaded!');
+                var arrayPosition = $scope.uploadRetryList.map(
+                function(elem) {
+                  return elem.fileLocation;
+                }).indexOf(index);
+                if (arrayPosition > -1) {
+                  $scope.totalFailed -=
+                    ($scope.uploadRetryList[arrayPosition].numberOfTries + 1);
+                  $scope.uploadRetryList.splice(arrayPosition, 1);
+                }
+                console.log("uploaded count: " + $scope.uploadedFiles.length);
+                console.log($scope.uploadRetryList);
               }
             } else {
               console.log('ERROR ERROR ERROR: success failed!');
@@ -447,6 +473,35 @@ angular.module('sendFiles')
             if ($scope.uploadedFiles[index] !== 'aborted') {
               $scope.progressIcons[index] = false;
               $scope.totalFailed += 1;
+              var arrayPosition = $scope.uploadRetryList.map(
+                function(elem) {
+                  return elem.fileLocation;
+                }).indexOf(index);
+              if (arrayPosition < 0) {
+                console.log('index: ' + index);
+                console.log('reunning constantly' + arrayPosition);
+                $scope.uploadRetryList.push(
+                  {fileLocation: index,
+                   numberOfTries: 1});
+                $scope.retry(index);
+              } else {
+                if ($scope.uploadRetryList[arrayPosition].numberOfTries < 5) {
+                  console.log($scope.uploadRetryList[arrayPosition].numberOfTries);
+                  $scope.uploadRetryList[arrayPosition].numberOfTries += 1;
+                  $scope.retry(index);
+                } else {
+                  console.log('RETRY REMOVAL: ' + ($scope.uploadRetryList[arrayPosition].numberOfTries + 1));
+                  $scope.totalFailed -=
+                    ($scope.uploadRetryList[arrayPosition].numberOfTries + 1);
+                    //removing all past failure counts
+                  $scope.totalFailed += 1; //adding one failure
+                  $scope.uploadRetryList.splice(arrayPosition, 1);
+                  $scope.failedAfterRetryList.push(index);
+                  $scope.showfailedUploadMessage = true;
+                }
+                console.log('totalruns: ' + totalruns);
+                console.log($scope.uploadRetryList);
+              }
             }
             console.log('ERROR ERROR ERROR');
             console.log(data);
@@ -582,6 +637,7 @@ angular.module('sendFiles')
       $scope.progressIcons = [];
       $scope.uploadedFiles = [];
       fileUploadQueue = [];
+      $scope.uploadRetryList = [];
 
       $scope.uploadFailed = false;
     };
