@@ -28,10 +28,16 @@ app.use(multer({
   }
 }));
 
+app.param('compId', function (req, res, next, compId) {
+  req.widgetIds.compId = compId;
+
+  next();
+});
 
 
 app.use('/auth', require('./routes/auth.js')(passport, router));
 app.use('/api', require('./routes/api.js')(router));
+
 
 
 
