@@ -18,7 +18,7 @@ var DRIVE_ABOUT_PATH = 'drive/v2/about';
 
 
 var createOauth2Client = module.exports.createOauth2Client = function (tokens) {
-  var oauth2Client = new OAuth2(googleKeys.clientId, googleKeys.clientSecret, googleKeys.redirectUri);
+  var oauth2Client = new OAuth2(googleKeys.clientId, googleKeys.clientSecret);
   if (arguments.length === 1) {
     oauth2Client.credentials = tokens;
   }

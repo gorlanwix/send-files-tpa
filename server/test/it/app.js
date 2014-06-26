@@ -6,6 +6,7 @@ var request = require('supertest');
 var app = require('../../app');
 var async = require('async');
 var googleDrive = require('../../controllers/google-drive.js');
+var dropbox = require('../../controllers/dropbox.js');
 var userAuth = require('../../controllers/user-auth.js');
 var email = require('../../controllers/email.js');
 var upload = require('../../controllers/upload-files.js');
@@ -312,7 +313,7 @@ describe('Google Drive', function () {
     });
   });
 
-  it.only('should get available capacity from Google', function (done) {
+  it('should get available capacity from Google', function (done) {
     googleDrive.getAvailableCapacity(accessToken, function (err, capacity) {
       if (err) {
         console.log('capacity error: ', err);
@@ -330,6 +331,38 @@ describe('Google Drive', function () {
       }
       console.log('created folder: ', result);
       expect(result).to.be.exist;
+      done();
+    });
+  });
+});
+
+
+
+describe('Dropbox', function () {
+  var accessToken;
+  this.timeout(10000);
+
+  before(function (done) {
+    var widgetIds = {
+      instanceId: instanceId,
+      compId: 'dropbox'
+    };
+    userAuth.getInstanceTokens(widgetIds, function (err, tokens) {
+      if (err) {
+        console.error('token retrieval error: ', err);
+      }
+      accessToken = tokens.access_token;
+      done();
+    });
+  });
+
+  it('should get available capacity from Dropbox', function (done) {
+    dropbox.getAvailableCapacity(accessToken, function (err, capacity) {
+      if (err) {
+        console.log('capacity error: ', err);
+      }
+      console.log('capacity: ', capacity);
+      expect(capacity).to.be.a('number');
       done();
     });
   });
