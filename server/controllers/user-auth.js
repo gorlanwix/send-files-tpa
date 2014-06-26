@@ -1,34 +1,16 @@
 'use strict';
 
 var db = require('./pg-database.js');
-var googleapis = require('googleapis');
-var googleKeys = require('../config.js').googleKeys;
 var utils = require('../utils.js');
+var googleKeys = require('../config.js').googleKeys;
+
 var googleDrive = require('./google-drive.js');
-var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var TokenProvider = require('./refresh-token.js');
 var httpStatus = require('http-status');
 
-
-
-var WixWidget = utils.WixWidget;
 var WidgetSettings = utils.WidgetSettings;
-var error = utils.error;
 
 
-
-function setParamsIfNotLoggedIn(params) {
-  return function (req, res, next) {
-    db.token.get(req.widgetIds, function (err, tokensFromDb) {
-      if (!tokensFromDb) {
-        params.state = req.widgetIds.instanceId + '+' + req.widgetIds.compId;
-        next();
-      } else {
-        next(error('already logged in to ' + tokensFromDb.provider, httpStatus.BAD_REQUEST));
-      }
-    });
-  };
-}
 
 function googleAuthCallback(currInstance, tokens, profile, callback) {
   var provider = 'google';
@@ -64,31 +46,6 @@ function googleAuthCallback(currInstance, tokens, profile, callback) {
     });
   });
 }
-
-var googleStrategy = new GoogleStrategy({
-  clientID: googleKeys.clientId,
-  clientSecret: googleKeys.clientSecret,
-  callbackURL: googleKeys.redirectUri,
-  passReqToCallback: true
-}, function (req, accessToken, refreshToken, params, profile, done) {
-  console.log('oauth2callback state: ', req.query.state);
-  console.log('tokens: ', params);
-  console.log('refreshToken: ', refreshToken);
-
-  var wixIds = req.query.state.split('+');
-  var currInstance = new WixWidget(wixIds[0], wixIds[1]);
-  params.refresh_token = refreshToken;
-  googleAuthCallback(currInstance, params, profile, function (err) {
-    if (err) {
-      console.error('googleAuthCallback error: ', err);
-      return done(err, null);
-    }
-
-    done(null, profile);
-  });
-});
-
-
 
 
 
@@ -139,6 +96,4 @@ function getInstanceTokens(instance, callback) {
 module.exports = {
   getInstanceTokens: getInstanceTokens,
   googleAuthCallback: googleAuthCallback,
-  googleStrategy: googleStrategy,
-  setParamsIfNotLoggedIn: setParamsIfNotLoggedIn
 };

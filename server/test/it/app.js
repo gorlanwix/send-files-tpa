@@ -25,7 +25,7 @@ describe('requests', function () {
   });
 });
 
-describe('api requests', function () {
+describe.only('api requests', function () {
 
   this.timeout(300000);
 
@@ -312,7 +312,7 @@ describe('Google Drive', function () {
     });
   });
 
-  it.only('should get available capacity from Google', function (done) {
+  it('should get available capacity from Google', function (done) {
     googleDrive.getAvailableCapacity(accessToken, function (err, capacity) {
       if (err) {
         console.log('capacity error: ', err);
