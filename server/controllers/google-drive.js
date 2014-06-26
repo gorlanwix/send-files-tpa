@@ -17,14 +17,14 @@ var DRIVE_API_PATH = 'upload/drive/v2/files';
 var DRIVE_ABOUT_PATH = 'drive/v2/about';
 
 
-function createOauth2Client(tokens) {
+var createOauth2Client = module.exports.createOauth2Client = function (tokens) {
   var oauth2Client = new OAuth2(googleKeys.clientId, googleKeys.clientSecret, googleKeys.redirectUri);
   if (arguments.length === 1) {
     oauth2Client.credentials = tokens;
   }
 
   return oauth2Client;
-}
+};
 
 function constructUrl(root, path, params) {
   var paramsString = '';
@@ -35,40 +35,37 @@ function constructUrl(root, path, params) {
   return root + path + paramsString;
 }
 
-function getAvailableCapacity(accessToken, callback) {
-  var options = {
-    url: constructUrl(ROOT_URL, DRIVE_ABOUT_PATH, null),
-    method: 'GET',
-    headers: {
-      'Authorization': 'Bearer ' + accessToken
-    },
-  };
+module.exports.getAvailableCapacity = function (accessToken, callback) {
 
-  request(options, function (err, res) {
-    // for some reason it recieves unparsed res.body
-    var body = JSON.parse(res.body);
+  var oauth2Client = createOauth2Client();
 
+  oauth2Client.setCredentials({
+    access_token: accessToken
+  });
+
+  googleapis.discover('drive', 'v2').execute(function (err, client) {
     if (err) {
-      console.error('request for capacity error', err);
       return callback(err, null);
     }
+    client
+      .drive
+      .about
+      .get()
+      .withAuthClient(oauth2Client)
+      .execute(function (err, result) {
+        if (err) {
+          return callback(err, null);
+        }
+        var totalQuota = parseInt(result.quotaBytesTotal, 10);
+        var usedQuota = parseInt(result.quotaBytesUsedAggregate, 10);
+        callback(null, totalQuota - usedQuota);
 
-    if (res.statusCode !== httpStatus.OK) {
-      console.error('request error body: ', body);
-      var errorMessage = 'Cannot retrieve Google Drive capacity: ' +
-                          body.error.code + ' ' +
-                          body.error.messsage;
-      return callback(new Error(errorMessage), null);
-    }
-
-    var totalQuota = parseInt(body.quotaBytesTotal, 10);
-    var usedQuota = parseInt(body.quotaBytesUsedAggregate, 10);
-    callback(null, totalQuota - usedQuota);
+      });
   });
-}
+};
 
 // returns id of the folder
-function createFolder(accessToken, callback) {
+module.exports.createFolder = function (accessToken, callback) {
 
   var oauth2Client = createOauth2Client();
 
@@ -96,7 +93,7 @@ function createFolder(accessToken, callback) {
         callback(null, result.id);
       });
   });
-}
+};
 
 
 function getUploadUrl(file, folderId, accessToken, callback) {
@@ -277,7 +274,7 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
 }
 
 // returns error and parsed result of insertion
-function insertFile(file, folderId, accessToken, callback) {
+module.exports.insertFile = function (file, folderId, accessToken, callback) {
 
   console.log('insering file to google');
   getUploadUrl(file, folderId, accessToken, function (err, uploadUrl) {
@@ -339,12 +336,4 @@ function insertFile(file, folderId, accessToken, callback) {
       );
     });
   });
-}
-
-
-module.exports = {
-  insertFile: insertFile,
-  getAvailableCapacity: getAvailableCapacity,
-  createFolder: createFolder,
-  createOauth2Client: createOauth2Client
 };
