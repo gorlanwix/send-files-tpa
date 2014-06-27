@@ -21,7 +21,7 @@ angular.module('sendFiles').factory('api', function ($resource, $wix, $location)
     } else {
       console.log('All hell has broken loose.');
       //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
-      var instanceId = 'whatever'; //REMOVE THIS IN PRODUCTION CODE
+      var instanceId;
     }
     return instanceId; //returns the unparsed instance
   }
@@ -49,7 +49,6 @@ angular.module('sendFiles').factory('api', function ($resource, $wix, $location)
       return Settings.save(settings);
     },
     getSettings: function (defaults) {
-      console.log('i\'m doing stuff');
       var settings = Settings.get();
       if (defaults === true || defaults) {
         settings.$promise.then(function () {
