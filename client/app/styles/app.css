@@ -38,13 +38,16 @@
   width: 84%;
   background-color: #EAEAEA;
   max-height: 53%;
+  -moz-box-shadow:    1px 1px 4px #7A6969;
+  -webkit-box-shadow: 1px 1px 4px #7A6969;
+  box-shadow:         1px 1px 4px #7A6969;
 }
 
 .popup-message {
-  position: fixed;
   display: block;
   margin: 10px;
-  width: 78%;
+  margin-bottom: 0;
+  text-align: center;
 }
 
 .popup-list-container {
@@ -55,27 +58,15 @@
 .popup-list {
   display: block;
   text-decoration: none;
-  margin-top: 60px;
   padding: 10px;
   padding-top: 0;
+  padding-bottom: 0;
   width: 95%;
   white-space: nowrap;
   overflow: hidden;
   overflow-y: auto; 
   text-overflow: ellipsis;
   max-height: 170px;
-}
-
-@media all and (min-width: 255px) and (max-width: 479px){
-  .popup-list {
-    margin-top: 45px;
-  }
-}
-
-@media all and (min-width: 479px) {
-  .popup-list {
-    margin-top: 35px;
-  }
 }
 
 .popup-list li {
@@ -89,6 +80,7 @@
 .popup-button {
   margin: 5px;
   margin-top: 0;
+  max-width: 30%;
 }
 
 .dropper {

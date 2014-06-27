@@ -19,7 +19,7 @@
       {{submitErrorMessage}}
     </span>
   </div>
-  <div class="popup" ng-show="showOverloadedList">
+  <div class="popup" ng-show="showOverloadedPopup">
     <span class="popup-message">
       The following files can't be added due to lack of storage space:
     </span>
@@ -31,9 +31,55 @@
       </ul>
     </div>
     <div>
-      <button class="buttons popup-button" ng-click="removeOverload()">OK</button>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'overload'})">
+        OK
+      </button>
     </div>
   </div>
+  <div class="popup" ng-show="showFailedUploadPopup">
+    <span class="popup-message">
+      {{failedAfterRetryList.length}} of your files failed to upload. 
+      Would you like to retry to upload these files?
+    </span>
+    <div class="popup-list-container">
+      <ul class="popup-list">
+        <li ng-repeat="index in failedAfterRetryList">
+          <span>{{fileList[index].name}}</span><br>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'failed upload', reply: 'yes'})">
+        Yes
+      </button>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'failed upload', reply: 'no'})">
+        No
+      </button>
+    </div>
+  </div>
+
+
+  <div class="popup" ng-show="showErrorWarningPopup">
+    <span class="popup-message">
+      Warning: You are submitting with failed files. We won't
+      ever see the failed files. Submit anyways?
+    </span>
+    <div>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'error warning', reply: 'yes'})">
+        Yes
+      </button>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'error warning', reply: 'no'})">
+        No
+      </button>
+    </div>
+  </div>
+
+
   <div class="dropper" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">
     Drop files here
   </div>
@@ -58,15 +104,6 @@
         <div class="tool-tip-container" ng-show="showNoFile">
             <span class="tool-tip">{{fileMessage}}</span>
         </div>
-        <!-- Show uploading files here -->
-        <!-- <div class="block">
-          <ul class="list-files">
-            <li ng-show="overLoadedList.length > 0">The following files can't be added due to lack of storage space:</li>
-            <li ng-repeat="file in overLoadedList">
-              {{file.name}} - {{file.newSize}}
-            </li>
-          </ul>
-        </div> -->
         <ul class="list-files">
           <p ng-if="!totalFilesAdded">
             Uploaded files are displayed here.
@@ -74,8 +111,13 @@
           <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
             <span class="file-text" ng-style="fileStyle($index)" hover>
               <a class="retry-files" href="#" ng-click="retry($index)" ng-if="progressIcons[$index] === false">.</a>
-              <span class="file-info">
-                {{file.name}}
+              <span class="file-info" ng-style="fileNameStyle($index)">
+                <span>
+                  <span ng-if="retryMessage[$index] !== undefined">
+                    {{retryMessage[$index]}} - 
+                  </span>
+                    {{file.name}}
+                  </span>
               </span>
               <a class="remove" href="#" ng-click="abort($index)">.</a>
               <span class="status-text progress-text" ng-if="progressIcons[$index]=== undefined">
