@@ -1,3 +1,3 @@
 'use strict';
 
-angular.module('sendFiles', ['ngResource', 'angularFileUpload']);
+angular.module('sendFiles', ['ngResource', 'angularFileUpload', 'ngAnimate']);

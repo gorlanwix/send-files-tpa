@@ -8,17 +8,6 @@
       Activate it by logging in within the settings.
     </span>
   </div>
-  <div class="submitting" ng-if="submitting || submitted || uploadFailed">
-    <span ng-if="submitting">
-      Submitting...
-    </span>
-    <span ng-if="submitted">
-      Submitted successfully!
-    </span>
-    <span ng-if="uploadFailed">
-      {{submitErrorMessage}}
-    </span>
-  </div>
   <div class="popup" ng-show="showOverloadedPopup">
     <span class="popup-message">
       The following files can't be added due to lack of storage space:
@@ -61,9 +50,14 @@
     </div>
   </div>
 
+  <div class="popup" ng-show="showVerifyErrorPopup">
+    <span class="popup-message popup-margins animate">
+      {{verifyErrorMessage}}
+    </span> <!-- animate this away -->
+  </div>
 
   <div class="popup" ng-show="showErrorWarningPopup">
-    <span class="popup-message">
+    <span class="popup-message popup-margins">
       Warning: You are submitting with failed files. We won't
       ever see the failed files. Submit anyways?
     </span>
@@ -78,6 +72,38 @@
       </button>
     </div>
   </div>
+
+  <div class="popup" ng-show="showLoadingPopup">
+    <span class="popup-message">
+      Please wait till all files are done loading before submitting.
+    </span>
+  </div>
+
+  <div class="popup" ng-show="submitSuccessful">
+    <span class="popup-message">
+      Success!<br>
+      Your message and {{totalSuccess}} files have been sent.
+    </span> <!-- animate this away -->
+  </div>
+
+  <div class="popup" ng-show="submitFailed">
+    <span class="popup-message">
+      {{submitErrorMessage}}
+    </span>
+    <div>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'failed submit', reply: 'try again'})">
+        Try again
+      </button>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'failed submit', reply: 'start over'})">
+        Start over
+      </button>
+    </div>
+  </div>
+
+
+
 
 
   <div class="dropper" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">
@@ -172,7 +198,7 @@
     </div>
 
     <div class="block end-blocks submit">
-      <button class="buttons bottom-buttons"  type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-if="!uploadFailed">
+      <button class="buttons bottom-buttons"  type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-if="!submitFailed">
         <span ng-show="!submitting">{{settings.submitButtonText}}</span>
         <span ng-show="submitting">Submitting...</span>
       </button>
@@ -180,7 +206,7 @@
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
       </div>
     </div>
-    <div class="failure-end end-blocks" ng-show="uploadFailed">
+    <div class="failure-end end-blocks" ng-show="submitFailed">
       <button class="buttons bottom-buttons" type="button" ng-click="submit()">Retry</button>
       <button class="buttons bottom-buttons" type="reset" ng-click="reset()">Cancel</button>
     </div>

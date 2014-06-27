@@ -34,7 +34,7 @@
   border: 1px solid #838486;
   top: 29%;
   left: 8%;
-  z-index: 2;
+  z-index: 3;
   width: 84%;
   background-color: #EAEAEA;
   max-height: 53%;
@@ -48,6 +48,10 @@
   margin: 10px;
   margin-bottom: 0;
   text-align: center;
+}
+
+.popup-margins {
+  margin-bottom: 10px;
 }
 
 .popup-list-container {
@@ -81,6 +85,17 @@
   margin: 5px;
   margin-top: 0;
   max-width: 30%;
+  margin-bottom: 10px;
+}
+
+.animate.ng-show {
+  -webkit-transition: 3s linear all; /* Chrome */
+  transition: 3s linear all;
+  opacity: 0;
+}
+ 
+.animate.ng-show-active {
+  opacity: 1;
 }
 
 .dropper {
