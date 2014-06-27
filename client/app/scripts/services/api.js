@@ -24,16 +24,16 @@ angular.module('sendFiles').factory('api', function ($resource, $wix, $location)
       var instanceId = 'whatever'; //REMOVE THIS IN PRODUCTION CODE
     }
     return instanceId; //returns the unparsed instance
-  };
+  }
 
   var headers = {
-    'X-Wix-Instance': 'whatever', //getInstance(),
+    'X-Wix-Instance': getInstance(),
     'Content-Type': 'application/json'
   };
 
   // console.log(headers); //for testing
 
-  var compId = '123456'; //$wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
+  var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
 
   var Settings = $resource('/api/settings/' + compId, {
     compId: $wix.Utils.getOrigCompId() || $wix.Utils.getCompId() 
