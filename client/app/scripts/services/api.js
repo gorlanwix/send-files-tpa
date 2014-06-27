@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('sendFiles').factory('api', function ($resource, $wix, $location) {
+angular.module('sendFiles').factory('api', function ($wix, $location) {
   var defaults = {
     title: 'This is my title.',
     description: 'This is my description.',
@@ -25,59 +25,10 @@ angular.module('sendFiles').factory('api', function ($resource, $wix, $location)
       var instanceId;
     }
     return instanceId; //returns the unparsed instance
-  }
-
-  var headers = {
-    'X-Wix-Instance': getInstance(),
-    'Content-Type': 'application/json'
   };
-
-  // console.log(headers); //for testing
-
-  var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
-
-  var Settings = $resource('/api/settings/' + compId, {
-    compId: $wix.Utils.getOrigCompId() || $wix.Utils.getCompId() 
-  }, {
-    get: { method: 'GET', headers: headers },
-    save: { method: 'PUT', headers: headers }
-  });
 
   return {
     defaults: defaults,
-    saveSettings: function (settings) {
-      console.log('Saving');
-      return Settings.save(settings);
-    },
-    getSettings: function (defaults) {
-      var settings = Settings.get();
-      if (defaults === true || defaults) {
-        settings.$promise.then(function () {
-          angular.forEach(defaults, function (value, key) {
-            if (!settings.hasOwnProperty(key)) {
-              settings[key] = value;
-            }
-          });
-        });
-      }
-      // console.log(settings); // to print the settings out before syncing them with the widget
-      return settings;
-    },
-
-    getSettings2: function (storedSettings) {
-      var settings = Settings.get();
-      var template = storedSettings || defaults;
-      settings.$promise.then(function () {
-          angular.forEach(template, function (value, key) {
-            if (!settings.hasOwnProperty(key)) {
-              settings[key] = value;
-            }
-          });
-        });
-      return settings;
-    },
-
     getInstance: getInstance
-
   };
 });

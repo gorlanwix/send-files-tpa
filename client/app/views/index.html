@@ -107,12 +107,12 @@
   </div>
   <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()">
     <div ng-style="formStyle()">
-      <div class="block end-blocks file-upload">
+      <div class="block end-blocks file-upload top-block">
         <h2 class="title">
-          {{settings.title}}This is my title.
+          {{settings.title}}
         </h2>
         <p class="description">
-          {{settings.description}}This is my description.
+          {{settings.description}}
         </p>
         <button class="buttons" disabled>
           {{settings.addButtonText}}
@@ -132,23 +132,23 @@
           </p>
           <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
             <span class="file-text" ng-style="fileStyle($index)" hover>
-              <a class="retry-files" href="#" ng-click="retry($index)" ng-if="progressIcons[$index] === false">.</a>
+              <a class="retry-files" href="#" ng-click="retry($index)" ng-if="file.uploadResult === false &amp;&amp; !showFailedUploadPopup">.</a>
               <span class="file-info" ng-style="fileNameStyle($index)">
                 <span>
-                  <span class="retry-message" ng-if="retryMessage[$index] !== undefined">
-                    {{retryMessage[$index]}} - 
+                  <span class="retry-message" ng-if="file.retryMessage !== undefined">
+                    {{file.retryMessage}}
                   </span>
                     {{file.name}}
                   </span>
               </span>
               <a class="remove" href="#" ng-click="abort($index)">.</a>
-              <span class="status-text progress-text" ng-if="progressIcons[$index]=== undefined">
-                {{100 - progress[$index]}}%
+              <span class="status-text progress-text" ng-if="file.uploadResult === undefined">
+                {{100 - file.progress}}%
               </span>
             </span>
             <div style="clear: both;"></div>
-            <div class="progress" ng-if="progressIcons[$index] === undefined">
-              <span style="width:{{progress[$index]}}%;"></span>
+            <div class="progress" ng-if="file.uploadResult === undefined">
+              <span style="width:{{file.progress}}%;"></span>
             </div>
           </li>
         </ul> 
