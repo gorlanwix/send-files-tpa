@@ -19,22 +19,15 @@ var DRIVE_ABOUT_PATH = 'drive/v2/about';
 
 
 
-<<<<<<< HEAD
 function shouldRecover(statusCode) {
-=======
-var shouldRecover(statusCode) {
->>>>>>> upstream/master
   var recoverWhenStatus = [500, 501, 502, 503];
   return recoverWhenStatus.indexOf(res.statusCode) > -1;
 }
 
-<<<<<<< HEAD
 function constructUrl(root, path) {
   path = (path.charAt(0) === '/') ? path.substr(1) : path;
   return root + path;
 }
-=======
->>>>>>> upstream/master
 
 
 var createOauth2Client = module.exports.createOauth2Client = function (tokens) {
