@@ -106,7 +106,7 @@ JSON format
 
 */
 
-module.exports.send = function (req, res, next) {
+module.exports.commit = function (req, res, next) {
 
 
   // parse the request

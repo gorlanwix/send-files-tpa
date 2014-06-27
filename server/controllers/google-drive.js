@@ -10,11 +10,21 @@ var userAuth = require('./user-auth.js');
 var config = require('../config.js');
 var OAuth2 = googleapis.auth.OAuth2;
 var googleKeys = require('../config.js').auth.google;
+var utils = require('../utils.js');
+var getResponseError = utils.getResponseError;
 
 // google drive specific constants
 var ROOT_URL = 'https://www.googleapis.com/';
 var DRIVE_API_PATH = 'upload/drive/v2/files';
 var DRIVE_ABOUT_PATH = 'drive/v2/about';
+
+
+
+var shouldRecover(statusCode) {
+  var recoverWhenStatus = [500, 501, 502, 503];
+  return recoverWhenStatus.indexOf(res.statusCode) > -1;
+}
+
 
 
 var createOauth2Client = module.exports.createOauth2Client = function (tokens) {
@@ -131,11 +141,7 @@ function getUploadUrl(file, folderId, accessToken, callback) {
     }
 
     if (res.statusCode !== httpStatus.OK) {
-      console.error('request error body: ', body);
-      var errorMessage = 'Cannot retrieve Google Drive upload URL: ' +
-                          body.error.code + ' ' +
-                          body.error.messsage;
-      return callback(new Error(errorMessage), null);
+      return callback(getResponseError(res.statusCode), null);
     }
 
     var uploadUrl = res.headers.location;
@@ -175,9 +181,11 @@ function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
 
       if (res.statusCode === 308 && rangeHeader) { // Resume Incomplete
         callback(null, getStartUploadFrom(rangeHeader), res.statusCode);
-      } else {
+      } else if (shouldRecover(res.statusCode)) {
         // restart upload from zero
         callback(null, 0, res.statusCode);
+      } else {
+        callback(getResponseError(res.statusCode), 0, res.statusCode);
       }
     });
   }, waitFor);
@@ -213,7 +221,7 @@ function recoverUpload(file, uploadUrl, accessToken, callback) {
       if (statusCode === 308) {
         callback(null, startFrom);
       } else {
-        callback(new Error('cannot recover upload to Google Drive'), 0);
+        callback(getResponseError(statusCode), 0);
       }
     }
   );
@@ -256,14 +264,10 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
 
       // might be an issue with 308 status code, hasn't been able to replicate
 
-      var recoverWhenStatus = [500, 501, 502, 503];
-
-      var shouldRecover = recoverWhenStatus.indexOf(res.statusCode) > -1;
-
-      if (shouldRecover) {
+      if (shouldRecover(res.statusCode)) {
         callback(new Error('upload to Google Drive was interrupted'), null, true);
       } else {
-        callback(new Error('cannot upload to google drive'), null, false);
+        callback(getResponseError(res.statusCode), null, false);
       }
     }));
   });

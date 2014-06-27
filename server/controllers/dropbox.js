@@ -8,20 +8,13 @@ var utils = require('../utils.js');
 var request = require('request');
 var httpStatus = require('http-status');
 var fs = require('fs');
-var error = utils.error;
+var getResponseError = utils.getResponseError;
 
-var maxSize = 10 * 1024 * 1024; //10mb
+var maxChunkSize = 10 * 1024 * 1024; //10mb
 
 var DROPBOX_API_ROOT = 'https://api.dropbox.com/1/';
+var DROPBOX_API_CONTENT = 'https://api-content.dropbox.com/1/';
 
-
-function getResponseError(statusCode) {
-  if (statusCode === 401) {
-    return error('invalid access token', httpStatus.UNAUTHORIZED);
-  }
-
-  return error('service unavailable', httpStatus.INTERNAL_SERVER_ERROR);
-}
 
 
 module.exports.getAvailableCapacity = function (accessToken, callback) {
@@ -53,7 +46,7 @@ module.exports.getAvailableCapacity = function (accessToken, callback) {
 
 function commitChunkedUpload(file, accessToken, uploadId, callback) {
   var options = {
-    url:  'https://api-content.dropbox.com/1/commit_chunked_upload/sandbox/' + file.originalname,
+    url: DROPBOX_API_CONTENT + 'commit_chunked_upload/sandbox/' + file.originalname,
     method: 'POST',
     headers: {
       'Authorization': 'Bearer ' + accessToken,
@@ -65,6 +58,10 @@ function commitChunkedUpload(file, accessToken, uploadId, callback) {
   };
 
   request(options, function (err, res, body) {
+    if (res.statusCode !== httpStatus.OK) {
+      console.error('commitChunkedUpload error body: ', body);
+      return callback(getResponseError(res.statusCode), null);
+    }
     callback(err, JSON.parse(res.body));
   });
 }
@@ -80,13 +77,13 @@ function uploadFile(file, accessToken, start, callback) {
     readStream = fs.createReadStream(file.path);
   }
 
-  var chunkedStream = new ChunkedStream(readStream, maxSize);
+  var chunkedStream = new ChunkedStream(readStream, maxChunkSize);
 
   // just wanted to say that dropbox is stupid for not supporting streaming
   function uploadChunk(uploadId, offset) {
 
     var options = {
-      url: 'https://api-content.dropbox.com/1/chunked_upload',
+      url: DROPBOX_API_CONTENT + 'chunked_upload',
       method: 'PUT',
       headers: {
         'Authorization': 'Bearer ' + accessToken,
@@ -103,7 +100,10 @@ function uploadFile(file, accessToken, start, callback) {
     return request(options, function (err, res) {
       var body = JSON.parse(res.body);
 
-      console.log('res: ', body);
+      if (res.statusCode !== httpStatus.OK) {
+        console.error('request error body: ', body);
+        return callback(getResponseError(res.statusCode), null);
+      }
 
       if (chunkedStream.actuallyEnded) {
         // /commit_chunked_upload

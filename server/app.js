@@ -107,7 +107,7 @@ app.get('/auth/callback/dropbox', passport.authenticate('dropbox', {
 
 app.get('/api/files/session/:compId', files.session);
 app.post('/api/files/upload/:compId', files.upload);
-app.post('/api/files/send/:compId', files.send);
+app.post('/api/files/commit/:compId', files.commit);
 
 // Settings
 

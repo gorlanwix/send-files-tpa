@@ -31,6 +31,15 @@ module.exports.error = function (message, statusCode) {
   return err;
 };
 
+
+module.exports.getResponseError = function (statusCode) {
+  if (statusCode === 401) {
+    return error('invalid access token', httpStatus.UNAUTHORIZED);
+  }
+
+  return error('service unavailable', httpStatus.INTERNAL_SERVER_ERROR);
+}
+
 module.exports.getInstanceId = function (instance) {
   var instanceId;
   if (instance === 'whatever') { // for testing purposes
