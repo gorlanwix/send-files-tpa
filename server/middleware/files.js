@@ -4,7 +4,7 @@
 
 var userAuth = require('../controllers/user-auth.js');
 var upload = require('../controllers/upload-files.js');
-var db = require('../controllers/pg-database.js');
+var db = require('../models/pg-database.js');
 var utils = require('../utils.js');
 var config = require('../config.js');
 var MAX_FILE_SIZE = config.MAX_FILE_SIZE;
@@ -106,10 +106,35 @@ JSON format
 
 */
 
+function parseVisitor(recievedJson) {
+  var visitorEmail = recievedJson.visitorEmail;
+  var visitorName = recievedJson.visitorName;
+  var visitorMessage = recievedJson.visitorMessage;
+  var wixSessionToken = recievedJson.wixSessionToken;
+
+  var isRequiredExist = visitorEmail && visitorName && visitorMessage && wixSessionToken;
+  // needed because can't trim() undefined
+  if (!isRequiredExist) {
+    return null;
+  }
+
+  visitorEmail = visitorEmail.trim();
+  var visitorFirstName = visitorName.first.trim();
+  var visitorLastName = visitorName.last.trim();
+  visitorMessage = visitorMessage.trim();
+
+  var isValidFormat = validator.isEmail(visitorEmail) &&
+                      (visitorFirstName || visitorLastName) &&
+                      visitorMessage;
+
+  if (!isValidFormat) {
+    return null;
+  }
+
+  return new Visitor(visitorFirstName, visitorLastName, visitorEmail, visitorMessage, wixSessionToken);
+}
+
 module.exports.commit = function (req, res, next) {
-
-
-  // parse the request
 
   var recievedJson = req.body;
   var sessionId = req.query.sessionId;
@@ -122,25 +147,9 @@ module.exports.commit = function (req, res, next) {
     return next(error('request body is not JSON', httpStatus.BAD_REQUEST));
   }
 
-  var visitorEmail = recievedJson.visitorEmail;
-  var visitorName = recievedJson.visitorName;
+  var visitor = parseVisitor(recievedJson);
   var toUploadFileIds = recievedJson.fileIds;
-  var visitorMessage = recievedJson.visitorMessage;
-
-  var isRequiredExist = visitorEmail && visitorName && toUploadFileIds && visitorMessage;
-
-  if (!isRequiredExist) {
-    return next(error('invalid request format', httpStatus.BAD_REQUEST));
-  }
-  visitorEmail = visitorEmail.trim();
-  visitorName = visitorName.trim();
-  visitorMessage = visitorMessage.trim();
-
-  var isValidFormat = validator.isEmail(visitorEmail) &&
-                      toUploadFileIds instanceof Array &&
-                      !validator.isNull(visitorName) &&
-                      !validator.isNull(visitorMessage);
-
+  var isValidFormat = toUploadFileIds instanceof Array && visitor;
   if (!isValidFormat) {
     return next(error('invalid request format', httpStatus.BAD_REQUEST));
   }
@@ -175,12 +184,10 @@ module.exports.commit = function (req, res, next) {
           res.status(httpStatus.ACCEPTED);
           res.json({status: httpStatus.ACCEPTED});
 
-          var visitor = new Visitor(visitorName, visitorEmail, visitorMessage);
           upload.sendFiles(files, visitor, req.widgetIds, sessionId, tokens, function (err) {
             if (err) {
               console.error('something went terribly wrong during upload: ', err);
             }
-
             return;
           });
         });

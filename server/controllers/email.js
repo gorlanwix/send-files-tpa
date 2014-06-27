@@ -27,12 +27,12 @@ function Email(userEmail, visitorEmail, visitorName, body) {
   this.html = body;
 }
 
-function constructMessage(visitorName, visitorEmail, visitorMessage, downloadUrl) {
+function constructMessage(visitorName, visitorEmail, visitorMessage, viewUrl) {
   var emailBackLink = '<a href="mailto:' + visitorEmail + '">' + visitorEmail + '</a>';
   var body = visitorName + ' (' + emailBackLink + ') sent you some files.' + '<br /><br />';
   body += visitorMessage + '<br /><br />';
   body += 'Download files: ';
-  body += '<a href="' + downloadUrl + '">' + downloadUrl + '</a>';
+  body += '<a href="' + viewUrl + '">' + viewUrl + '</a>';
 
   return body;
 }
@@ -55,11 +55,11 @@ function constructErrorMessageVisitor(visitorName, visitorEmail, visitorMessage)
   return body;
 }
 
-function send(userEmail, visitor, downloadUrl, callback) {
+function send(userEmail, visitor, viewUrl, callback) {
 
   var smtpTransport = getTransport();
 
-  var emailMessage = constructMessage(visitor.name, visitor.email, visitor.message, downloadUrl);
+  var emailMessage = constructMessage(visitor.name, visitor.email, visitor.message, viewUrl);
 
   var emailToSend = new Email(userEmail, visitor.email, visitor.name, emailMessage);
 

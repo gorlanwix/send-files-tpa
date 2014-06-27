@@ -10,10 +10,14 @@ module.exports.WixWidget = function (instanceId, compId) {
   this.compId = compId;
 };
 
-module.exports.Visitor = function (name, email, message) {
-  this.name = name;
+module.exports.Visitor = function (firstName, lastName, email, message, wixSessionToken) {
+  this.name = {
+    first: firstName,
+    last: lastName
+  };
   this.email = email;
   this.message = message;
+  this.wixSessionToken = wixSessionToken;
 };
 
 // set any param to null to avoid it's update
