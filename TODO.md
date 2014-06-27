@@ -26,6 +26,8 @@ TODO:
 - disconnect link
 - accordion to put site owner email (last one: configuration settings)
 - {{compId}}?instance=12345 for login and logout
+- connect settings to widget
+- userEmail object compatible with wix-model?
 
 NOTES:
 
