@@ -9,7 +9,8 @@ angular.module('sendFiles').factory('api', function ($wix, $location) {
     emailAddressText: 'Your email address',
     messageText: 'You can add a message to site owner',
     submitButtonText: 'Submit',
-    dividerWidth: '3',
+    widgetCorners: '5',
+    borderWidth: '3',
     buttonRoundness: '5'
   };
 

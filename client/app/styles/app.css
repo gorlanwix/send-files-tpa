@@ -42,6 +42,7 @@
   -moz-box-shadow:    1px 1px 4px #7A6969;
   -webkit-box-shadow: 1px 1px 4px #7A6969;
   box-shadow:         1px 1px 4px #7A6969;
+  border-radius: 5px;
 }
 
 .popup-message {
@@ -150,7 +151,8 @@
 }
 
 .top-block {
-  
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
 }
 
 .buttons {
@@ -580,6 +582,11 @@
   width: 40%;
   margin: 0 auto;
   text-align: center;
+}
+
+.bottom-block {
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
 }
 
 .bottom-buttons {

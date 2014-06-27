@@ -158,16 +158,16 @@ angular.module('sendFiles')
     $scope.fileUploadSubmitText = $scope.settings.submitButtonText;
 
     /* Data to be sent to server when the user submits. */
-    var finalSubmission = {"visitorName": "",
-                           "visitorEmail": "",
-                           "visitorMessage": "",
-                           "fileIds": $scope.uploadedFiles,
-                           "wixSessionToken" : null
+    var finalSubmission = {visitorName: {first: '', last: ''},
+                           visitorEmail: '',
+                           visitorMessage: '',
+                           fileIds: $scope.uploadedFiles,
+                           wixSessionToken : null
                           };
 
     /* Records the visitor's name and updates final message to server. */
     $scope.updateVisitorName = function (newValue) {
-      finalSubmission.visitorName = newValue;
+      finalSubmission.visitorName.first = newValue;
       if (newValue === undefined) {
         $scope.fileForm.visitorName.$invalid = true;
       } else {
@@ -664,7 +664,7 @@ angular.module('sendFiles')
         }
       }
       finalSubmission.fileIds = uploadedFileTemp;
-      finalSubmission.visitorName = finalSubmission.visitorName.trim();
+      finalSubmission.visitorName.first = finalSubmission.visitorName.first.trim();
       finalSubmission.visitorEmail = finalSubmission.visitorEmail.trim();
       finalSubmission.visitorMessage = finalSubmission.visitorMessage.trim();
       var uploadURL = '/api/files/commit/' + compId + '?sessionId=' + $scope.sessionId;
