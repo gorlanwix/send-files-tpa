@@ -3,7 +3,7 @@
 // /auth/* routes
 
 var userAuth = require('../controllers/user-auth.js');
-var db = require('../controllers/pg-database.js');
+var db = require('../models/pg-database.js');
 var googleDrive = require('../controllers/google-drive.js');
 var utils = require('../utils.js');
 

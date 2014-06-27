@@ -13,8 +13,6 @@ var bodyParser = require('body-parser');
 var multer  = require('multer');
 var httpStatus = require('http-status');
 
-
-
 var app = express();
 var passport = require('./middleware/passport.js')(app);
 

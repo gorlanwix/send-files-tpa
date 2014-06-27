@@ -2,7 +2,7 @@
 
 // /api/settings/* routes
 
-var db = require('../controllers/pg-database.js');
+var db = require('../models/pg-database.js');
 var utils = require('../utils.js');
 
 var httpStatus = require('http-status');
