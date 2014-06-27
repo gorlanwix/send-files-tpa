@@ -8,34 +8,102 @@
       Activate it by logging in within the settings.
     </span>
   </div>
-  <div class="submitting" ng-if="submitting || submitted || uploadFailed">
-    <span ng-if="submitting">
-      Submitting...
-    </span>
-    <span ng-if="submitted">
-      Submitted successfully!
-    </span>
-    <span ng-if="uploadFailed">
-      {{submitErrorMessage}}
-    </span>
-  </div>
-  <div class="overload" ng-show="showOverloadedList">
-    <span class="overload-message">
+  <div class="popup" ng-show="showOverloadedPopup">
+    <span class="popup-message">
       The following files can't be added due to lack of storage space:
     </span>
-    <div class="list-container">
-      <ul class="overload-list">
+    <div class="popup-list-container">
+      <ul class="popup-list">
         <li ng-repeat="file in overloadedList">
-          <span>{{file.name}} - {{file.newSize}}</span><br>
+          <span>{{file.name}}</span><br>
         </li>
       </ul>
     </div>
-    <div class="button-container">
-      <button class="buttons overload-button" ng-click="removeOverload()">OK</button>
+    <div>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'overload'})">
+        OK
+      </button>
     </div>
   </div>
+  <div class="popup" ng-show="showFailedUploadPopup">
+    <span class="popup-message">
+      {{failedAfterRetryList.length}} of your files failed to upload. 
+      Would you like to retry to upload these files?
+    </span>
+    <div class="popup-list-container">
+      <ul class="popup-list">
+        <li ng-repeat="index in failedAfterRetryList">
+          <span>{{fileList[index].name}}</span><br>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'failed upload', reply: 'yes'})">
+        Yes
+      </button>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'failed upload', reply: 'no'})">
+        No
+      </button>
+    </div>
+  </div>
+
+  <div class="popup" ng-show="showVerifyErrorPopup">
+    <span class="popup-message popup-margins animate">
+      {{verifyErrorMessage}}
+    </span> <!-- animate this away -->
+  </div>
+
+  <div class="popup" ng-show="showErrorWarningPopup">
+    <span class="popup-message popup-margins">
+      Warning: You are submitting with failed files. We won't
+      ever see the failed files. Submit anyways?
+    </span>
+    <div>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'error warning', reply: 'yes'})">
+        Yes
+      </button>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'error warning', reply: 'no'})">
+        No
+      </button>
+    </div>
+  </div>
+
+  <div class="popup" ng-show="showLoadingPopup">
+    <span class="popup-message popup-margins">
+      Please wait till all files are done loading before submitting.
+    </span>
+  </div>
+
+  <div class="popup" ng-show="submitSuccessful">
+    <span class="popup-message popup-margins">
+      Success!<br>
+      Your message and {{totalSuccess}} files have been sent.
+    </span> <!-- animate this away -->
+  </div>
+
+  <div class="popup" ng-show="submitFailed">
+    <span class="popup-message popup-margins">
+      {{submitErrorMessage}}
+    </span>
+    <div>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'failed submit', reply: 'try again'})">
+        Try again
+      </button>
+      <button class="buttons popup-button"
+        ng-click="handlePopup({type: 'failed submit', reply: 'start over'})">
+        Start over
+      </button>
+    </div>
+  </div>
+
   <div class="dropper" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">
-    Drop files here
+    <span class="drop-text">Drop files here</span>
   </div>
   <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()">
     <div ng-style="formStyle()">
@@ -58,15 +126,6 @@
         <div class="tool-tip-container" ng-show="showNoFile">
             <span class="tool-tip">{{fileMessage}}</span>
         </div>
-        <!-- Show uploading files here -->
-        <!-- <div class="block">
-          <ul class="list-files">
-            <li ng-show="overLoadedList.length > 0">The following files can't be added due to lack of storage space:</li>
-            <li ng-repeat="file in overLoadedList">
-              {{file.name}} - {{file.newSize}}
-            </li>
-          </ul>
-        </div> -->
         <ul class="list-files">
           <p ng-if="!totalFilesAdded">
             Uploaded files are displayed here.
@@ -74,12 +133,16 @@
           <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
             <span class="file-text" ng-style="fileStyle($index)" hover>
               <a class="retry-files" href="#" ng-click="retry($index)" ng-if="progressIcons[$index] === false">.</a>
-              <span class="file-info">
-                {{file.name}}
+              <span class="file-info" ng-style="fileNameStyle($index)">
+                <span>
+                  <span class="retry-message" ng-if="retryMessage[$index] !== undefined">
+                    {{retryMessage[$index]}} - 
+                  </span>
+                    {{file.name}}
+                  </span>
               </span>
               <a class="remove" href="#" ng-click="abort($index)">.</a>
-              <span class="status-text progress-text" ng-if="progressIcons[$index]
-              === undefined">
+              <span class="status-text progress-text" ng-if="progressIcons[$index]=== undefined">
                 {{100 - progress[$index]}}%
               </span>
             </span>
@@ -110,28 +173,28 @@
          <div class="tool-tip-container-message">
             <span class="tool-tip-message" ng-show="showNoMessage">Please enter a message</span>
         </div>
-        <p class= "file-statistics file-status">
+<!--         <p class= "file-statistics file-status">
           <span class="no-files" ng-if="!totalFilesAdded">
             No files uploaded
           </span>
-          <span class="success-text" ng-if="totalSuccess" ng-style="successTextStyle()"> <!-- ng-if="totalSuccess" -->
+          <span class="success-text" ng-if="totalSuccess" ng-style="successTextStyle()">
             {{totalSuccess}} uploaded
           </span>
-          <span class="error-text" ng-if="totalFailed" ng-style="failedTextStyle()"> <!-- ng-if="totalFailed" -->
+          <span class="error-text" ng-if="totalFailed" ng-style="failedTextStyle()">
             {{totalFailed}} failed
           </span>
-          <span class="loading-text" ng-if="totalFilesAdded - totalSuccess - totalFailed" ng-style="loadingTextStyle()"> <!-- totalFilesAdded - totalSuccess - totalFailed -->
+          <span class="loading-text" ng-if="totalFilesAdded - totalSuccess - totalFailed" ng-style="loadingTextStyle()">
             {{totalFilesAdded - totalSuccess - totalFailed}} loading...
           </span>
           <span class="file-upload-message" ng-show="showFileUploadMessage">
             {{fileUploadMessage}}
           </span>
-        </p>
+        </p> -->
       </div>
     </div>
 
     <div class="block end-blocks submit">
-      <button class="buttons bottom-buttons"  type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-if="!uploadFailed">
+      <button class="buttons bottom-buttons"  type="submit" ng-disabled="submitNotReady()" ng-click="submitProcessor()">
         <span ng-show="!submitting">{{settings.submitButtonText}}</span>
         <span ng-show="submitting">Submitting...</span>
       </button>
@@ -139,10 +202,10 @@
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
       </div>
     </div>
-    <div class="failure-end end-blocks" ng-show="uploadFailed">
+    <!-- <div class="failure-end end-blocks" ng-show="submitFailed">
       <button class="buttons bottom-buttons" type="button" ng-click="submit()">Retry</button>
       <button class="buttons bottom-buttons" type="reset" ng-click="reset()">Cancel</button>
-    </div>
+    </div> -->
   </form>
 </div>
 

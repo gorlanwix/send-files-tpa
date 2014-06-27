@@ -24,11 +24,11 @@ angular.module('sendFiles')
     $scope.totalFilesAdded = 0;
 
     /* Max amount of files than can be uploaded at a time. */
-    $scope.maxFileLimit = 75;
+    $scope.maxFileLimit = 60;
 
     /* Represents the Instance ID of this widget. */
 
-    var instance = api.getInstance();//'whatever';
+    var instance = 'whatever';//api.getInstance();//'whatever';
     // var url = $location.absUrl();
     // var instanceRegexp = /.*instance=([\[\]a-zA-Z0-9\.\-_]*?)(&|$|#).*/g;
     // var instance = instanceRegexp.exec(url);
@@ -39,9 +39,10 @@ angular.module('sendFiles')
     //   //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
     // }
     // console.log(instanceId);
+    console.log('hello' + api.getInstance());
 
     /* Represents the Component ID of this widget. */
-    var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
+    var compId = '[UNKNOWN]'; //$wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
     console.log(compId);
 
     /* Represents the user settings for the widget. */
@@ -65,14 +66,27 @@ angular.module('sendFiles')
     /* If true, "no file chosen" message is shown. */
     $scope.showNoFile = false;
 
-    /* If true, show overload file list */
-    $scope.showOverloadedList = false;
+    /* If true, show overload file popup. */
+    $scope.showOverloadedPopup = false;
 
-    /* If true, upload failure messages are shown. */
-    $scope.uploadFailed = false;
+    /* If true, show files that have failed to upload popup. */
+    $scope.showFailedUploadPopup = false;
+
+    /* If true, show the warning to user that they are submitting with errored
+     * files.
+     */
+    $scope.showErrorWarningPopup = false;
+
+    /* If true, show the message that you can't submit while files
+     * are loading.
+     */
+    $scope.showLoadingPopup = false;
 
     /* If true, file upload messages are shown in the file status bar. */
     $scope.showFileUploadMessage = false;
+
+    /* If true, error message from verification check will show up. */
+    $scope.showVerifyErrorPopup = false;
 
     /* Used to represent number of files tha that have been uploaded
      * successfully or returned an error from the server.
@@ -83,8 +97,8 @@ angular.module('sendFiles')
     /* Represents the possible submit stages. At various stages, messages
      * are shown to the user. */
     $scope.submitting = false;
-    $scope.submitted = false;
-    $scope.uploadFailed = false;
+    $scope.submitSuccessful = false;
+    $scope.submitFailed = false;
 
     /* Tell upload function to get a sessionID before processing and
      * uploading files.
@@ -129,6 +143,30 @@ angular.module('sendFiles')
      * verifySpace().
      */
     var fileUploadQueue = [];
+
+    /* A list of indices representing files that need to be reuploaded
+     * due to failures.
+     */
+    $scope.uploadRetryList = [];
+
+    /* A list of indices representing files that have failed to upload
+     * even after 5 additional retry attempts.
+     */
+    $scope.failedAfterRetryList = [];
+
+    /* While true, elements in the list of files that the user wants retried
+     * are being processed. During this time, the failed upload popup is not
+     * allowed to show up. */
+    var processingFailedAfterRetryList = false;
+
+    /* A list of files waiting to be shown to the user as files that failed
+     * to upload. They are shown once the current list has been processed. */
+    var retryQueue = [];
+
+    /* A list of messages for each file displayed with the file name. There is
+     * only a message if the file failed to upload.
+     */
+    $scope.retryMessage = [];
 
     /* An alternate message that is displayed on the submit button that only
      * appears during file uploaidng to give messages to the user. */
@@ -181,10 +219,14 @@ angular.module('sendFiles')
      * yet active.
      */
     $scope.viewStyle = function() {
-      if ($scope.active && !$scope.showOverloadedList) {
-        return {};
-      } else {
+      if (!$scope.active ||
+          $scope.showOverloadedPopup ||
+          $scope.submitSuccessful ||
+          $scope.showFailedUploadPopup ||
+          $scope.submitFailed) {
         return {'opacity' : 0.5};
+      } else {
+        return {};
       }
     };
 
@@ -192,8 +234,8 @@ angular.module('sendFiles')
      * and displaying submit sucessful message.
      */
     $scope.formStyle = function() {
-      if ($scope.submitting || $scope.submitted || $scope.uploadFailed) {
-        return {'opacity' : 0.3};
+      if ($scope.submitting) {
+        return {'opacity' : 0.5};
       } else {
         return {};
       }
@@ -215,6 +257,14 @@ angular.module('sendFiles')
         } else {
           return {'background-color': '#FF9999'};
         }
+      } else {
+        return {};
+      }
+    };
+
+    $scope.fileNameStyle = function(index) {
+      if ($scope.progressIcons[index] !== undefined) {
+        return {'max-width': '86%'};
       } else {
         return {};
       }
@@ -265,12 +315,11 @@ angular.module('sendFiles')
           $scope.fileMessage = 'Please add a file';
           $scope.showNoFile = true;
         }
-        if ($scope.totalFilesAdded - $scope.totalSuccess - $scope.totalFailed) {
-          $scope.fileUploadMessage = 'Wait for files to finish loading';
-          $scope.showFileUploadMessage = true;
-        } else if (!$scope.totalSuccess && $scope.totalFilesAdded) {
-          $scope.fileUploadMessage = 'Upload at least one file successfully';
-          $scope.showFileUploadMessage = true;
+        if (!$scope.showNoName && !$scope.showInvalidEmail &&
+            !$scope.showNoMessage && !$scope.showNoFile &&
+            !($scope.totalFilesAdded - $scope.totalSuccess - $scope.totalFailed)
+            ) {
+          $scope.showLoadingPopup = true;
         }
       } else {
         $scope.marginStyle = {'margin-bottom': 0};
@@ -287,25 +336,55 @@ angular.module('sendFiles')
       $scope.marginStyle = {};
       $scope.showNoFile = false;
       $scope.showFileUploadMessage = false;
+      $scope.showLoadingPopup = false;
     };
 
-    /* Hides and clears the list of files that violate the file limits. */
-    $scope.removeOverload = function () {
-      $scope.showOverloadedList = false;
-      $scope.overloadedList = [];
+    /* Handles all popup button clicks and responds appropriately based
+     * on the user's choice and the situation. */
+    $scope.handlePopup = function (situation) {
+      if (situation.type === 'overload') {
+        $scope.showOverloadedPopup = false;
+        $scope.overloadedList = [];
+      } else if (situation.type === 'failed upload') {
+        if (situation.reply === 'yes') {
+          $scope.showFailedUploadPopup = false;
+          processingFailedAfterRetryList = true; //important!
+          while ($scope.failedAfterRetryList.length > 0) {
+            var indexValue = $scope.failedAfterRetryList.splice(0, 1);
+            $scope.retry(indexValue[0]);
+          }
+        } else {
+          $scope.showFailedUploadPopup = false;
+          $scope.failedAfterRetryList = [];
+        }
+      } else if (situation.type === 'error warning') {
+        console.log('situation:');
+        console.log(situation.reply);
+        console.log(situation.reply === 'yes');
+        if (situation.reply === 'yes') {
+          $scope.showErrorWarningPopup = false;
+          $scope.submit();
+        } else {
+          $scope.showErrorWarningPopup = false;
+        }
+      } else if (situation.type === 'failed submit') {
+        $scope.submitFailed = false;
+        $scope.showSubmitFailedPopup = false;
+        if (situation.reply === 'try again') {
+          $scope.submit();
+        } else {
+          $scope.reset();
+        }
+      }
     };
 
     /* Determines if a user is ready to submit or not. Returns true if
      * NOT ready to submit and false if ready. */
     $scope.submitNotReady = function() {
       if (!($scope.fileForm.$invalid) && $scope.totalFilesAdded &&
-            ($scope.totalSuccess + $scope.totalFailed ) ===
-            $scope.totalFilesAdded) {
-        if ($scope.submitting) {
-          return true;
-        } else {
-          return false;
-        }
+            (($scope.totalSuccess + $scope.totalFailed ) ===
+            $scope.totalFilesAdded) && $scope.totalSuccess) {
+        return false;
       } else {
         return true;
       }
@@ -316,8 +395,10 @@ angular.module('sendFiles')
      * file processing actually happens
      */
     $scope.onFileSelect = function($files) {
-      if ($scope.active) {
+      if ($scope.active && !$scope.submitting &&
+          !$scope.submitSuccessful && !$scope.submitFailed) {
         if (firstTimeUploading) {
+          console.log('running');
           firstTimeUploading = false;
           $scope.verifySpace(function() {
             $scope.processFiles($files);
@@ -348,13 +429,7 @@ angular.module('sendFiles')
           console.log("overload!");
           file.newSize = (Math.ceil(file.size / GBbytes * 100) / 100).toString() + 'GB';
           $scope.overloadedList.push(file);
-          if ($scope.showOverloadedList) {
-            // $timeout(function() {
-            //   $scope.showOverloadedList = true;
-            // }, 5000);
-          } else {
-            $scope.showOverloadedList = true;
-          }
+          $scope.showOverloadedPopup = true;
         } else {
           $scope.totalFilesAdded += 1;
           $scope.totalBytes += file.size;
@@ -399,14 +474,18 @@ angular.module('sendFiles')
         }).error(function (data, status, headers, config) {
           console.log('Could not get sessionID');
           console.log(status);
-          $scope.submitErrorMessage = 'This app it not working right now - ' +
-           'Try again later';
-          $scope.uploadFailed = true;
-          //fail everything - tell user that owner has not enough space.
-          //probably should try to verify again! - but keep track of number of retrys with variable - only retry two times
-          //MAKE SURE IT IS IMPOSSIBLE FOR USER TO CONTINUE UPLOADING FILES
+          if (status === 401) {
+            $scope.verifyErrorMessage = 'We are not accepting files' +
+                                        ' at this time. Please contact us.';
+          }
+          $scope.verifyErrorMessage = 'Something terrible happened. Try again.';
+          firstTimeUploading = true;
+          $scope.showVerifyErrorPopup = true;
+          $timeout(function() {
+            $scope.showVerifyErrorPopup = false;
+          }, 2000);
       });
-     }
+     };
 
     /* Call this when the file at INDEX of fileList is ready 
      * to be sent to the server.
@@ -414,7 +493,9 @@ angular.module('sendFiles')
      * "uncovered" as progress goes on so by completion, the 
      * HTML element covering the progress bar has a width of 0.
      */
+    var totalruns = 0;
     $scope.start = function(index) {
+      totalruns += 1;
       index -= 1; //IMPORTANT
       console.log('this is the index: ' + index);
       if ($scope.upload[index] !== 'aborted') {
@@ -433,19 +514,83 @@ angular.module('sendFiles')
             if (status === 201) {
               //var uploadVerified = {'fileId' : data.fileI}; //make sure this the actual format
               if ($scope.uploadedFiles[index] !== 'aborted') {
+                $scope.retryMessage[index] = undefined;
+                if ($scope.failedAfterRetryList.length === 0) {
+                  processingFailedAfterRetryList = false;
+                  if (retryQueue.length > 0) {
+                    for (var i = 0; i < retryQueue.length; i++) {
+                      $scope.failedAfterRetryList[i] = retryQueue[i];
+                    }
+                    retryQueue = [];
+                    $scope.showFailedUploadPopup = true;
+                  }
+                }
                 $scope.uploadedFiles.push(data.fileId);
                 $scope.progress[index] = 0;
                 $scope.progressIcons[index] = true;
                 $scope.totalSuccess += 1;
                 console.log('uploaded!');
+                if ($scope.fileList[index].retry) {
+                  $scope.totalFailed -= 1;
+                }
+                console.log("uploaded count: " + $scope.uploadedFiles.length);
+                console.log($scope.uploadRetryList);
               }
             } else {
               console.log('ERROR ERROR ERROR: success failed!');
             }
         }).error(function(data, status, headers, config) {
+            if ($scope.failedAfterRetryList.length === 0) {
+              processingFailedAfterRetryList = false;
+              if (retryQueue.length > 0) {
+                for (var i = 0; i < retryQueue.length; i++) {
+                  $scope.failedAfterRetryList[i] = retryQueue[i];
+                }
+                retryQueue = [];
+                $scope.showFailedUploadPopup = true;
+              }
+            }
+            console.log('upload index value:');
+            console.log($scope.upload[index]);
             if ($scope.uploadedFiles[index] !== 'aborted') {
               $scope.progressIcons[index] = false;
-              $scope.totalFailed += 1;
+              if ($scope.fileList[index].retry !== true) {
+                $scope.totalFailed += 1;
+                $scope.fileList[index].retry = true;
+              }
+              var arrayPosition = $scope.uploadRetryList.map(
+                function(elem) {
+                  return elem.fileLocation;
+                }).indexOf(index);
+              if (arrayPosition < 0) {
+                $scope.retryMessage[index] = 'Failed: Auto-retrying';
+                console.log('index: ' + index);
+                console.log('reunning constantly' + arrayPosition);
+                $scope.uploadRetryList.push(
+                  {fileLocation: index,
+                   numberOfTries: 1});
+                $scope.retry(index);
+              } else {
+                if ($scope.uploadRetryList[arrayPosition].numberOfTries < 5) {
+                  console.log($scope.uploadRetryList[arrayPosition].numberOfTries);
+                  $scope.uploadRetryList[arrayPosition].numberOfTries += 1;
+                  $scope.retry(index);
+                } else {
+                  $scope.retryMessage[index] = 'Failed: Click to retry';
+                  console.log('RETRY REMOVAL: ' + ($scope.uploadRetryList[arrayPosition].numberOfTries + 1));
+                  $scope.uploadRetryList.splice(arrayPosition, 1);
+                  if (!processingFailedAfterRetryList) {
+                    $scope.failedAfterRetryList.push(index);
+                    $scope.showFailedUploadPopup = true;
+                  } else {
+                    retryQueue.push(index);
+                  }
+                }
+                console.log('totalruns: ' + totalruns);
+                console.log($scope.uploadRetryList);
+              }
+              console.log('failedAfterRetryList:');
+              console.log($scope.failedAfterRetryList);
             }
             console.log('ERROR ERROR ERROR');
             console.log(data);
@@ -493,82 +638,86 @@ angular.module('sendFiles')
         }
       }
       console.log('length: ' + uploadedFileTemp.length);
-      $scope.uploadFailed = true;
+      $scope.submitFailed = true;
     };
 
+    /* Processes the submit request from the user accordingly. */
+    $scope.submitProcessor = function () {
+      if ($scope.totalFilesAdded !== $scope.totalSuccess) {
+        $scope.showErrorWarningPopup = true;
+      } else {
+        $scope.submit();
+      }
+    };
 
     /* Call this when user submits form with files, email, and message */
-    $scope.submit = function() {
-      $scope.submitting = true;
-      var uploadedFileTemp = [];
-      var j = 0;
-      for (var i = 0; i < $scope.uploadedFiles.length; i++) {
-        if ($scope.uploadedFiles[i] !== "aborted") {//check if it should be !=
-          uploadedFileTemp[j] = $scope.uploadedFiles[i];
-          j += 1;
+    $scope.submit = function () {
+      if (!$scope.submitting) {
+        console.log('submitting!');
+        $scope.submitting = true;
+        var uploadedFileTemp = [];
+        var j = 0;
+        for (var i = 0; i < $scope.uploadedFiles.length; i++) {
+          if ($scope.uploadedFiles[i] !== "aborted") {
+            uploadedFileTemp[j] = $scope.uploadedFiles[i];
+            j += 1;
+          }
         }
+        finalSubmission.fileIds = uploadedFileTemp;
+        finalSubmission.visitorName = finalSubmission.visitorName.trim();
+        finalSubmission.visitorEmail = finalSubmission.visitorEmail.trim();
+        finalSubmission.visitorMessage = finalSubmission.visitorMessage.trim();
+        var uploadURL = '/api/files/send/' + compId + '?sessionId=' + $scope.sessionId;
+        $http({method: 'POST',
+               url: uploadURL,
+               headers: {'X-Wix-Instance' : instance},
+               data: finalSubmission,
+               timeout: 10000
+        }).success(function(data, status, headers, config) {
+            if (status === 202) {
+              $scope.submitting = false;
+              $scope.submitSuccessful = true;
+              $timeout(function() {
+                $scope.reset();
+              }, 2000);
+              //deal with capacity errors (google drive ran out of space as we
+                //were uploading after the verification) status: 400
+            } else {
+              console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
+            }
+          }).error(function(data, status, headers, config) {
+            console.log('submited and failed');
+            if (status === 400 || status === 500) {
+              $scope.submitErrorMessage = 'Something terrible happened. Try again.';
+            } else if (status === 401) {
+              $scope.submitErrorMessage = 'We are not accepting files at this time. Please contact us.';
+            } else if (status === 413) {
+              $scope.submitErrorMessage = 'The total file upload is too large. Remove a file and try again.';
+            }
+            $scope.submitting = false;
+            $scope.submitFailed = true;
+          });
       }
-      finalSubmission.fileIds = uploadedFileTemp;
-      finalSubmission.visitorName = finalSubmission.visitorName.trim();
-      finalSubmission.visitorEmail = finalSubmission.visitorEmail.trim();
-      finalSubmission.visitorMessage = finalSubmission.visitorMessage.trim();
-      var uploadURL = '/api/files/send/' + compId + '?sessionId=' + $scope.sessionId;
-      $http({method: 'POST',
-             url: uploadURL,
-             headers: {'X-Wix-Instance' : instance},
-             data: finalSubmission,
-             timeout: 10000
-      }).success(function(data, status, headers, config) {
-          if (status === 202) {
-            $scope.success();
-            $scope.reset();
-            //deal with capacity errors (google drive ran out of space as we
-              //were uploading after the verification) status: 400
-          } else {
-            console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
-          }
-        }).error(function(data, status, headers, config) {
-          console.log('submited and failed');
-          if (status === 400 || status === 500) {
-            $scope.submitErrorMessage = 'Something terrible happened. Try again.';
-          } else if (status === 401) {
-            $scope.submitErrorMessage = 'This widget isn\'t active. Contact the site owner.';
-          } else if (status === 413) {
-            $scope.submitErrorMessage = 'The total file upload is too large.';
-          }
-          $scope.initiateFailure();
-      });
-      //rebuild uploadedList, get rid of null values
-      //send $scope.uploadedList to server
-
-      //wait for status 202
     };
 
-    /* Call this function when the file has failed to upload. Changes
-     * widget to show error messages to the site visitor and gives
-     * opportunity to try to upload again. */
-    $scope.initiateFailure = function() {
-      $scope.submitting = false;
-      //call this only if submit fails
-      $scope.uploadFailed = true;
-
-      //could instatiate this function with a specific error message for the user
-      //would just change some scope variable to function argument
-    };
     /* Call this to reset widget after widget upload fail/success.
      * All failure/success messages will disappear and most variables are
      * completly reset. */
     $scope.reset = function() {
+      // $scope.fileForm.visitorName = '';
+      // $scope.fileForm.email = '';
+      // $scope.fileForm.message = '';
+
       firstTimeUploading = true;
 
       $scope.totalSuccess = 0;
       $scope.totalFailed = 0;
       $scope.submitting = false;
-      $scope.submitted = false;
+      $scope.submitSuccessful = false;
 
-      $scope.fileForm.visitorName.$invalid = true;
-      $scope.fileForm.email.$invalid = true;
-      $scope.fileForm.message.$invalid = true;
+      // $scope.fileForm.visitorName.$invalid = true;
+      // $scope.fileForm.email.$invalid = true;
+      // $scope.fileForm.message.$invalid = true;
       
       fileIndex = 0;
       $scope.uploadLimit = GBbytes;
@@ -581,16 +730,9 @@ angular.module('sendFiles')
       $scope.progressIcons = [];
       $scope.uploadedFiles = [];
       fileUploadQueue = [];
+      $scope.uploadRetryList = [];
 
-      $scope.uploadFailed = false;
-    };
-
-    /* Call this to show success widget after widget upload.
-     * A "Add more files" Button will appear to allow the user
-     * to upload more files. */
-    $scope.success = function() {
-      $scope.submitted = true;
-      $scope.submitting = false;
+      $scope.submitFailed = false;
     };
 
     /* This setting makes a call to the backend database to get the
@@ -606,7 +748,7 @@ angular.module('sendFiles')
             console.log("code", data);
             if (!data.widgetSettings.provider ||
                 !data.widgetSettings.userEmail) {
-              // $scope.active = false;
+              $scope.active = false;
             }
             console.log(data.widgetSettings.userEmail);
             if (data.widgetSettings.settings !== null &&

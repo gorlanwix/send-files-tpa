@@ -1,3 +1,11 @@
+[ng-cloak].loading {
+  display: block !important;
+}
+
+.loading {
+  display: none;
+}
+
 .logo {
 	float: left;
 	margin-right: 15px;
@@ -58,8 +66,8 @@
   margin-bottom: -5px;
 }
 
-.userEmail.ng-invalid {
-  color: red;
+.userReceiveEmail.ng-invalid {
+  /*color: red;*/
 }
 
 .align-with-above {
