@@ -2,7 +2,6 @@
 
 var fs = require('fs');
 var googleapis = require('googleapis');
-var qs = require('querystring');
 var request = require('request');
 var async = require('async');
 var httpStatus = require('http-status');
@@ -17,8 +16,20 @@ var DRIVE_API_PATH = 'upload/drive/v2/files';
 var DRIVE_ABOUT_PATH = 'drive/v2/about';
 
 
-function createOauth2Client(tokens) {
-  var oauth2Client = new OAuth2(googleKeys.clientId, googleKeys.clientSecret, googleKeys.redirectUri);
+
+function shouldRecover(statusCode) {
+  var recoverWhenStatus = [500, 501, 502, 503];
+  return recoverWhenStatus.indexOf(res.statusCode) > -1;
+}
+
+function constructUrl(root, path) {
+  path = (path.charAt(0) === '/') ? path.substr(1) : path;
+  return root + path;
+}
+
+
+var createOauth2Client = module.exports.createOauth2Client = function (tokens) {
+  var oauth2Client = new OAuth2(googleKeys.clientId, googleKeys.clientSecret);
   if (arguments.length === 1) {
     oauth2Client.credentials = tokens;
   }
@@ -26,14 +37,6 @@ function createOauth2Client(tokens) {
   return oauth2Client;
 }
 
-function constructUrl(root, path, params) {
-  var paramsString = '';
-  if (params) {
-    paramsString = '?' + qs.stringify(params);
-  }
-  path = (path.charAt(0) === '/') ? path.substr(1) : path;
-  return root + path + paramsString;
-}
 
 function getAvailableCapacity(accessToken, callback) {
   var options = {
@@ -112,13 +115,14 @@ function getUploadUrl(file, folderId, accessToken, callback) {
   var params = { uploadType: 'resumable' };
 
   var options = {
-    url: constructUrl(ROOT_URL, DRIVE_API_PATH, params),
+    url: constructUrl(ROOT_URL, DRIVE_API_PATH),
     method: 'POST',
     headers: {
       'X-Upload-Content-Type': file.mimetype,
       'X-Upload-Content-Length': file.size,
       'Authorization': 'Bearer ' + accessToken
     },
+    qs: params,
     body: fileDesc,
     json: true
   };

@@ -109,8 +109,8 @@ app.post('/api/files/send/:compId', files.send);
 
 // Settings
 
-app.get('/api/settings', settings.get);
-app.put('/api/settings', settings.put);
+app.get('/api/settings/:compId', settings.get);
+app.put('/api/settings/:compId', settings.put);
 
 // error catcher
 
