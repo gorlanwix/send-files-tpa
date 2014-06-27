@@ -73,7 +73,7 @@ function zip(files, newName, callback) {
 
 function zipAndRegister(files, visitor, sessionId, callback) {
   var now = new Date();
-  var date = [now.getMonth() + 1, now.getDay(), now.getFullYear()];
+  var date = [now.getMonth() + 1, now.getDate(), now.getFullYear()];
   var zipName = visitor.name + ' ' + date.join('-');
   zip(files, zipName, function (err, archive) {
     if (err) {
