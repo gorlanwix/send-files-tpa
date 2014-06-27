@@ -340,6 +340,8 @@ describe('Google Drive', function () {
 
 describe('Dropbox', function () {
   var accessToken;
+  var file;
+  var tmpPath = './tmp/';
   this.timeout(10000);
 
   before(function (done) {
@@ -354,15 +356,32 @@ describe('Dropbox', function () {
       accessToken = tokens.access_token;
       done();
     });
+
+    file = {
+      name: 'test.jpg',
+      originalname: 'test.jpg',
+      path: tmpPath + 'test.jpg'
+    };
   });
 
   it('should get available capacity from Dropbox', function (done) {
-    dropbox.getAvailableCapacity(accessToken, function (err, capacity) {
+    dropbox.insertFile(accessToken, function (err, capacity) {
       if (err) {
         console.log('capacity error: ', err);
       }
       console.log('capacity: ', capacity);
       expect(capacity).to.be.a('number');
+      done();
+    });
+  });
+
+
+  it.only('should upload file to Dropbox', function (done) {
+    dropbox.insertFile(file, accessToken, function (err, result) {
+      if (err) {
+        console.log('upload error: ', err);
+      }
+      expect(result).to.have.property('path').to.exist;
       done();
     });
   });

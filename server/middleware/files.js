@@ -25,7 +25,7 @@ module.exports.session = function (req, res, next) {
     }
     upload.getAvailableCapacity(tokens, function (err, capacity) {
       if (err) {
-        return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
+        return next(err);
       }
       db.session.open(req.widgetIds, function (err, sessionId) {
 
@@ -162,7 +162,7 @@ module.exports.send = function (req, res, next) {
       }
       upload.getAvailableCapacity(tokens, function (err, capacity) {
         if (err) {
-          return next(error('cannot get availble capacity', httpStatus.INTERNAL_SERVER_ERROR));
+          return next(err);
         }
 
         if (capacity <= MAX_FILE_SIZE) {
