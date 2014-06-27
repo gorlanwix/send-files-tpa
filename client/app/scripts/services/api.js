@@ -2,7 +2,8 @@
 
 angular.module('sendFiles').factory('api', function ($resource, $wix, $location) {
   var defaults = {
-    headlineText: 'Upload the file and send it to us. We will review it as soon as possible.',
+    title: 'This is my title.',
+    description: 'This is my description.',
     addButtonText: '+ Add Files',
     yourNameText: 'Your name',
     emailAddressText: 'Your email address',
