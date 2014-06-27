@@ -48,7 +48,7 @@ module.exports.post = function (instance, visitor, viewUrl, callback) {
       callback(null, data);
     }, function(error) {
       console.log('activity post error', error);
-      callback(new Error('failed to post activity to wix', null);
+      callback(new Error('failed to post activity to wix'), null);
     });
 
   // wix.Insights.getActivitiesSummary()
