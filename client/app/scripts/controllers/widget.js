@@ -348,7 +348,7 @@ angular.module('sendFiles')
       } else if (situation.type === 'failed upload') {
         if (situation.reply === 'yes') {
           $scope.showFailedUploadPopup = false;
-          processingFailedAfterRetryList = true;
+          processingFailedAfterRetryList = true; //important!
           while ($scope.failedAfterRetryList.length > 0) {
             var indexValue = $scope.failedAfterRetryList.splice(0, 1);
             $scope.retry(indexValue[0]);

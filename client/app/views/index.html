@@ -135,7 +135,7 @@
               <a class="retry-files" href="#" ng-click="retry($index)" ng-if="progressIcons[$index] === false">.</a>
               <span class="file-info" ng-style="fileNameStyle($index)">
                 <span>
-                  <span ng-if="retryMessage[$index] !== undefined">
+                  <span class="retry-message" ng-if="retryMessage[$index] !== undefined">
                     {{retryMessage[$index]}} - 
                   </span>
                     {{file.name}}

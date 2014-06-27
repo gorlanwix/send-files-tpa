@@ -248,6 +248,10 @@
   display: block;
 }
 
+.retry-message {
+  color: red;
+}
+
 .file-text {
   text-align: left;
   float: left;
