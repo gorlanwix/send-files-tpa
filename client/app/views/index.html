@@ -74,20 +74,20 @@
   </div>
 
   <div class="popup" ng-show="showLoadingPopup">
-    <span class="popup-message">
+    <span class="popup-message popup-margins">
       Please wait till all files are done loading before submitting.
     </span>
   </div>
 
   <div class="popup" ng-show="submitSuccessful">
-    <span class="popup-message">
+    <span class="popup-message popup-margins">
       Success!<br>
       Your message and {{totalSuccess}} files have been sent.
     </span> <!-- animate this away -->
   </div>
 
   <div class="popup" ng-show="submitFailed">
-    <span class="popup-message">
+    <span class="popup-message popup-margins">
       {{submitErrorMessage}}
     </span>
     <div>
@@ -102,12 +102,8 @@
     </div>
   </div>
 
-
-
-
-
   <div class="dropper" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">
-    Drop files here
+    <span class="drop-text">Drop files here</span>
   </div>
   <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()">
     <div ng-style="formStyle()">
@@ -177,28 +173,28 @@
          <div class="tool-tip-container-message">
             <span class="tool-tip-message" ng-show="showNoMessage">Please enter a message</span>
         </div>
-        <p class= "file-statistics file-status">
+<!--         <p class= "file-statistics file-status">
           <span class="no-files" ng-if="!totalFilesAdded">
             No files uploaded
           </span>
-          <span class="success-text" ng-if="totalSuccess" ng-style="successTextStyle()"> <!-- ng-if="totalSuccess" -->
+          <span class="success-text" ng-if="totalSuccess" ng-style="successTextStyle()">
             {{totalSuccess}} uploaded
           </span>
-          <span class="error-text" ng-if="totalFailed" ng-style="failedTextStyle()"> <!-- ng-if="totalFailed" -->
+          <span class="error-text" ng-if="totalFailed" ng-style="failedTextStyle()">
             {{totalFailed}} failed
           </span>
-          <span class="loading-text" ng-if="totalFilesAdded - totalSuccess - totalFailed" ng-style="loadingTextStyle()"> <!-- totalFilesAdded - totalSuccess - totalFailed -->
+          <span class="loading-text" ng-if="totalFilesAdded - totalSuccess - totalFailed" ng-style="loadingTextStyle()">
             {{totalFilesAdded - totalSuccess - totalFailed}} loading...
           </span>
           <span class="file-upload-message" ng-show="showFileUploadMessage">
             {{fileUploadMessage}}
           </span>
-        </p>
+        </p> -->
       </div>
     </div>
 
     <div class="block end-blocks submit">
-      <button class="buttons bottom-buttons"  type="submit" ng-disabled="submitNotReady()" ng-click="submit()" ng-if="!submitFailed">
+      <button class="buttons bottom-buttons"  type="submit" ng-disabled="submitNotReady()" ng-click="submitProcessor()">
         <span ng-show="!submitting">{{settings.submitButtonText}}</span>
         <span ng-show="submitting">Submitting...</span>
       </button>
@@ -206,10 +202,10 @@
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
       </div>
     </div>
-    <div class="failure-end end-blocks" ng-show="submitFailed">
+    <!-- <div class="failure-end end-blocks" ng-show="submitFailed">
       <button class="buttons bottom-buttons" type="button" ng-click="submit()">Retry</button>
       <button class="buttons bottom-buttons" type="reset" ng-click="reset()">Cancel</button>
-    </div>
+    </div> -->
   </form>
 </div>
 
