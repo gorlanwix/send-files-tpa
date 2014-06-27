@@ -2,7 +2,7 @@
 
 var googleDrive = require('./google-drive.js');
 var dropbox = require('./dropbox.js');
-var db = require('./pg-database.js');
+var db = require('../models/pg-database.js');
 var email = require('./email.js');
 var wixActivities = require('./wix-activities.js');
 

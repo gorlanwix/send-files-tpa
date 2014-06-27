@@ -1,6 +1,6 @@
 'use strict';
 
-var db = require('./pg-database.js');
+var db = require('../models/pg-database.js');
 var utils = require('../utils.js');
 var authKeys = require('../config.js').auth;
 var TokenProvider = require('./refresh-token.js');
