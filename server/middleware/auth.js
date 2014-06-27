@@ -25,37 +25,30 @@ module.exports.setParamsIfNotLoggedIn = function (params) {
         params.state = req.widgetIds.instanceId + '+' + req.widgetIds.compId;
         next();
       } else {
-        next(error('already logged in to ' + tokensFromDb.provider, httpStatus.BAD_REQUEST));
+        next(error('already connected with ' + tokensFromDb.provider, httpStatus.BAD_REQUEST));
       }
     });
   };
-}
+};
 
 module.exports.logout = function (req, res, next) {
 
-  db.token.remove(req.widgetIds, function (err, removedTokens) {
+  userAuth.disconnectUser(req.widgetIds, function (err, removedTokens) {
     if (!removedTokens) {
-      return next(error('not logged in', httpStatus.BAD_REQUEST));
+      return next(error('account is not connect', httpStatus.BAD_REQUEST));
     }
 
-    var widgetSettings = new WidgetSettings(null, '', null, null);
+    if (err) {
+      return next(error('account disconnect error', httpStatus.INTERNAL_SERVER_ERROR));
+    }
 
-    db.widget.updateSettings(req.widgetIds, widgetSettings, function (err) {
+    userAuth.revokeAccess(removedTokens, function (err) {
       if (err) {
-        return next(error('settings update error', httpStatus.INTERNAL_SERVER_ERROR));
+        console.error('token revoking error', err);
+        return next(error('token revoking error', httpStatus.INTERNAL_SERVER_ERROR));
       }
-      if (removedTokens.provider === 'google') {
-        var oauth2Client = googleDrive.createOauth2Client();
-        oauth2Client.revokeToken(removedTokens.refresh_token, function (err) {
-          if (err) {
-            console.error('token revoking error', err);
-            return next(error('token revoking error', httpStatus.INTERNAL_SERVER_ERROR));
-          }
-
-          res.status(httpStatus.OK);
-          res.json({status: httpStatus.OK});
-        });
-      }
+      res.status(httpStatus.OK);
+      res.json({status: httpStatus.OK});
     });
   });
-}
+};

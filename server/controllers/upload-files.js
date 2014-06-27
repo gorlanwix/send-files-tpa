@@ -1,6 +1,7 @@
 'use strict';
 
 var googleDrive = require('./google-drive.js');
+var dropbox = require('./dropbox.js');
 var db = require('./pg-database.js');
 var email = require('./email.js');
 
@@ -94,15 +95,29 @@ function zipAndRegister(files, visitor, sessionId, callback) {
 // uploads file to file service, returns url to view
 function serviceInsert(file, serviceSettings, tokens, callback) {
 
-  if (tokens.provider === 'google') {
-    googleDrive.insertFile(file, serviceSettings.folderId, tokens.access_token, function (err, result) {
-      if (err) {
-        console.error('uploading to google error', err);
-        return callback(err, null);
-      }
-      console.log('inserted file: ', result);
-      callback(null, result.alternateLink);
-    });
+  switch(tokens.provider) {
+    case 'google':
+      googleDrive.insertFile(file, serviceSettings.folderId, tokens.access_token, function (err, result) {
+        if (err) {
+          console.error('uploading to google error', err);
+          return callback(err, null);
+        }
+        console.log('inserted file: ', result);
+        callback(null, result.alternateLink);
+      });
+      return;
+    case 'dropbox':
+      dropbox.insertFile(file, tokens.access_token, function (err, result) {
+        if (err) {
+          console.error('uploading to google error', err);
+          return callback(err, null);
+        }
+        console.log('inserted file: ', result);
+        callback(null, result.alternateLink);
+      });
+      return;
+    default:
+      callback(new Error('invalid provider'), null);
   }
 }
 
@@ -142,7 +157,7 @@ var serviceInsertAndEmail = module.exports.serviceInsertAndEmail = function (fil
       callback(err);
     });
   });
-}
+};
 
 
 module.exports.sendFiles = function (files, visitor, instance, sessionId, tokens, callback) {
@@ -160,17 +175,20 @@ module.exports.sendFiles = function (files, visitor, instance, sessionId, tokens
       serviceInsertAndEmail(archive, settings, visitor, tokens, callback);
     });
   });
-}
+};
 
 
 
 module.exports.getAvailableCapacity = function (tokens, callback) {
-  if (tokens.provider === 'google') {
-    googleDrive.getAvailableCapacity(tokens.access_token, function (err, capacity) {
-      if (err) {
-        return callback(err, null);
-      }
-      callback(null, capacity);
-    });
+  switch (tokens.provider) {
+  case 'google':
+    googleDrive.getAvailableCapacity(tokens.access_token, callback);
+    break;
+  case 'dropbox':
+    dropbox.getAvailableCapacity(tokens.access_token, callback);
+    break;
+  default:
+    callback(new Error('invalid provider', null));
+    break;
   }
-}
+};

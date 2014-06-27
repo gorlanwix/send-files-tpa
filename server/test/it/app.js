@@ -6,6 +6,7 @@ var request = require('supertest');
 var app = require('../../app');
 var async = require('async');
 var googleDrive = require('../../controllers/google-drive.js');
+var dropbox = require('../../controllers/dropbox.js');
 var userAuth = require('../../controllers/user-auth.js');
 var email = require('../../controllers/email.js');
 var upload = require('../../controllers/upload-files.js');
@@ -15,7 +16,7 @@ var fs = require('fs');
 var connectionString = process.env.DATABASE_URL || require('../../connect-keys/pg-connect.json').connectPg;
 
 var instanceId = 'whatever';
-var compId = '1234567'
+var compId = '12345'
 
 describe('requests', function () {
   it('should be not found', function (done) {
@@ -25,7 +26,7 @@ describe('requests', function () {
   });
 });
 
-describe.only('api requests', function () {
+describe('api requests', function () {
 
   this.timeout(300000);
 
@@ -330,6 +331,57 @@ describe('Google Drive', function () {
       }
       console.log('created folder: ', result);
       expect(result).to.be.exist;
+      done();
+    });
+  });
+});
+
+
+
+describe('Dropbox', function () {
+  var accessToken;
+  var file;
+  var tmpPath = './tmp/';
+  this.timeout(10000);
+
+  before(function (done) {
+    var widgetIds = {
+      instanceId: instanceId,
+      compId: 'dropbox'
+    };
+    userAuth.getInstanceTokens(widgetIds, function (err, tokens) {
+      if (err) {
+        console.error('token retrieval error: ', err);
+      }
+      accessToken = tokens.access_token;
+      done();
+    });
+
+    file = {
+      name: 'test.jpg',
+      originalname: 'test.jpg',
+      path: tmpPath + 'test.jpg'
+    };
+  });
+
+  it('should get available capacity from Dropbox', function (done) {
+    dropbox.insertFile(accessToken, function (err, capacity) {
+      if (err) {
+        console.log('capacity error: ', err);
+      }
+      console.log('capacity: ', capacity);
+      expect(capacity).to.be.a('number');
+      done();
+    });
+  });
+
+
+  it.only('should upload file to Dropbox', function (done) {
+    dropbox.insertFile(file, accessToken, function (err, result) {
+      if (err) {
+        console.log('upload error: ', err);
+      }
+      expect(result).to.have.property('path').to.exist;
       done();
     });
   });

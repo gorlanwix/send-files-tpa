@@ -1,12 +1,14 @@
 TODO:
 
+- send actual instance (not instanceId) as a state parameter on service auth
+- dropbox support error handling
+- disconnect user if token was revoked
 - handle zipping failures independently
 - restore failed uploads every 10 minutes with task scheduler
 - handle revoked token case when still have new access token (important for upload retry's)?
-- dropbox support
 - comments and better organization
 - heroku deployment
-- scheduled temporary files clean up
+- scheduled temporary files clean up, upload session closing
 - relic
 - email templates
 - more tests

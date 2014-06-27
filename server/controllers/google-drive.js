@@ -9,7 +9,9 @@ var httpStatus = require('http-status');
 var userAuth = require('./user-auth.js');
 var config = require('../config.js');
 var OAuth2 = googleapis.auth.OAuth2;
-var googleKeys = require('../config.js').googleKeys;
+var googleKeys = require('../config.js').auth.google;
+var utils = require('../utils.js');
+var getResponseError = utils.getResponseError;
 
 // google drive specific constants
 var ROOT_URL = 'https://www.googleapis.com/';
@@ -17,14 +19,22 @@ var DRIVE_API_PATH = 'upload/drive/v2/files';
 var DRIVE_ABOUT_PATH = 'drive/v2/about';
 
 
-function createOauth2Client(tokens) {
-  var oauth2Client = new OAuth2(googleKeys.clientId, googleKeys.clientSecret, googleKeys.redirectUri);
+
+var shouldRecover(statusCode) {
+  var recoverWhenStatus = [500, 501, 502, 503];
+  return recoverWhenStatus.indexOf(res.statusCode) > -1;
+}
+
+
+
+var createOauth2Client = module.exports.createOauth2Client = function (tokens) {
+  var oauth2Client = new OAuth2(googleKeys.clientId, googleKeys.clientSecret);
   if (arguments.length === 1) {
     oauth2Client.credentials = tokens;
   }
 
   return oauth2Client;
-}
+};
 
 function constructUrl(root, path, params) {
   var paramsString = '';
@@ -35,40 +45,37 @@ function constructUrl(root, path, params) {
   return root + path + paramsString;
 }
 
-function getAvailableCapacity(accessToken, callback) {
-  var options = {
-    url: constructUrl(ROOT_URL, DRIVE_ABOUT_PATH, null),
-    method: 'GET',
-    headers: {
-      'Authorization': 'Bearer ' + accessToken
-    },
-  };
+module.exports.getAvailableCapacity = function (accessToken, callback) {
 
-  request(options, function (err, res) {
-    // for some reason it recieves unparsed res.body
-    var body = JSON.parse(res.body);
+  var oauth2Client = createOauth2Client();
 
+  oauth2Client.setCredentials({
+    access_token: accessToken
+  });
+
+  googleapis.discover('drive', 'v2').execute(function (err, client) {
     if (err) {
-      console.error('request for capacity error', err);
       return callback(err, null);
     }
+    client
+      .drive
+      .about
+      .get()
+      .withAuthClient(oauth2Client)
+      .execute(function (err, result) {
+        if (err) {
+          return callback(err, null);
+        }
+        var totalQuota = parseInt(result.quotaBytesTotal, 10);
+        var usedQuota = parseInt(result.quotaBytesUsedAggregate, 10);
+        callback(null, totalQuota - usedQuota);
 
-    if (res.statusCode !== httpStatus.OK) {
-      console.error('request error body: ', body);
-      var errorMessage = 'Cannot retrieve Google Drive capacity: ' +
-                          body.error.code + ' ' +
-                          body.error.messsage;
-      return callback(new Error(errorMessage), null);
-    }
-
-    var totalQuota = parseInt(body.quotaBytesTotal, 10);
-    var usedQuota = parseInt(body.quotaBytesUsedAggregate, 10);
-    callback(null, totalQuota - usedQuota);
+      });
   });
-}
+};
 
 // returns id of the folder
-function createFolder(accessToken, callback) {
+module.exports.createFolder = function (accessToken, callback) {
 
   var oauth2Client = createOauth2Client();
 
@@ -96,7 +103,7 @@ function createFolder(accessToken, callback) {
         callback(null, result.id);
       });
   });
-}
+};
 
 
 function getUploadUrl(file, folderId, accessToken, callback) {
@@ -134,11 +141,7 @@ function getUploadUrl(file, folderId, accessToken, callback) {
     }
 
     if (res.statusCode !== httpStatus.OK) {
-      console.error('request error body: ', body);
-      var errorMessage = 'Cannot retrieve Google Drive upload URL: ' +
-                          body.error.code + ' ' +
-                          body.error.messsage;
-      return callback(new Error(errorMessage), null);
+      return callback(getResponseError(res.statusCode), null);
     }
 
     var uploadUrl = res.headers.location;
@@ -178,9 +181,11 @@ function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
 
       if (res.statusCode === 308 && rangeHeader) { // Resume Incomplete
         callback(null, getStartUploadFrom(rangeHeader), res.statusCode);
-      } else {
+      } else if (shouldRecover(res.statusCode)) {
         // restart upload from zero
         callback(null, 0, res.statusCode);
+      } else {
+        callback(getResponseError(res.statusCode), 0, res.statusCode);
       }
     });
   }, waitFor);
@@ -216,7 +221,7 @@ function recoverUpload(file, uploadUrl, accessToken, callback) {
       if (statusCode === 308) {
         callback(null, startFrom);
       } else {
-        callback(new Error('cannot recover upload to Google Drive'), 0);
+        callback(getResponseError(statusCode), 0);
       }
     }
   );
@@ -259,14 +264,10 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
 
       // might be an issue with 308 status code, hasn't been able to replicate
 
-      var recoverWhenStatus = [500, 501, 502, 503];
-
-      var shouldRecover = recoverWhenStatus.indexOf(res.statusCode) > -1;
-
-      if (shouldRecover) {
+      if (shouldRecover(res.statusCode)) {
         callback(new Error('upload to Google Drive was interrupted'), null, true);
       } else {
-        callback(new Error('cannot upload to google drive'), null, false);
+        callback(getResponseError(res.statusCode), null, false);
       }
     }));
   });
@@ -277,7 +278,7 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
 }
 
 // returns error and parsed result of insertion
-function insertFile(file, folderId, accessToken, callback) {
+module.exports.insertFile = function (file, folderId, accessToken, callback) {
 
   console.log('insering file to google');
   getUploadUrl(file, folderId, accessToken, function (err, uploadUrl) {
@@ -339,12 +340,4 @@ function insertFile(file, folderId, accessToken, callback) {
       );
     });
   });
-}
-
-
-module.exports = {
-  insertFile: insertFile,
-  getAvailableCapacity: getAvailableCapacity,
-  createFolder: createFolder,
-  createOauth2Client: createOauth2Client
 };
