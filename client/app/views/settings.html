@@ -11,23 +11,15 @@
 					<img class="mark-icon" ng-mouseenter="show = true" ng-mouseleave="show = false" ng-src="images/question_mark.png">
 				</span>
 			</p>
-            <!-- <p class="create-account">Don't have an<br/>account? <strong><a href="#" target="_blank">Create
-                one</a></strong></p> --> 
             <a ng-href="/auth/login/google/{{compId}}?instance={{instance}}" target="_blank|_parent"><button class="submit uilib-btn connect-button floatright">Connect account</button></a>
 	    </div>
 	    <div class="loggedin-container connect" ng-show="provider">
 	    	<img class="mark-icon" ng-src="images/checkmark.png" />
 			<span class="connect">You are currently connected with your Google Drive account:</span>
 			<p>{{accountName || 'yourAccount@gmail.com'}}<!-- || 'There was an error retrieving your file repository account name.'}}--></p>
-				<!-- <p class="connect">
-					<img class="checkmark" ng-src="images/checkmark.png">
-					Messages will be sent to this email:
-				</p> -->
-				<p><a class="floatright" ng-click="logout()" ng-href="#">Disconnect Account</a></p>
-				<!--</a>--><a href="views/verified.html" style="font-size: 1px">_</a>
+				<p><a class="floatright" ng-click="logout()" target="_blank|_parent">Disconnect Account</a></p>
+				<a href="views/verified.html" style="font-size: 1px">_</a><!-- formatting -->
 		</div>
-		<!-- <p ng-show="isEmailValid && !isEmpty">Your app is active</p>
-		<p ng-hide="isEmailValid">The app will be inactive until a valid email address is entered</p> -->
 	</div>
 	<div wix-ctrl="Accordion">
 		<!--<div class="acc-pane">
@@ -93,7 +85,7 @@
 		        		<div wix-param="fillColor" wix-ctrl="ColorPickerWithOpacity" wix-options="{startWithColor: 'color-8', startWithOpacity:100}"></div>
 		        	</li>
 		        	<li wix-label="Border Color &amp; Opacity">
-		        		<div wix-param="borderOpacity" wix-ctrl="ColorPickerWithOpacity" wix-options="{startWithColor: 'color-3', startWithOpacity:90}"></div>
+		        		<div wix-param="borderColor" wix-ctrl="ColorPickerWithOpacity" wix-options="{startWithColor: 'color-3', startWithOpacity:90}"></div>
 		        	</li>
 		        	<li wix-label="Border Width">
 		        		<div wix-model="borderWidth" wix-ctrl="ButtonGroup">
@@ -112,7 +104,7 @@
 			        	<div wix-param="descriptionFont" wix-ctrl="FontStylePicker"></div>
 			        </li>
 			        <li wix-label="Background &amp; Opacity">
-		        		<div wix-param="backgroundOpacity" wix-ctrl="ColorPickerWithOpacity" wix-options="{startWithColor: 'color-3', startWithOpacity:90}"></div>
+		        		<div wix-param="backgroundColor" wix-ctrl="ColorPickerWithOpacity" wix-options="{startWithColor: 'color-3', startWithOpacity:90}"></div>
 		        	</li>
 		        	<li wix-label="Button Corners">
 		        		<div wix-model="buttonCorners" wix-ctrl="ButtonGroup">
@@ -147,7 +139,6 @@
 								<span class="mark-icon-container" wix-tooltip=" {placement:'bottom', text:' Messages will be sent to this email.'}">
 									<img ng-show="ownerForm.userReceiveEmail.$valid" class="mark-icon" ng-src="images/email_checkmark.png">
 								</span>
-								<button ng-click="tryValidate()">try</button>
 							</form>
 						</div>
 					</li>

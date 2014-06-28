@@ -5,9 +5,6 @@ angular.module('sendFiles')
   	$scope.verify = Verify;
   	$scope.verify.loggedin = true;
   	console.log($scope.verify.loggedin);
-  	
-  	//save settings before refreshing app
-  	// $wix.Settings.refreshApp();
 
   	$window.close();
   	console.log('verified controller loaded');
