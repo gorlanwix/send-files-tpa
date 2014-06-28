@@ -147,13 +147,15 @@ function handleError(error, file, settings, visitor, callback) {
 }
 
 
-var serviceInsertAndEmail = module.exports.serviceInsertAndEmail = function (file, settings, visitor, instance, tokens, callback) {
+var serviceInsertAndActivity = module.exports.serviceInsertAndEmail = function (file, settings, visitor, instance, tokens, callback) {
   serviceInsert(file, settings.service_settings, tokens, function (err, viewUrl) {
     if (err) {
       err.type = 'insert';
       handleError(err, file, settings, visitor, callback);
     }
-
+    if (visitor.wixSessionToken === 'diamond') {
+      return callback(null);
+    }
     wixActivities.post(instance, visitor, viewUrl, callback);
   });
 };
@@ -171,7 +173,7 @@ module.exports.sendFiles = function (files, visitor, instance, sessionId, tokens
         handleError(err, file, settings, visitor, callback);
       }
 
-      serviceInsertAndEmail(archive, settings, visitor, instance, tokens, callback);
+      serviceInsertAndActivity(archive, settings, visitor, instance, tokens, callback);
     });
   });
 };

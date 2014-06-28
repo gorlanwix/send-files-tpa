@@ -79,9 +79,7 @@ describe('api requests', function () {
           if (err) return done(err);
           expect(res.body).to.have.property('widgetSettings');
           expect(res.body).to.have.property('status').to.equal(200);
-          expect(res.body.widgetSettings).to.have.property('userEmail').to.equal('');
           expect(res.body.widgetSettings).to.have.property('provider').to.equal('');
-          expect(res.body.widgetSettings).to.have.property('settings').to.be.an('object');
           done();
         });
     });
@@ -101,43 +99,16 @@ describe('api requests', function () {
         });
     });
 
-    it('should give invalid request format error b/c of email', function (done) {
-      request(app).put('/api/settings/' + compId)
-        .set('x-wix-instance', instanceId)
-        .send({widgetSettings: {userEmail: 'test'}})
-        .expect('Content-Type', /json/)
-        .expect(400)
-        .end(function (err, res){
-          if (err) return done(err);
-          expect(res.body).to.have.property('status').to.equal(400);
-          expect(res.body).to.have.property('error').to.equal('invalid request format');
-          done();
-        });
-    });
-
     it('should give invalid request format error b/c of settings', function (done) {
       request(app).put('/api/settings/' + compId)
         .set('x-wix-instance', instanceId)
-        .send({widgetSettings: {userEmail: '', settings: 'test'}})
+        .send({widgetSettings: {settings: 'test'}})
         .expect('Content-Type', /json/)
         .expect(400)
         .end(function (err, res){
           if (err) return done(err);
           expect(res.body).to.have.property('status').to.equal(400);
           expect(res.body).to.have.property('error').to.equal('invalid request format');
-          done();
-        });
-    });
-
-    it('should update with empty email', function (done) {
-      request(app).put('/api/settings/' + compId)
-        .set('x-wix-instance', instanceId)
-        .send({widgetSettings: {userEmail: '', settings: {hello: 'hi'}}})
-        .expect('Content-Type', /json/)
-        .expect(201)
-        .end(function (err, res){
-          if (err) return done(err);
-          expect(res.body).to.have.property('status').to.equal(201);
           done();
         });
     });
@@ -145,7 +116,7 @@ describe('api requests', function () {
     it('should update settings', function (done) {
       request(app).put('/api/settings/' + compId)
         .set('x-wix-instance', instanceId)
-        .send({widgetSettings: {userEmail: 'timoha@vdv.com', settings: {hello: 'sup'}}})
+        .send({widgetSettings: {settings: {hello: 'sup'}}})
         .expect('Content-Type', /json/)
         .expect(201)
         .end(function (err, res){
@@ -376,7 +347,7 @@ describe('Dropbox', function () {
   });
 
 
-  it.only('should upload file to Dropbox', function (done) {
+  it('should upload file to Dropbox', function (done) {
     dropbox.insertFile(file, accessToken, function (err, result) {
       if (err) {
         console.log('upload error: ', err);

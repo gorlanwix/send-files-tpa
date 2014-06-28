@@ -2,15 +2,15 @@
 
 var query = require('../config.js').query;
 
-function insertSettings(instance, widgetSettings, callback) {
-  var q = 'INSERT INTO widget_settings (instance_id, component_id, settings, service_settings, user_email, curr_provider, updated, created) \
+module.exports.insertSettings = function (instance, widgetSettings, callback) {
+  var q = 'INSERT INTO widget_settings (instance_id, component_id, settings, service_settings, user_profile, curr_provider, updated, created) \
            VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())';
   var values = [
     instance.instanceId,
     instance.compId,
     widgetSettings.settings,
     widgetSettings.serviceSettings,
-    widgetSettings.userEmail,
+    widgetSettings.userProfile,
     widgetSettings.provider
   ];
   query(q, values, function (err, rows, result) {
@@ -21,13 +21,13 @@ function insertSettings(instance, widgetSettings, callback) {
 
     callback(null);
   });
-}
+};
 
-function updateSettings(instance, widgetSettings, callback) {
+module.exports.updateSettings = function (instance, widgetSettings, callback) {
   var q = 'UPDATE widget_settings \
            SET settings = COALESCE($1, settings), \
                service_settings = COALESCE($2, service_settings), \
-               user_email = COALESCE($3, user_email), \
+               user_profile = COALESCE($3, user_profile), \
                curr_provider = COALESCE($4, curr_provider), \
                updated = NOW() \
            WHERE instance_id = $5 \
@@ -36,7 +36,7 @@ function updateSettings(instance, widgetSettings, callback) {
   var values = [
     widgetSettings.settings,
     widgetSettings.serviceSettings,
-    widgetSettings.userEmail,
+    widgetSettings.userProfile,
     widgetSettings.provider,
     instance.instanceId,
     instance.compId
@@ -50,10 +50,10 @@ function updateSettings(instance, widgetSettings, callback) {
 
     callback(null, rows);
   });
-}
+};
 
-function getSettings(instance, callback) {
-  var q = 'SELECT settings, service_settings, user_email, curr_provider \
+module.exports.getSettings = function (instance, callback) {
+  var q = 'SELECT settings, service_settings, user_profile, curr_provider \
            FROM widget_settings \
            WHERE instance_id = $1 \
            AND component_id = $2 \
@@ -70,10 +70,4 @@ function getSettings(instance, callback) {
 
     callback(null, rows);
   });
-}
-
-module.exports = {
-  getSettings: getSettings,
-  insertSettings: insertSettings,
-  updateSettings: updateSettings
 };

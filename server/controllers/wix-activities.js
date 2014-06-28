@@ -9,7 +9,7 @@ function configureWix(instance) {
 }
 
 function constructMessage(visitor, viewUrl) {
-  var emailBackLink = '<a href="mailto:' + visitorEmail + '">' + visitorEmail + '</a>';
+  var emailBackLink = '<a href="mailto:' + visitor.email + '">' + visitor.email + '</a>';
   var body = visitor.name.first + ' ' + visitor.name.last +
              ' (' + emailBackLink + ') sent you some files.' + '<br /><br />';
   body += visitor.message + '<br /><br />';
@@ -22,13 +22,6 @@ function constructMessage(visitor, viewUrl) {
 module.exports.post = function (instance, visitor, viewUrl, callback) {
 
   var wix = configureWix(instance);
-
-  wix.Activities.getTypes()
-    .then(function(data) {
-      console.log(data);
-    }, function(error) {
-      console.log(error);
-    });
 
   var activity = wix.Activities.newActivity(wix.Activities.TYPES.CONTACT_FORM);
   var cu = activity.contactUpdate;
@@ -50,11 +43,4 @@ module.exports.post = function (instance, visitor, viewUrl, callback) {
       console.log('activity post error', error);
       callback(new Error('failed to post activity to wix'), null);
     });
-
-  // wix.Insights.getActivitiesSummary()
-  //   .then(function(data) {
-  //     console.log(data);
-  //   }, function(error) {
-  //     console.log(error);
-  //   });
 }
