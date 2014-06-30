@@ -57,9 +57,9 @@ function commitChunkedUpload(file, accessToken, uploadId, callback) {
     }
   };
 
-  request(options, function (err, res, body) {
+  request(options, function (err, res) {
     if (res.statusCode !== httpStatus.OK) {
-      console.error('commitChunkedUpload error body: ', body);
+      console.error('commitChunkedUpload error body: ', res.body);
       return callback(getResponseError(res.statusCode), null);
     }
     callback(err, JSON.parse(res.body));

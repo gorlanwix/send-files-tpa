@@ -7,7 +7,7 @@ var app = require('../../app');
 var async = require('async');
 var googleDrive = require('../../controllers/google-drive.js');
 var dropbox = require('../../controllers/dropbox.js');
-var userAuth = require('../../controllers/user-auth.js');
+var user = require('../../controllers/user.js');
 var email = require('../../controllers/email.js');
 var upload = require('../../controllers/upload-files.js');
 var query = require('../../config.js').query;
@@ -275,7 +275,7 @@ describe('Google Drive', function () {
       instanceId: instanceId,
       compId: compId
     };
-    userAuth.getInstanceTokens(widgetIds, function (err, tokens) {
+    user.getTokens(widgetIds, function (err, tokens) {
       if (err) {
         console.error('token retrieval error: ', err);
       }
@@ -284,7 +284,7 @@ describe('Google Drive', function () {
     });
   });
 
-  it('should get available capacity from Google', function (done) {
+  it.only('should get available capacity from Google', function (done) {
     googleDrive.getAvailableCapacity(accessToken, function (err, capacity) {
       if (err) {
         console.log('capacity error: ', err);
@@ -320,7 +320,7 @@ describe('Dropbox', function () {
       instanceId: instanceId,
       compId: 'dropbox'
     };
-    userAuth.getInstanceTokens(widgetIds, function (err, tokens) {
+    user.getTokens(widgetIds, function (err, tokens) {
       if (err) {
         console.error('token retrieval error: ', err);
       }

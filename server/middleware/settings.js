@@ -9,7 +9,7 @@ var httpStatus = require('http-status');
 var validator = require('validator');
 
 var error = utils.error;
-var WidgetSettings = utils.WidgetSettings;
+var WidgetSettings = db.widget.WidgetSettings;
 
 
 module.exports.get = function (req, res) {
@@ -24,10 +24,9 @@ module.exports.get = function (req, res) {
     if (widgetSettings) {
       settingsResponse.provider = widgetSettings.curr_provider;
       settingsResponse.settings = widgetSettings.settings;
-    }
-
-    if (req.query.userProfile === true) {
-      settingsResponse.userProfile = widgetSettings.user_profile;
+      if (req.query.userProfile === 'true') { // watch out, might be not a string
+        settingsResponse.userProfile = widgetSettings.user_profile;
+      }
     }
 
     res.status(httpStatus.OK);
@@ -47,20 +46,12 @@ module.exports.put = function (req, res, next) {
   }
 
   var settingsRecieved = new WidgetSettings(null, null, widgetSettings.settings, null);
-  db.widget.updateSettings(req.widgetIds, settingsRecieved, function (err, updatedWidgetSettings) {
-    if (!updatedWidgetSettings) {
-      db.widget.insertSettings(req.widgetIds, settingsRecieved, function (err) {
-        if (err) {
-          return next(error('cannot insert settings', httpStatus.INTERNAL_SERVER_ERROR));
-        }
-
-        res.status(httpStatus.CREATED);
-        res.json({status: httpStatus.CREATED});
-      });
-    } else {
-
-      res.status(httpStatus.CREATED);
-      res.json({status: httpStatus.CREATED});
+  db.widget.updateOrInsertSettings(req.widgetIds, settingsRecieved, function (err) {
+    if (err) {
+      return next(error('cannot save settings', httpStatus.INTERNAL_SERVER_ERROR));
     }
+
+    res.status(httpStatus.CREATED);
+    res.json({status: httpStatus.CREATED});
   });
 };
