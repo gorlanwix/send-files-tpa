@@ -302,7 +302,7 @@ describe('Google Drive', function () {
     });
   });
 
-  it.only('should get available capacity from Google', function (done) {
+  it('should get available capacity from Google', function (done) {
     googleDrive.getAvailableCapacity(accessToken, function (err, capacity) {
       if (err) {
         console.log('capacity error: ', err);
@@ -344,7 +344,7 @@ describe('Dropbox', function () {
   var accessToken;
   var file;
   var tmpPath = './tmp/';
-  this.timeout(10000);
+  this.timeout(300000);
 
   before(function (done) {
     var widgetIds = {
@@ -371,7 +371,7 @@ describe('Dropbox', function () {
     dropbox.insertFile(accessToken, function (err, capacity) {
       if (err) {
         console.log('capacity error: ', err);
-        return done();
+        return done(err);
       }
       console.log('capacity: ', capacity);
       expect(capacity).to.be.a('number');
@@ -380,11 +380,11 @@ describe('Dropbox', function () {
   });
 
 
-  it('should upload file to Dropbox', function (done) {
+  it.only('should upload file to Dropbox', function (done) {
     dropbox.insertFile(file, accessToken, function (err, result) {
       if (err) {
         console.log('upload error: ', err);
-        return done();
+        return done(err);
       }
       expect(result).to.have.property('path').to.exist;
       done();
