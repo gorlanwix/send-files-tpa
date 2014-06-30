@@ -2,7 +2,7 @@
 
 angular.module('sendFiles')
   .controller('WidgetCtrl', function ($scope, api, $wix, $upload, $http, $location, $timeout) {
-
+    $scope.glued = true;
      /* Regular expression used to determine if user input is a valid email. */
     $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
     
@@ -61,7 +61,7 @@ angular.module('sendFiles')
     $scope.showInvalidEmail = false;
 
     /* If true, "no message written" message is shown. */
-    $scope.showNoMessage = true;
+    $scope.showNoMessage = false;
 
     /* If true, "no file chosen" message is shown. */
     $scope.showNoFile = false;
