@@ -2,9 +2,9 @@
 
 // /api/files/* routes
 
-var userAuth = require('../controllers/user-auth.js');
+var user = require('../controllers/user.js');
 var upload = require('../controllers/upload-files.js');
-var db = require('../controllers/pg-database.js');
+var db = require('../models/pg-database.js');
 var utils = require('../utils.js');
 var config = require('../config.js');
 var MAX_FILE_SIZE = config.MAX_FILE_SIZE;
@@ -18,20 +18,22 @@ var Visitor = utils.Visitor;
 
 
 module.exports.session = function (req, res, next) {
-  userAuth.getInstanceTokens(req.widgetIds, function (err, tokens) {
+  user.getTokens(req.widgetIds, function (err, tokens) {
     if (!tokens) {
       console.error('getting instance tokens error', err);
       return next(error('widget is not signed in', httpStatus.UNAUTHORIZED));
     }
+
     upload.getAvailableCapacity(tokens, function (err, capacity) {
       if (err) {
         return next(err);
       }
-      db.session.open(req.widgetIds, function (err, sessionId) {
 
+      db.session.open(req.widgetIds, function (err, sessionId) {
         if (err) {
           return next(error('cannot open session', httpStatus.INTERNAL_SERVER_ERROR));
         }
+
         var uploadSizeLimit = (!capacity || capacity > MAX_FILE_SIZE) ? MAX_FILE_SIZE : capacity;
         var resJson = {
           sessionId: sessionId,
@@ -89,27 +91,52 @@ module.exports.upload = function (req, res, next) {
   }
 };
 
-/*
+/**
+ * creates a Visitor from recieved JSON of a format:
+ * {
+ *   visitorEmail: "",
+ *   visitorName: {
+ *     first: "",
+ *     last: ""
+ *   },
+ *   visitorMessage: ""
+ * }
+ *
+ * @param  {Object} recievedJson recieved object
+ * @return {Visitor}             current visitor
+ */
+function parseVisitor(recievedJson) {
+  var visitorEmail = recievedJson.visitorEmail;
+  var visitorName = recievedJson.visitorName;
+  var visitorMessage = recievedJson.visitorMessage;
 
-JSON format
+  var isRequiredExist = visitorEmail && visitorName && visitorMessage;
+  // needed because can't trim() undefined
+  if (!isRequiredExist) {
+    return null;
+  }
 
-{
-  "name": "kjasdfasfasdf",
-  "email": "whasdfasdfs",
-  "message": "asdfasfasdfasf"
-  "toUpload": [
-    "1",
-    "2",
-    "3"
-  ]
+  visitorEmail = visitorEmail.trim();
+  var visitorFirstName = visitorName.first.trim();
+  var visitorLastName = visitorName.last.trim();
+  visitorMessage = visitorMessage.trim();
+
+  var isValidFormat = validator.isEmail(visitorEmail) &&
+                      (visitorFirstName || visitorLastName) &&
+                      visitorMessage;
+
+  if (!isValidFormat) {
+    return null;
+  }
+
+  return new Visitor(visitorFirstName, visitorLastName, visitorEmail, visitorMessage);
 }
 
-*/
+
+
+
 
 module.exports.commit = function (req, res, next) {
-
-
-  // parse the request
 
   var recievedJson = req.body;
   var sessionId = req.query.sessionId;
@@ -122,30 +149,17 @@ module.exports.commit = function (req, res, next) {
     return next(error('request body is not JSON', httpStatus.BAD_REQUEST));
   }
 
-  var visitorEmail = recievedJson.visitorEmail;
-  var visitorName = recievedJson.visitorName;
+  var visitor = parseVisitor(recievedJson);
   var toUploadFileIds = recievedJson.fileIds;
-  var visitorMessage = recievedJson.visitorMessage;
-
-  var isRequiredExist = visitorEmail && visitorName && toUploadFileIds && visitorMessage;
-
-  if (!isRequiredExist) {
-    return next(error('invalid request format', httpStatus.BAD_REQUEST));
-  }
-  visitorEmail = visitorEmail.trim();
-  visitorName = visitorName.trim();
-  visitorMessage = visitorMessage.trim();
-
-  var isValidFormat = validator.isEmail(visitorEmail) &&
-                      toUploadFileIds instanceof Array &&
-                      !validator.isNull(visitorName) &&
-                      !validator.isNull(visitorMessage);
-
+  var wixSessionToken = recievedJson.wixSessionToken;
+  var isValidFormat = toUploadFileIds instanceof Array && visitor && wixSessionToken;
   if (!isValidFormat) {
     return next(error('invalid request format', httpStatus.BAD_REQUEST));
   }
 
-  userAuth.getInstanceTokens(req.widgetIds, function (err, tokens) {
+  req.widgetIds.sessionToken = wixSessionToken;
+
+  user.getTokens(req.widgetIds, function (err, tokens) {
 
     if (!tokens) {
       console.error('getting instance tokens error', err);
@@ -160,27 +174,28 @@ module.exports.commit = function (req, res, next) {
       if (files[0].sum > MAX_FILE_SIZE) {
         return next(error('total files size is too large', httpStatus.REQUEST_ENTITY_TOO_LARGE));
       }
+
       upload.getAvailableCapacity(tokens, function (err, capacity) {
         if (err) {
           return next(err);
         }
 
         if (capacity <= MAX_FILE_SIZE) {
-          return next(error('Google Drive is full', httpStatus.REQUEST_ENTITY_TOO_LARGE));
+          return next(error(tokens.provider + ' account is full', httpStatus.REQUEST_ENTITY_TOO_LARGE));
         }
+
         db.session.close(sessionId, function (err, session) {
           if (!session) {
-            return next(error('session has expired', httpStatus.BAD_REQUEST));
+            return next(error('invalid session', httpStatus.BAD_REQUEST));
           }
+
           res.status(httpStatus.ACCEPTED);
           res.json({status: httpStatus.ACCEPTED});
 
-          var visitor = new Visitor(visitorName, visitorEmail, visitorMessage);
           upload.sendFiles(files, visitor, req.widgetIds, sessionId, tokens, function (err) {
             if (err) {
               console.error('something went terribly wrong during upload: ', err);
             }
-
             return;
           });
         });
@@ -188,8 +203,3 @@ module.exports.commit = function (req, res, next) {
     });
   });
 };
-
-
-
-
-

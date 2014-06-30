@@ -2,7 +2,7 @@
 
 var authKeys = require('../config.js').auth;
 var utils = require('../utils.js');
-var userAuth = require('../controllers/user-auth.js');
+var user = require('../controllers/user.js');
 var googleDrive = require('../controllers/google-drive.js');
 
 var WixWidget = utils.WixWidget;
@@ -37,7 +37,7 @@ var googleStrategy = new GoogleStrategy({
     var serviceSettings = {
       folderId: folderId
     };
-    userAuth.authCallback(currInstance, tokens, profile, serviceSettings, function (err) {
+    user.insert(currInstance, tokens, profile, serviceSettings, function (err) {
       if (err) {
         console.error('google authCallback error: ', err);
         return done(err, null);
@@ -67,7 +67,7 @@ var dropboxStrategy = new DropboxStrategy({
 
   var currInstance = parseStateForWidgetIds(req.query.state);
 
-  userAuth.authCallback(currInstance, tokens, profile, null, function (err) {
+  user.authCallback(currInstance, tokens, profile, null, function (err) {
     if (err) {
       console.error('dropbox authCallback error: ', err);
       return done(err, null);

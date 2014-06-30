@@ -13,15 +13,13 @@ var bodyParser = require('body-parser');
 var multer  = require('multer');
 var httpStatus = require('http-status');
 
-
-
-var app = express();
-var passport = require('./middleware/passport.js')(app);
-
 var error = utils.error;
 var WixWidget = utils.WixWidget;
 
 
+
+var app = module.exports = express();
+var passport = require('./middleware/passport.js')(app);
 // parse application/json
 app.use(bodyParser.json());
 app.use(express.static(__dirname + config.CLIENT_APP_DIR));
@@ -83,7 +81,9 @@ app.get('/auth/logout/:compId', auth.logout);
 
 var googleParams = config.auth.google.params;
 
-app.get('/auth/login/google/:compId', auth.setParamsIfNotLoggedIn(googleParams), passport.authenticate('google', googleParams));
+app.get('/auth/login/google/:compId',
+  auth.setParamsIfNotLoggedIn(googleParams),
+  passport.authenticate('google', googleParams));
 
 app.get('/auth/callback/google', passport.authenticate('google', {
   failureRedirect: '/views/verified.html',
@@ -94,7 +94,10 @@ app.get('/auth/callback/google', passport.authenticate('google', {
 // Dropbox
 
 var dropboxParams = config.auth.dropbox.params;
-app.get('/auth/login/dropbox/:compId', auth.setParamsIfNotLoggedIn(dropboxParams), passport.authenticate('dropbox', dropboxParams));
+
+app.get('/auth/login/dropbox/:compId',
+  auth.setParamsIfNotLoggedIn(dropboxParams),
+  passport.authenticate('dropbox', dropboxParams));
 
 app.get('/auth/callback/dropbox', passport.authenticate('dropbox', {
   failureRedirect: '/views/verified.html',
@@ -115,18 +118,12 @@ app.get('/api/settings/:compId', settings.get);
 app.put('/api/settings/:compId', settings.put);
 
 // error catcher
-
 app.use(function (err, req, res, next) {
   var errorStatus = err.status || httpStatus.INTERNAL_SERVER_ERROR;
   res.json(errorStatus, {status: errorStatus, error: err.message });
 });
 
 // 404 not found
-
 app.use(function (req, res) {
   res.json(httpStatus.NOT_FOUND, {status: httpStatus.NOT_FOUND, error: 'resource not found' });
 });
-
-
-
-module.exports = app;

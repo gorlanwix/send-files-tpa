@@ -5,23 +5,19 @@ var wix = config.wix;
 
 
 // parse instance and sets parsed insatnceId
-module.exports.WixWidget = function (instanceId, compId) {
+module.exports.WixWidget = function (instanceId, compId, sessionToken) {
   this.instanceId = instanceId;
   this.compId = compId;
+  this.sessionToken = sessionToken;
 };
 
-module.exports.Visitor = function (name, email, message) {
-  this.name = name;
+module.exports.Visitor = function (firstName, lastName, email, message) {
+  this.name = {
+    first: firstName,
+    last: lastName
+  };
   this.email = email;
   this.message = message;
-};
-
-// set any param to null to avoid it's update
-module.exports.WidgetSettings = function (userEmail, provider, settings, serviceSettings) {
-  this.userEmail = userEmail;
-  this.provider = provider;
-  this.settings = settings;
-  this.serviceSettings = serviceSettings;
 };
 
 

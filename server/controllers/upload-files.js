@@ -2,8 +2,10 @@
 
 var googleDrive = require('./google-drive.js');
 var dropbox = require('./dropbox.js');
-var db = require('./pg-database.js');
+var db = require('../models/pg-database.js');
 var email = require('./email.js');
+var wixActivities = require('./wix-activities.js');
+
 
 var fs = require('fs');
 var async = require('async');
@@ -71,7 +73,7 @@ function zip(files, newName, callback) {
 
 function zipAndRegister(files, visitor, sessionId, callback) {
   var now = new Date();
-  var date = [now.getMonth(), now.getDay(), now.getYear()];
+  var date = [now.getMonth() + 1, now.getDate(), now.getFullYear()];
   var zipName = visitor.name + ' ' + date.join('-');
   zip(files, zipName, function (err, archive) {
     if (err) {
@@ -128,8 +130,10 @@ function handleError(error, file, settings, visitor, callback) {
   console.error('zipping and inserting error: ', error);
   switch (error.type) {
   case 'insert':
-    console.error('registering upload failure: ', error);
-    db.failure.insert(file.fileId, callback);
+    if (error.status !== 401) {
+      console.error('registering upload failure: ', error);
+      db.failure.insert(file.fileId, callback);
+    }
     break;
   case 'zip':
   case 'settings':
@@ -143,19 +147,16 @@ function handleError(error, file, settings, visitor, callback) {
 }
 
 
-var serviceInsertAndEmail = module.exports.serviceInsertAndEmail = function (file, settings, visitor, tokens, callback) {
-  serviceInsert(file, settings.service_settings, tokens, function (err, downloadUrl) {
+var serviceInsertAndActivity = module.exports.serviceInsertAndEmail = function (file, settings, visitor, instance, tokens, callback) {
+  serviceInsert(file, settings.service_settings, tokens, function (err, viewUrl) {
     if (err) {
       err.type = 'insert';
       handleError(err, file, settings, visitor, callback);
     }
-
-    email.send(settings.user_email, visitor, downloadUrl, function (err) {
-      if (err) {
-        console.error('sending emails error', err);
-      }
-      callback(err);
-    });
+    if (visitor.wixSessionToken === 'diamond') {
+      return callback(null);
+    }
+    wixActivities.post(instance, visitor, viewUrl, callback);
   });
 };
 
@@ -172,7 +173,7 @@ module.exports.sendFiles = function (files, visitor, instance, sessionId, tokens
         handleError(err, file, settings, visitor, callback);
       }
 
-      serviceInsertAndEmail(archive, settings, visitor, tokens, callback);
+      serviceInsertAndActivity(archive, settings, visitor, instance, tokens, callback);
     });
   });
 };
@@ -188,7 +189,7 @@ module.exports.getAvailableCapacity = function (tokens, callback) {
     dropbox.getAvailableCapacity(tokens.access_token, callback);
     break;
   default:
-    callback(new Error('invalid provider', null));
+    callback(new Error('invalid provider'), null);
     break;
   }
 };

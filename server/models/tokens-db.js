@@ -11,13 +11,13 @@ function calcTokenExpiresDate(expiresIn) {
   return expiresDate;
 }
 
-function isAccessTokenExpired(token) {
+module.exports.isAccessTokenExpired = function (token) {
   var expiresOn = +new Date(token.expires);
   var now = +new Date();
   return expiresOn < now;
 }
 
-function insert(instance, tokens, provider, callback) {
+module.exports.insert = function (instance, tokens, provider, callback) {
   var q = 'INSERT INTO oauth_token (instance_id, component_id, access_token, refresh_token, token_type, expires, provider, created) \
            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())';
   var values = [
@@ -40,7 +40,7 @@ function insert(instance, tokens, provider, callback) {
   });
 }
 
-function get(instance, callback) {
+module.exports.get = function (instance, callback) {
   var q = 'SELECT access_token, refresh_token, expires, provider \
            FROM oauth_token \
            WHERE instance_id = $1 \
@@ -62,20 +62,18 @@ function get(instance, callback) {
 }
 
 
-function update(instance, tokens, provider, callback) {
+module.exports.update = function (instance, tokens, callback) {
 
   var q = 'UPDATE oauth_token \
            SET access_token =  $1, expires = $2 \
            WHERE instance_id = $3 \
            AND component_id = $4 \
-           AND provider = $5 \
            RETURNING *';
   var values = [
     tokens.access_token,
     calcTokenExpiresDate(tokens.expires_in),
     instance.instanceId,
     instance.compId,
-    provider
   ];
 
   query.first(q, values, function (err, rows, result) {
@@ -88,7 +86,7 @@ function update(instance, tokens, provider, callback) {
   });
 }
 
-function remove(instance, callback) {
+module.exports.remove = function (instance, callback) {
   var q = 'DELETE FROM oauth_token \
            WHERE instance_id = $1 \
            AND component_id = $2 \
@@ -107,12 +105,3 @@ function remove(instance, callback) {
     callback(null, rows);
   });
 }
-
-
-module.exports = {
-  insert: insert,
-  get: get,
-  remove: remove,
-  update: update,
-  isAccessTokenExpired: isAccessTokenExpired,
-};
