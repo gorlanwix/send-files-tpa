@@ -61,7 +61,7 @@ angular.module('sendFiles')
     $scope.showInvalidEmail = false;
 
     /* If true, "no message written" message is shown. */
-    $scope.showNoMessage = false;
+    $scope.showNoMessage = true;
 
     /* If true, "no file chosen" message is shown. */
     $scope.showNoFile = false;
