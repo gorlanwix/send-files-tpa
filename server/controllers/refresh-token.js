@@ -57,7 +57,7 @@ TokenProvider.prototype.refreshToken = function (callback) {
       return callback(err, null, false);
     }
 
-    if (res.statusCode === 401) {
+    if (res.statusCode === 401 || res.statusCode === 403 || res.statusCode === 400) {
       return callback(new Error('access was revoked'), null, true);
     }
 

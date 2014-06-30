@@ -2,7 +2,6 @@
 
 var fs = require('fs');
 var googleapis = require('googleapis');
-var request = require('request');
 var async = require('async');
 var httpStatus = require('http-status');
 var user = require('./user.js');
@@ -10,7 +9,11 @@ var config = require('../config.js');
 var OAuth2 = googleapis.auth.OAuth2;
 var googleKeys = require('../config.js').auth.google;
 var utils = require('../utils.js');
-var getResponseError = utils.getResponseError;
+var request = require('request');
+
+
+var error = utils.error;
+var requestService = utils.requestService;
 
 // google drive specific constants
 var ROOT_URL = 'https://www.googleapis.com/';
@@ -21,7 +24,7 @@ var DRIVE_ABOUT_PATH = 'drive/v2/about';
 
 function shouldRecover(statusCode) {
   var recoverWhenStatus = [500, 501, 502, 503];
-  return recoverWhenStatus.indexOf(res.statusCode) > -1;
+  return recoverWhenStatus.indexOf(statusCode) > -1;
 }
 
 function constructUrl(root, path) {
@@ -30,10 +33,12 @@ function constructUrl(root, path) {
 }
 
 
-var createOauth2Client = module.exports.createOauth2Client = function (tokens) {
+var createOauth2Client = module.exports.createOauth2Client = function (accessToken) {
   var oauth2Client = new OAuth2(googleKeys.clientId, googleKeys.clientSecret);
   if (arguments.length === 1) {
-    oauth2Client.credentials = tokens;
+    oauth2Client.setCredentials({
+      access_token: accessToken
+    });
   }
 
   return oauth2Client;
@@ -42,11 +47,7 @@ var createOauth2Client = module.exports.createOauth2Client = function (tokens) {
 
 module.exports.getAvailableCapacity = function (accessToken, callback) {
 
-  var oauth2Client = createOauth2Client();
-
-  oauth2Client.setCredentials({
-    access_token: accessToken
-  });
+  var oauth2Client = createOauth2Client(accessToken);
 
   googleapis.discover('drive', 'v2').execute(function (err, client) {
     if (err) {
@@ -72,11 +73,7 @@ module.exports.getAvailableCapacity = function (accessToken, callback) {
 // returns id of the folder
 module.exports.createFolder = function (accessToken, callback) {
 
-  var oauth2Client = createOauth2Client();
-
-  oauth2Client.setCredentials({
-    access_token: accessToken
-  });
+  var oauth2Client = createOauth2Client(accessToken);
 
   var folder = {
     title: 'Wix Send Files',
@@ -127,17 +124,14 @@ function getUploadUrl(file, folderId, accessToken, callback) {
   };
 
 
-  request(options, function (err, res) {
-
-    var body = res.body;
+  requestService(options, function (err, res) {
 
     if (err) {
-      console.error('request error', err);
       return callback(err, null);
     }
 
     if (res.statusCode !== httpStatus.OK) {
-      return callback(getResponseError(res.statusCode), null);
+      return callback(error(res.body, httpStatus.INTERNAL_SERVER_ERROR), null);
     }
 
     var uploadUrl = res.headers.location;
@@ -166,12 +160,13 @@ function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
   console.log('requesting upload status, waiting for ' + waitFor);
 
   setTimeout(function () {
-    request(options, function (err, res) {
+    requestService(options, function (err, res) {
 
       if (err) {
         console.error('requestUploadStatus error:', err);
         return callback(err, 0, res.statusCode);
       }
+
       console.log('upload status headers: ', res.headers);
       var rangeHeader = res.headers['range'];
 
@@ -181,7 +176,7 @@ function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
         // restart upload from zero
         callback(null, 0, res.statusCode);
       } else {
-        callback(getResponseError(res.statusCode), 0, res.statusCode);
+        callback(error(res.body, httpStatus.INTERNAL_SERVER_ERROR), 0, res.statusCode);
       }
     });
   }, waitFor);
@@ -217,7 +212,7 @@ function recoverUpload(file, uploadUrl, accessToken, callback) {
       if (statusCode === 308) {
         callback(null, startFrom);
       } else {
-        callback(getResponseError(statusCode), 0);
+        callback(error(res.body, httpStatus.INTERNAL_SERVER_ERROR), 0);
       }
     }
   );
@@ -245,13 +240,14 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
 
   readStream.on('open', function () {
     readStream.pipe(request(options, function (err, res) {
-      var body = JSON.parse(res.body);
 
       if (err) {
         console.error('request for upload to Google Drive error: ', err);
         return callback(err, null, false); // might also set to true, should monitor this
       }
 
+      var body = JSON.parse(res.body);
+      console.log(body);
       if (res.statusCode === httpStatus.OK || res.statusCode === httpStatus.CREATED) {
         return callback(null, body, false);
       }
@@ -263,7 +259,7 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
       if (shouldRecover(res.statusCode)) {
         callback(new Error('upload to Google Drive was interrupted'), null, true);
       } else {
-        callback(getResponseError(res.statusCode), null, false);
+        callback(error(res.body, httpStatus.INTERNAL_SERVER_ERROR), null, false);
       }
     }));
   });

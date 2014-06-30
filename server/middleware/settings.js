@@ -11,10 +11,24 @@ var validator = require('validator');
 var error = utils.error;
 var WidgetSettings = db.widget.WidgetSettings;
 
-
-module.exports.get = function (req, res) {
+/**
+ * Get widget settings in the following format:
+ * {
+ *   widgetSettings: {
+ *     provider: "",
+ *     settings: {},
+ *     userProfile: {},
+ *   },
+ *   status: ""
+ * }
+ */
+module.exports.get = function (req, res, next) {
 
   db.widget.getSettings(req.widgetIds, function (err, widgetSettings) {
+
+    if (err) {
+      return error('cannot get settings', httpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     var settingsResponse = {
       provider: '',
@@ -34,7 +48,14 @@ module.exports.get = function (req, res) {
   });
 };
 
-
+/**
+ * Put widget settings in the following format:
+ * {
+ *   widgetSettings: {
+ *     settings: {}
+ *   }
+ * }
+ */
 module.exports.put = function (req, res, next) {
 
   var widgetSettings = req.body.widgetSettings;
