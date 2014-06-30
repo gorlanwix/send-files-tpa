@@ -1,8 +1,11 @@
 <div class="main-body" style="min-width: 255px;"ng-controller="WidgetCtrl" button-radius border-width widget-corners title="Drop files here" ng-file-drop="onFileSelect($files)" dropping>
-  <div class="dropper" ng-style="dropStyle()" ng-show="dropping">
-    <span class="drop-text">
-      Drop files here
-    </span>
+  <div> <!-- This surrounding div is used to prevent directives from being
+             applied to the dropper element. -->
+    <div class="dropper" ng-show="dropping">
+      <span class="drop-text">
+        Drop files here
+      </span>
+    </div>
   </div>
   <div class="active" ng-if="!active">
     <span>
@@ -107,9 +110,6 @@
     </div>
   </div>
 
-  <!-- <div class="dropper" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">
-    <span class="drop-text">Drop files here</span>
-  </div> -->
   <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()" border-width>
     <div ng-style="formStyle()" border-width>
       <div class="block end-blocks file-upload top-block" widget-corners>
@@ -179,7 +179,7 @@
          <div class="tool-tip-container-message">
             <span class="tool-tip-message" ng-show="showNoMessage">Please enter a message</span>
         </div>
-<!--         <p class= "file-statistics file-status">
+        <p class= "file-statistics file-status">
           <span class="no-files" ng-if="!totalFilesAdded">
             No files uploaded
           </span>
@@ -195,7 +195,7 @@
           <span class="file-upload-message" ng-show="showFileUploadMessage">
             {{fileUploadMessage}}
           </span>
-        </p> -->
+        </p>
       </div>
     </div>
 

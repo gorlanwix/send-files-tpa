@@ -4,12 +4,13 @@
 
 .dropper {
   position: absolute;
-  height: 90%;
-  width: 90%;
+  height: 85%;
+  width: 80%;
   z-index: 3;
-  top: 5%;
-  left: 5%;
-  border: 1px dashed #838486;
+  top: 6%;
+  left: 8%;
+  border: 8px dashed #838486;
+  border-radius: 20px;
 }
 
 .drop-text {
@@ -78,6 +79,24 @@
   -webkit-box-shadow: 1px 1px 4px #7A6969;
   box-shadow:         1px 1px 4px #7A6969;
   border-radius: 5px;
+}
+
+.popup.ng-hide-add, .popup.ng-hide-remove {
+  -webkit-transition:all linear 0.4s;
+  -moz-transition:all linear 0.4s;
+  -o-transition:all linear 0.4s;
+  transition:all linear 0.4s;
+  display:block!important;
+}
+
+.popup.ng-hide-add.ng-hide-add-active,
+.popup.ng-hide-remove {
+  opacity:0;
+}
+
+.popup.ng-hide-add,
+.popup.ng-hide-remove.ng-hide-remove-active {
+  opacity:1;
 }
 
 .popup-message {

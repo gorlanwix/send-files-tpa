@@ -209,18 +209,6 @@ angular.module('sendFiles')
       }
     };
 
-    $scope.dropStyle = function() {
-      if ($scope.settings.borderWidth === 1) {
-        return {'height' : '90%', 'width' : '90%', 'top' : '5%', 'left' : '5%'};
-      } else if ($scope.settings.borderWidth === 3) {
-        return {'height' : '90%', 'width' : '85%', 'top' : '5%', 'left' : '6%'};
-      } else if ($scope.settings.borderWidth === 5) {
-        return {'height' : '85%', 'width' : '80%', 'top' : '7%', 'left' : '8%'};
-      } else {
-        return {'height' : '85%', 'width' : '80%', 'top' : '6%', 'left' : '8%'};
-      }
-    };
-
     /* Used to change some of the form's opacity. Used for when submitting
      * and displaying submit sucessful message.
      */
