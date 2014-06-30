@@ -1,12 +1,9 @@
 # TODO
 
 ## Server (Andrey):
-- return actual classes and not database rows
 - comments and better organization
 - send actual instance (not instanceId) as a state parameter on service auth
 - dropbox support error handling
-- disconnect user if token was revoked
-- handle revoked token case when still have new access token (important for upload retry's)?
 - handle zipping failures independently
 - heroku deployment
 - scheduled temporary files clean up, upload session closing

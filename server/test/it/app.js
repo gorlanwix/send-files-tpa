@@ -302,7 +302,7 @@ describe('Google Drive', function () {
     });
   });
 
-  it('should get available capacity from Google', function (done) {
+  it.only('should get available capacity from Google', function (done) {
     googleDrive.getAvailableCapacity(accessToken, function (err, capacity) {
       if (err) {
         console.log('capacity error: ', err);
@@ -326,7 +326,7 @@ describe('Google Drive', function () {
     });
   });
 
-  it.only('should upload file to Google Drive', function (done) {
+  it('should upload file to Google Drive', function (done) {
     googleDrive.insertFile(file, folderId, accessToken, function (err, result) {
       if (err) {
         console.log('upload error: ', err);

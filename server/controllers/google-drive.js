@@ -60,6 +60,9 @@ module.exports.getAvailableCapacity = function (accessToken, callback) {
       .withAuthClient(oauth2Client)
       .execute(function (err, result) {
         if (err) {
+          if (err.code === 401) {
+            return callback(error('invalid access token', 401), null);
+          }
           return callback(err, null);
         }
         var totalQuota = parseInt(result.quotaBytesTotal, 10);

@@ -133,8 +133,7 @@ function handleError(error, instance, file, visitor, callback) {
   switch (error.type) {
   case 'insert':
     if (error.status === 401) {
-      user.remove(instance, function (err, removedTokens) {
-      });
+      user.remove(instance, callback);
     } else {
       console.error('registering upload failure: ', error);
       db.failure.insert(file.fileId, callback);
