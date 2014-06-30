@@ -97,7 +97,7 @@ module.exports.updateOrInsertSettings = function (instance, widgetSettings, call
  * Getter for widget settings
  * @param  {WixWidget} instance
  * @param  {Function} callback
- * @return {WidgetSettings}
+ * @return {WidgetSettings|null} null if not found
  */
 module.exports.getSettings = function (instance, callback) {
   var q = 'SELECT settings, service_settings, user_profile, curr_provider \
@@ -113,8 +113,12 @@ module.exports.getSettings = function (instance, callback) {
 
   query.first(q, values, function (err, row, result) {
     if (err) {
-      console.error('db settings update error: ', err);
+      console.error('db settings get error: ', err);
       return callback(err, null);
+    }
+
+    if(!row) {
+      return callback(null, null);
     }
 
     var settings = new WidgetSettings(
@@ -123,7 +127,6 @@ module.exports.getSettings = function (instance, callback) {
       row.settings,
       row.service_settings
     );
-
     callback(null, settings);
   });
 };

@@ -5,6 +5,8 @@ var dropbox = require('./dropbox.js');
 var db = require('../models/pg-database.js');
 var email = require('./email.js');
 var wixActivities = require('./wix-activities.js');
+var user = require('../controllers/user.js');
+
 
 
 var fs = require('fs');
@@ -111,11 +113,11 @@ function serviceInsert(file, serviceSettings, tokens, callback) {
     case 'dropbox':
       dropbox.insertFile(file, tokens.access_token, function (err, result) {
         if (err) {
-          console.error('uploading to google error', err);
+          console.error('uploading to dropbox error', err);
           return callback(err, null);
         }
         console.log('inserted file: ', result);
-        callback(null, result.alternateLink);
+        callback(null, result);
       });
       return;
     default:
@@ -126,20 +128,26 @@ function serviceInsert(file, serviceSettings, tokens, callback) {
 
 
 
-function handleError(error, file, settings, visitor, callback) {
+function handleError(error, instance, file, visitor, callback) {
   console.error('zipping and inserting error: ', error);
   switch (error.type) {
   case 'insert':
-    if (error.status !== 401) {
+    if (error.status === 401) {
+      user.remove(instance, callback);
+    } else {
       console.error('registering upload failure: ', error);
       db.failure.insert(file.fileId, callback);
     }
     break;
   case 'zip':
   case 'settings':
+    if (err) {
+      console.error('something is wrong with widget db: ', err);
+    }
+    break;
   default:
     console.error('sending error emails, terrible error: ', error);
-    email.sendErrors(settings.user_email, visitor, function (err, res) {
+    email.sendError(visitor, function (err, res) {
       callback(err);
     });
     break;
@@ -151,7 +159,7 @@ var serviceInsertAndActivity = module.exports.serviceInsertAndEmail = function (
   serviceInsert(file, settings.service_settings, tokens, function (err, viewUrl) {
     if (err) {
       err.type = 'insert';
-      handleError(err, file, settings, visitor, callback);
+      handleError(err, instance, file, visitor, callback);
     }
     if (visitor.wixSessionToken === 'diamond') {
       return callback(null);
@@ -163,14 +171,15 @@ var serviceInsertAndActivity = module.exports.serviceInsertAndEmail = function (
 
 module.exports.sendFiles = function (files, visitor, instance, sessionId, tokens, callback) {
   db.widget.getSettings(instance, function (err, settings) {
-    if (err) {
+    if (err || !settings) {
       err.type = 'settings';
-      handleError(err, null, settings, visitor, callback);
+      handleError(err, instance, null, visitor, callback);
     }
+
     zipAndRegister(files, visitor, sessionId, function (err, archive) {
       if (err) {
         err.type = 'zip';
-        handleError(err, file, settings, visitor, callback);
+        handleError(err, instance, file, visitor, callback);
       }
 
       serviceInsertAndActivity(archive, settings, visitor, instance, tokens, callback);

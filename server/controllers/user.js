@@ -4,7 +4,9 @@ var db = require('../models/pg-database.js');
 var authKeys = require('../config.js').auth;
 var TokenProvider = require('./refresh-token.js');
 var googleDrive = require('../controllers/google-drive.js');
-
+var utils = require('../utils.js');
+var error = utils.error;
+var httpStatus = require('http-status');
 
 var WidgetSettings = db.widget.WidgetSettings;
 
@@ -72,7 +74,10 @@ function getGoogleInstanceToken(instance, tokens, callback) {
     if (err) {
       console.error('token refreshing error: ', err);
       if (revoked) { // log out user
-        remove(instance, function (err) {
+        remove(instance, function (removeError) {
+          if (removeError) {
+            return callback(removeError, null);
+          }
           return callback(err, null);
         });
       } else {
@@ -99,6 +104,10 @@ module.exports.getTokens = function (instance, callback) {
 
     if (err) {
       return callback(err, null);
+    }
+
+    if (!tokens) {
+      return callback(error('user is disconnected', httpStatus.UNAUTHORIZED), null);
     }
 
     switch (tokens.provider) {
