@@ -14,11 +14,11 @@ TODO:
 - more tests
 
 - allow site owner to choose upload file size limit (an essay grader doesn't need 1 GB file limits)
-- add new page to call "refreshApp()" when pop up window closes
-- add debounce to save settings
+- error with emailToSave when not logged in //might be server problem
 - userEmail gone
 - replaced with userProfile {}
 - instance={{instance}}&userProfile=true
+- currently sending an object to widget. try to make it just the value
 
 NOTES:
 
