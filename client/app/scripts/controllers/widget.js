@@ -308,7 +308,7 @@ angular.module('sendFiles')
         }
         if (!$scope.showNoName && !$scope.showInvalidEmail &&
             !$scope.showNoMessage && !$scope.showNoFile &&
-            !($scope.totalFilesAdded - $scope.totalSuccess - $scope.totalFailed)
+            ($scope.totalFilesAdded - $scope.totalSuccess - $scope.totalFailed)
             ) {
           $scope.showLoadingPopup = true;
         }
@@ -521,9 +521,6 @@ angular.module('sendFiles')
                 $scope.fileList[index].uploadResult = true;
                 $scope.totalSuccess += 1;
                 console.log('uploaded!');
-                if ($scope.fileList[index].retry) {
-                  $scope.totalFailed -= 1;
-                }
                 console.log("uploaded count: " + $scope.uploadedFiles.length);
                 console.log($scope.uploadRetryList);
               }
@@ -545,10 +542,7 @@ angular.module('sendFiles')
             console.log($scope.upload[index]);
             if ($scope.uploadedFiles[index] !== 'aborted') {
               $scope.fileList[index].uploadResult = false;
-              if ($scope.fileList[index].retry !== true) {
-                $scope.totalFailed += 1;
-                $scope.fileList[index].retry = true;
-              }
+              $scope.totalFailed += 1;
               var arrayPosition = $scope.uploadRetryList.map(
                 function(elem) {
                   return elem.fileLocation;
@@ -598,6 +592,7 @@ angular.module('sendFiles')
       console.log('restarting!');
       $scope.fileList[index].progress = 100;
       $scope.fileList[index].uploadResult = undefined;
+      $scope.totalFailed -= 1;
       $scope.start(index + 1);
     };
 
