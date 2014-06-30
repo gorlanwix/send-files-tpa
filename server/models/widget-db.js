@@ -52,7 +52,7 @@ var insertSettings = module.exports.insertSettings = function (instance, widgetS
  * @param  {WixWidget}   instance
  * @param  {WidgetSettings}   widgetSettings
  * @param  {Function} callback
- * @return {null}
+ * @return {Object} updated settings
  */
 var updateSettings = module.exports.updateSettings = function (instance, widgetSettings, callback) {
   var q = 'UPDATE widget_settings \
@@ -62,7 +62,8 @@ var updateSettings = module.exports.updateSettings = function (instance, widgetS
                curr_provider = COALESCE($4, curr_provider), \
                updated = NOW() \
            WHERE instance_id = $5 \
-           AND component_id = $6';
+           AND component_id = $6 \
+           RETURNING *';
 
   var values = [
     widgetSettings.settings,
@@ -84,8 +85,11 @@ var updateSettings = module.exports.updateSettings = function (instance, widgetS
  * @return {null}
  */
 module.exports.updateOrInsertSettings = function (instance, widgetSettings, callback) {
-  updateSettings(instance, widgetSettings, function (err) {
+  updateSettings(instance, widgetSettings, function (err, updatedSettings) {
     if (err) {
+      return callback(err);
+    }
+    if (!updatedSettings) {
       insertSettings(instance, widgetSettings, callback);
     } else {
       callback(null);
