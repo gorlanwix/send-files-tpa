@@ -2,6 +2,41 @@
   position: relative;
 }
 
+.dropper {
+  position: absolute;
+  height: 90%;
+  width: 90%;
+  z-index: 3;
+  top: 5%;
+  left: 5%;
+  border: 1px dashed #838486;
+}
+
+.drop-text {
+  display: block;
+  font-size: 48px;
+  text-align: center;
+  padding-top: 60%;
+}
+
+@media all and (min-width: 330px) and (max-width: 500px) {
+  .drop-text {
+    padding-top: 50%;
+  }
+}
+
+@media all and (min-width: 500px) and (max-width: 700px) {
+  .drop-text {
+    padding-top: 30%;
+  }
+}
+
+@media all and (min-width: 700px) {
+  .drop-text {
+    padding-top: 25%;
+  }
+}
+
 .active {
   position: absolute;
   background-color: black;
@@ -98,36 +133,6 @@
  
 .animate.ng-show-active {
   opacity: 1;
-}
-
-.dropper {
-  z-index: 1;
-  position: absolute;
-  vertical-align: middle;
-  font-size: 14px;
-  background-color: #62D8BF;
-  color: white;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  /* IE compatibility */
-  filter: alpha(opacity=0);
-  margin: 0 auto;
-  text-align: center;
-}
-
-.drop-text {
-  padding-top: 30%;
-  display: block;
-}
-
-.dropping {
-  background-color: #62D8BF;
-  opacity: 1;
-  /* IE compatibility */
-  filter: alpha(opacity=1);
-  line-height: 135px;
-  z-index: 4;
 }
 
 .block {
@@ -426,6 +431,7 @@
   position: relative;
   width: 90%;
   margin: 0 auto;
+  z-index: 3
 }
 
 .tool-tip {
@@ -440,9 +446,10 @@
   z-index: 1;
   background-color: white;
   color: red;
+  z-index: 3
 }
 .tool-tip::before {
-  z-index: 2;
+  z-index: 3;
   content: '';
   position: absolute;
   top: 0;
@@ -454,7 +461,7 @@
   border-bottom: 10px solid red; 
 }
 .tool-tip::after {
-  z-index: 3;
+  z-index: 4;
   content: '';
   position: absolute;
   top: 2px;
@@ -492,6 +499,7 @@
   width: 90%;
   margin: 0 auto;
   position: relative;
+  z-index: 3;
 }
 
 .tool-tip-message {
@@ -507,9 +515,10 @@
   color: red;
   position: absolute;
   bottom: 45px;
+  z-index: 3
 }
 .tool-tip-message::before {
-  z-index: 2;
+  z-index: 3;
   content: '';
   position: absolute;
   left: 4px;
@@ -521,7 +530,7 @@
   border-bottom: 10px solid red; 
 }
 .tool-tip-message::after {
-  z-index: 3;
+  z-index: 4;
   content: '';
   position: absolute;
   left: 4px;
@@ -600,21 +609,4 @@
   filter: alpha(opacity=0.5);
   padding: 10px;
 }
-
-.failure-end {
-  padding: 6px;
-  position: relative;
-  margin: 0 auto;
-  z-index: 2;
-  width: 90%;
-  bottom: 57px;
-  text-align: center;
-}
- 
-.failure-end button {
-  margin-right: 5px;
-  margin-left: 5px;
-  padding: 10px;
-}
-
 

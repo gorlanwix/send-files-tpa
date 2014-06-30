@@ -1,4 +1,9 @@
-<div class="main-body" style="min-width: 255px;"ng-controller="WidgetCtrl">
+<div class="main-body" style="min-width: 255px;"ng-controller="WidgetCtrl" button-radius border-width widget-corners title="Drop files here" ng-file-drop="onFileSelect($files)" dropping>
+  <div class="dropper" ng-style="dropStyle()" ng-show="dropping">
+    <span class="drop-text">
+      Drop files here
+    </span>
+  </div>
   <div class="active" ng-if="!active">
     <span>
       THIS APP IS NOT YET ACTIVE.
@@ -102,12 +107,12 @@
     </div>
   </div>
 
-  <div class="dropper" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">
+  <!-- <div class="dropper" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">
     <span class="drop-text">Drop files here</span>
-  </div>
-  <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()">
-    <div ng-style="formStyle()">
-      <div class="block end-blocks file-upload top-block">
+  </div> -->
+  <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()" border-width>
+    <div ng-style="formStyle()" border-width>
+      <div class="block end-blocks file-upload top-block" widget-corners>
         <h2 class="title">
           {{settings.title}}
         </h2>
@@ -128,7 +133,8 @@
         </div>
         <ul class="list-files">
           <p ng-if="!totalFilesAdded">
-            Uploaded files are displayed here.
+            <span ng-file-drop-available="dropSupported=true" ng-show="!dropSupported">Uploaded files are displayed here</span>
+            <span ng-file-drop-available="dropSupported=true" ng-show="dropSupported">Drop files here</span>
           </p>
           <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
             <span class="file-text" ng-style="fileStyle($index)" hover>
@@ -193,7 +199,7 @@
       </div>
     </div>
 
-    <div class="block end-blocks submit bottom-block">
+    <div class="block end-blocks submit bottom-block" widget-corners>
       <button class="buttons bottom-buttons"  type="submit" ng-disabled="submitNotReady()" ng-click="submitProcessor()">
         <span ng-show="!submitting">{{settings.submitButtonText}}</span>
         <span ng-show="submitting">Submitting...</span>
@@ -202,10 +208,6 @@
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
       </div>
     </div>
-    <!-- <div class="failure-end end-blocks" ng-show="submitFailed">
-      <button class="buttons bottom-buttons" type="button" ng-click="submit()">Retry</button>
-      <button class="buttons bottom-buttons" type="reset" ng-click="reset()">Cancel</button>
-    </div> -->
   </form>
 </div>
 

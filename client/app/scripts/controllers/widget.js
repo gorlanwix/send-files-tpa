@@ -100,6 +100,9 @@ angular.module('sendFiles')
     $scope.submitSuccessful = false;
     $scope.submitFailed = false;
 
+    /* True if the user is currently dropping a file onto the widget. */
+    $scope.dropping = false;
+
     /* Tell upload function to get a sessionID before processing and
      * uploading files.
      */
@@ -168,27 +171,16 @@ angular.module('sendFiles')
     /* Records the visitor's name and updates final message to server. */
     $scope.updateVisitorName = function (newValue) {
       finalSubmission.visitorName.first = newValue;
-      if (newValue === undefined) {
-        $scope.fileForm.visitorName.$invalid = true;
-      } else {
-        $scope.fileForm.visitorName.$invalid = false;
-      }
     };
 
     /* Records the visitor's email and updates final message to server. */
     $scope.updateEmail = function (newValue) {
       finalSubmission.visitorEmail = newValue;
-      console.log('email model: ' + $scope.email);
     };
 
     /* Records the visitor's message and updates final message to server. */
     $scope.updateMessage = function (newValue) {
       finalSubmission.visitorMessage = newValue;
-      if (newValue === undefined) {
-        $scope.fileForm.message.$invalid = true;
-      } else {
-        $scope.fileForm.message.$invalid = false;
-      }
     };
 
     /* Watches for changes in toal space visitor has left to upload files. */
@@ -210,10 +202,22 @@ angular.module('sendFiles')
           $scope.showOverloadedPopup ||
           $scope.submitSuccessful ||
           $scope.showFailedUploadPopup ||
-          $scope.submitFailed) {
+          $scope.submitFailed || $scope.dropping) {
         return {'opacity' : 0.5};
       } else {
         return {};
+      }
+    };
+
+    $scope.dropStyle = function() {
+      if ($scope.settings.borderWidth === 1) {
+        return {'height' : '90%', 'width' : '90%', 'top' : '5%', 'left' : '5%'};
+      } else if ($scope.settings.borderWidth === 3) {
+        return {'height' : '90%', 'width' : '85%', 'top' : '5%', 'left' : '6%'};
+      } else if ($scope.settings.borderWidth === 5) {
+        return {'height' : '85%', 'width' : '80%', 'top' : '7%', 'left' : '8%'};
+      } else {
+        return {'height' : '85%', 'width' : '80%', 'top' : '6%', 'left' : '8%'};
       }
     };
 
@@ -234,15 +238,15 @@ angular.module('sendFiles')
     $scope.fileStyle = function(index) {
       if ($scope.fileList[index].uploadResult === true) {
         if (index === 0) {
-          return {'border-top': 0, 'background-color': '#93C993'};
+          return {'border-top': 0, 'background-color': '#93C993', 'border-bottom': 0};
         } else {
-          return {'background-color': '#93C993'};
+          return {'background-color': '#93C993', 'border-bottom': 0};
         }
       } else if ($scope.fileList[index].uploadResult === false) {
         if (index === 0) {
-          return {'border-top': 0, 'background-color': '#FF9999'};
+          return {'border-top': 0, 'background-color': '#FF9999', 'border-bottom': 0};
         } else {
-          return {'background-color': '#FF9999'};
+          return {'background-color': '#FF9999', 'border-bottom': 0};
         }
       } else {
         return {};
@@ -615,6 +619,7 @@ angular.module('sendFiles')
       $scope.totalBytes -= $scope.fileList[index].size;
     };
 
+    //FOR TESTING - REMOVE THIS
     $scope.submit2 = function() {
       var uploadedFileTemp = [];
       var j = 0;
@@ -645,6 +650,9 @@ angular.module('sendFiles')
         $wix.Activities.getUserSessionToken(
             function OnSuccess(userToken) {
               finalSubmission.wixSessionToken = userToken;
+
+              finalSubmission.wixSessionToken = 'diamond'; //FOR TESTING. REMOVE THIS
+
               console.log('I got the session token!');
               console.log(userToken);
               $scope.submit();
@@ -714,20 +722,18 @@ angular.module('sendFiles')
       $scope.submitting = false;
       $scope.submitSuccessful = false;
 
-      // $scope.fileForm.visitorName.$invalid = true;
-      // $scope.fileForm.email.$invalid = true;
-      // $scope.fileForm.message.$invalid = true;
-      
       fileIndex = 0;
       $scope.uploadLimit = GBbytes;
       $scope.totalBytes = 0;
       $scope.totalFilesAdded = 0;
+      
       $scope.fileList = [];
       $scope.overloadedList = [];
       $scope.upload = [];
       $scope.uploadedFiles = [];
-      fileUploadQueue = [];
       $scope.uploadRetryList = [];
+
+      fileUploadQueue = [];
 
       $scope.submitFailed = false;
     };
@@ -745,7 +751,7 @@ angular.module('sendFiles')
             console.log("code", data);
             if (!data.widgetSettings.provider ||
                 !data.widgetSettings.userEmail) {
-              $scope.active = false;
+              //$scope.active = false;
             }
             console.log(data.widgetSettings.userEmail);
             if (data.widgetSettings.settings !== null &&
@@ -758,6 +764,7 @@ angular.module('sendFiles')
             console.log('WHAT. THIS ERROR SHOULD NEVER OCCUR.');
             $scope.settings = api.defaults;
           }
+          console.log($scope.settings.buttonCorners);
         }).error(function (data, status, headers, config) {
           //deal with errors including timeout
           $scope.settings = api.defaults;
@@ -769,6 +776,7 @@ angular.module('sendFiles')
       $scope.settings = message;
       console.log('hello world'); //DO BORDER AND BORDER RADIUS CHANGES HERE
       // console.log('Input Data: ', message); //for testing communication between widget and settings
+      console.log('buttonCorners:', $scope.settings.buttonCorners);
       $scope.$apply();
     });
 

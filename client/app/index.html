@@ -13,36 +13,58 @@
     <link rel="stylesheet" href="styles/app.css">
     <!-- endbuild -->
     <style wix-style>
-      .block {
+      .dropper {
         border-color: {{style.borderColor color-3}};
         color: {{style.headlineColor color-15}};
         {{style.headlineFont Body-M}}
-      }
-      .end-blocks {
-        background-color: {{style.fillColor color-8}};
-      }
-      .end-blocks button {
-        background-color: {{style.buttonColor color-17}};
-        color: {{style.buttonTextColor color-25}};
-        {{style.buttonFont Body-M}}
-      }
-      .dropee {
-        background-color: {{style.fillColor color-8}};
-        color: {{style.headlineColor color-15}};
-        {{style.headlineFont Body-M}}
-      }
+
       .dropping {
         background-color: {{style.fillColor color-8}};
         color: {{style.headlineColor color-15}};
         {{style.headlineFont Body-M}}
       }
-      .file-statistics {
+      .popup {
         border-color: {{style.borderColor color-3}};
+        color: {{style.headlineColor color-15}};
+        {{style.headlineFont Body-M}}
+        background-color: {{style.fillColor color-1}};
+      }
+      .block {
+        border-color: {{style.borderColor color-3}};
+        color: {{style.headlineColor color-15}};
+        {{style.headlineFont Body-M}}
+        background-color: {{style.backgroundColor color-1}};
+      }
+
+      .block input {
+        background-color: {{style.backgroundColor color-1}};
+      }
+
+      .block textarea {
+        background-color: {{style.backgroundColor color-1}};
+      }
+
+      .end-blocks {
+        background-color: {{style.fillColor color-8}};
+      }
+      .buttons {
+        background-color: {{style.buttonColor color-17}};
+        color: {{style.buttonTextColor color-25}};
+        {{style.buttonFont Body-M}}
+      }
+      .buttons[disabled] {
+        background-color: {{style.buttonColor color-17}};
+        color: {{style.buttonTextColor color-25}};
+      }
+      .title {
+        color: {{style.titleColor color-25}};
+        {{style.titleFont Heading-M}}
+      }
+      .description {
+        color: {{style.descriptionColor color-25}};
+        {{style.descriptionFont Body-M}}
       }
       .file-text {
-        border-color: {{style.borderColor color-3}};
-      }
-      .remove {
         border-color: {{style.borderColor color-3}};
       }
       .progress-text {
@@ -54,9 +76,6 @@
       }
       .submit {
         border-color: {{style.borderColor color-3}};
-      }
-      .submit button[disabled] {
-        color: {{style.buttonTextColor color-25}};
       }
     </style>
   </head>
@@ -91,6 +110,10 @@
     <script src="scripts/controllers/widget.js"></script>
     <script src="scripts/directives/hover.js"></script>
     <script src="scripts/services/debounce.js"></script>
+    <script src="scripts/directives/buttonRadius.js"></script>
+    <script src="scripts/directives/borderWidth.js"></script>
+    <script src="scripts/directives/widgetCorners.js"></script>
+    <script src="scripts/directives/dropping.js"></script>
     <!-- endbuild -->
 
     <!-- process:remove -->
