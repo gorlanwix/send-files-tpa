@@ -17,15 +17,17 @@ module.exports.get = function (req, res) {
   db.widget.getSettings(req.widgetIds, function (err, widgetSettings) {
 
     var settingsResponse = {
-      userEmail: '',
       provider: '',
       settings: {}
     };
 
     if (widgetSettings) {
-      settingsResponse.userEmail = widgetSettings.user_email;
       settingsResponse.provider = widgetSettings.curr_provider;
       settingsResponse.settings = widgetSettings.settings;
+    }
+
+    if (req.query.userProfile === true) {
+      settingsResponse.userProfile = widgetSettings.user_profile;
     }
 
     res.status(httpStatus.OK);
@@ -37,17 +39,14 @@ module.exports.get = function (req, res) {
 module.exports.put = function (req, res, next) {
 
   var widgetSettings = req.body.widgetSettings;
-  var userEmail = widgetSettings.userEmail;
-  var isValidSettings = widgetSettings && userEmail !== undefined &&
-                        (userEmail.trim() === '' ||
-                         validator.isEmail(userEmail)) &&
+  var isValidSettings = widgetSettings &&
                         typeof widgetSettings.settings === 'object';
 
   if (!isValidSettings) {
     return next(error('invalid request format', httpStatus.BAD_REQUEST));
   }
 
-  var settingsRecieved = new WidgetSettings(userEmail, null, widgetSettings.settings, null);
+  var settingsRecieved = new WidgetSettings(null, null, widgetSettings.settings, null);
   db.widget.updateSettings(req.widgetIds, settingsRecieved, function (err, updatedWidgetSettings) {
     if (!updatedWidgetSettings) {
       db.widget.insertSettings(req.widgetIds, settingsRecieved, function (err) {

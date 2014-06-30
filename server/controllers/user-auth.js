@@ -13,28 +13,19 @@ var WidgetSettings = utils.WidgetSettings;
 
 module.exports.authCallback = function (currInstance, tokens, profile, serviceSettings, callback) {
   var provider = profile.provider;
-  var userEmail = profile.emails[0].value;
   db.token.insert(currInstance, tokens, provider, function (err) {
     if (err) {
       return callback(err);
     }
-    db.widget.getSettings(currInstance, function (err, widgetSettingsFromDb) {
+    var newWidgetSettings = new WidgetSettings(profile, provider, null, serviceSettings);
 
-      var newWidgetSettings = new WidgetSettings(userEmail || '', provider, null, serviceSettings);
-
-      if (widgetSettingsFromDb) {
-        var isEmailSet = widgetSettingsFromDb.user_email !== '';
-        // do not update email if has been set
-        if (isEmailSet) {
-          newWidgetSettings.userEmail = null;
-        }
-        db.widget.updateSettings(currInstance, newWidgetSettings, function (err) {
-          callback(err);
-        });
-      } else {
+    db.widget.updateSettings(currInstance, newWidgetSettings, function (err, widgetSettingsFromDb) {
+      if (err) {
         db.widget.insertSettings(currInstance, newWidgetSettings, function (err) {
           callback(err);
         });
+      } else {
+        callback(null);
       }
     });
   });
@@ -47,7 +38,7 @@ var disconnectUser = module.exports.disconnectUser = function (instance, callbac
       return callback(err, null);
     }
     // set provider and serviceSettings to empty
-    var widgetSettings = new WidgetSettings(null, '', null, {});
+    var widgetSettings = new WidgetSettings({}, '', null, {});
 
     db.widget.updateSettings(instance, widgetSettings, function (err) {
       callback(err, removedTokens);

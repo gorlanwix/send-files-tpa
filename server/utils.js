@@ -21,8 +21,8 @@ module.exports.Visitor = function (firstName, lastName, email, message, wixSessi
 };
 
 // set any param to null to avoid it's update
-module.exports.WidgetSettings = function (userEmail, provider, settings, serviceSettings) {
-  this.userEmail = userEmail;
+module.exports.WidgetSettings = function (profile, provider, settings, serviceSettings) {
+  this.userProfile = profile;
   this.provider = provider;
   this.settings = settings;
   this.serviceSettings = serviceSettings;
