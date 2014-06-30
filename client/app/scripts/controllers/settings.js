@@ -10,19 +10,26 @@ angular.module('sendFiles')
     $scope.instance = instance;
 
     $wix.UI.onChange('*', function (value, key) {
-      $scope.settings[key] = value;
+      if (typeof($scope.settings[key]) == Object) { // if the settings changed is a button etc
+        $scope.settings[key] = value.value;
+      } else {
+        $scope.settings[key] = value;
+      }
+      // $scope.settings[key] = value;
   	  $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
-  		$wix.Utils.getOrigCompId());
+  		  $wix.Utils.getOrigCompId());
       $scope.putSettingsDebounced();
     });
 
     var putSettings = function () {
       // Validates email. If invalid, uses last known valid email.
-      var emailToSave = $scope.userReceiveEmail;
-      if (emailRegex.test($scope.userReceiveEmail) === false) {
-        emailToSave = previousValidEmail;
-      }
-      var combineSettings = {widgetSettings: {userEmail: emailToSave, settings: $scope.settings}};
+      // var emailToSave = $scope.userReceiveEmail;
+      // console.log($scope.userReceiveEmail);
+      // console.log(emailRegex.test($scope.userReceiveEmail) === false);
+      // if (emailRegex.test($scope.userReceiveEmail) === false) {
+      //   emailToSave = previousValidEmail;
+      // }
+      var combineSettings = {widgetSettings: {settings: $scope.settings}};
       var settingsJson = JSON.stringify(combineSettings);
       var compId = $wix.Utils.getOrigCompId();
       $http.put('/api/settings/' + compId + '?instance=' + instance, 
@@ -39,7 +46,7 @@ angular.module('sendFiles')
           .then(function (response) {
             console.log("settings saved: " + response.data);
           });
-        console.log(emailToSave);
+        // console.log(emailToSave);
       }
 
     $scope.putSettingsDebounced = debounce.debounce(putSettings, 1000, false);
@@ -62,7 +69,7 @@ angular.module('sendFiles')
     }
 
     var obtainSettings = function () {
-      $http.get('/api/settings/' + $scope.compId + '?instance=' + instance, {
+      $http.get('/api/settings/' + $scope.compId + '?userProfile=true', {
             headers: {
               'Content-type': 'application/json', 
               'X-Wix-Instance': instance
@@ -75,14 +82,13 @@ angular.module('sendFiles')
                 $scope.settings = data.widgetSettings.settings; //works (this is if everything goes as planned and settings are gotten from the server)
                 $wix.UI.initialize($scope.settings);
                 $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
-                $wix.Utils.getOrigCompId());
+                  $wix.Utils.getOrigCompId());
               } else {
                 console.log('there are no saved settings');
                 $scope.settings = api.defaults; // if user does not have any saved settings
                 $wix.UI.initialize($scope.settings);
                 $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
                   $wix.Utils.getOrigCompId());
-                );
               }
             } else {
               console.log("status != 200");
@@ -90,20 +96,22 @@ angular.module('sendFiles')
               console.log('Initializing Wix UI Settings Panel');
               $wix.UI.initialize($scope.settings);
               $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
-              $wix.Utils.getOrigCompId());
-              );
+                $wix.Utils.getOrigCompId());
             }
         $scope.provider = data.widgetSettings.provider;
-        $scope.userReceiveEmail = data.widgetSettings.userEmail;
+        if ($scope.provider) {
+          $scope.userReceiveEmail = data.widgetSettings.userProfile.emails[0].value;
+        } else {
+          $scope.userReceiveEmail = null;
+        }
         previousValidEmail = $scope.userReceiveEmail;
-        console.log('provider success: ' + $scope.provider + ' ' + data.widgetSettings.userEmail);
+        console.log('provider success: ' + $scope.provider + ' ' + $scope.userReceiveEmail);
       }).error(function(data, status, headers, config) {
           console.log("There was an error obtaining your saved settings from the database.");
           $scope.settings = api.defaults;
           $wix.UI.initialize($scope.settings);
           $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
-          $wix.Utils.getOrigCompId());
-          );
+            $wix.Utils.getOrigCompId());
           console.log('provider error: ' + $scope.provider);
           // alert("There was an error obtaining your account settings.");
       });

@@ -26,4 +26,5 @@ advisory locks for file clean up?
 - replaced with userProfile {}
 - instance={{instance}}&userProfile=true
 - currently sending an object to widget. try to make it just the value
-
+- fix login problem with new server configuration
+- fix verification page not closing automatically

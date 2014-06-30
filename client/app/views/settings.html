@@ -11,7 +11,7 @@
 					<img class="mark-icon" ng-mouseenter="show = true" ng-mouseleave="show = false" ng-src="images/question_mark.png">
 				</span>
 			</p>
-            <a ng-href="/auth/login/google/{{compId}}?instance={{instance}}" target="_blank|_parent"><button class="submit uilib-btn connect-button floatright">Connect account</button></a>
+            <a ng-href="/auth/login/google/{{compId}}?instance={{instance}}" target="_blank"><button class="submit uilib-btn connect-button floatright">Connect account</button></a>
 	    </div>
 	    <div class="loggedin-container connect" ng-show="provider">
 	    	<img class="mark-icon" ng-src="images/checkmark.png" />
@@ -64,7 +64,7 @@
 			        	<div wix-model="messageText" wix-ctrl="Input" wix-options="{placeholder: 'You can add a message to site owner'}"></div>
 			        </li>
 			        <li wix-label="Submit Button Text">
-			        	<div wix-model="submitButtonText" wix-ctrl="Input" wix-options="{placeholder: 'Submit'}"></div>{{}}
+			        	<div wix-model="submitButtonText" wix-ctrl="Input" wix-options="{placeholder: 'Submit'}"></div>
 			        </li>
 		        </ul>
 	        </div>
