@@ -14,6 +14,7 @@ var maxChunkSize = 10 * 1024 * 1024; //10mb
 
 var DROPBOX_API_ROOT = 'https://api.dropbox.com/1/';
 var DROPBOX_API_CONTENT = 'https://api-content.dropbox.com/1/';
+var requestService = utils.requestService;
 
 
 
@@ -26,15 +27,15 @@ module.exports.getAvailableCapacity = function (accessToken, callback) {
     },
   };
 
-  request(options, function (err, res) {
+  requestService(options, function (err, res) {
     // for some reason it recieves unparsed res.body
-    var body = JSON.parse(res.body);
 
     if (err) {
       console.error('request for capacity error', err);
       return callback(err, null);
     }
 
+    var body = JSON.parse(res.body);
     if (res.statusCode !== httpStatus.OK) {
       console.error('request error body: ', body);
       return callback(getResponseError(res.statusCode), null);
@@ -57,7 +58,12 @@ function commitChunkedUpload(file, accessToken, uploadId, callback) {
     }
   };
 
-  request(options, function (err, res) {
+  requestService(options, function (err, res) {
+    if (err) {
+      console.error('chunked upload error', err);
+      return callback(err, null);
+    }
+
     if (res.statusCode !== httpStatus.OK) {
       console.error('commitChunkedUpload error body: ', res.body);
       return callback(getResponseError(res.statusCode), null);
