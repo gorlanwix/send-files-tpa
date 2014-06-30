@@ -35,7 +35,7 @@ module.exports.post = function (instance, visitor, viewUrl, callback) {
   ai.addField(ai.newField().withName('last').withValue(visitor.name.last));
 
 
-  wix.Activities.postActivity(activity, visitor.wixSessionToken)
+  wix.Activities.postActivity(activity, instance.sessionToken)
     .then(function(data) {
       console.log('Success! ', data);
       callback(null, data);
