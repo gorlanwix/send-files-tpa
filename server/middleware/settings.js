@@ -24,12 +24,10 @@ var WidgetSettings = db.widget.WidgetSettings;
  */
 module.exports.get = function (req, res, next) {
 
-module.exports.get = function (req, res) {
-
   db.widget.getSettings(req.widgetIds, function (err, widgetSettings) {
 
     if (err) {
-      return error('cannot get settings', httpStatus.INTERNAL_SERVER_ERROR);
+      return next(error('cannot get settings', httpStatus.INTERNAL_SERVER_ERROR));
     }
 
     var settingsResponse = {
