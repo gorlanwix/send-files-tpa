@@ -475,52 +475,6 @@
   opacity: 0;
 }
 
-.tool-tip-container {
-  position: relative;
-  width: 90%;
-  margin: 0 auto;
-  z-index: 3
-}
-
-.tool-tip {
-  margin-top: 10px;
-  display: block;
-  float: left;
-  clear: both;
-  border: 1px solid red;
-  padding: 3px;
-  padding-left: 4px;
-  padding-right: 4px;
-  z-index: 1;
-  background-color: white;
-  color: red;
-  z-index: 3
-}
-.tool-tip::before {
-  z-index: 3;
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 5px;
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 10px solid red; 
-}
-.tool-tip::after {
-  z-index: 4;
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 5px;
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 10px solid white; 
-}
-
 .user-message {
   border-top: none;
   position: relative;
@@ -541,63 +495,6 @@
   height: 10px;
 }
 
-.user-message-label {
-
-
-}
-
-.tool-tip-container-message {
-  width: 90%;
-  margin: 0 auto;
-  position: relative;
-  z-index: 3;
-}
-
-.tool-tip-message {
-  display: block;
-  float: left;
-  clear: both;
-  border: 1px solid red;
-  padding: 3px;
-  padding-left: 4px;
-  padding-right: 4px;
-  background-color: white;
-  color: red;
-  position: absolute;
-  bottom: 10%;
-  margin-bottom: 13%;
-  z-index: 3;
-}
-
-.lower-tool-tip-message {
-  margin-bottom: -9%;
-}
-
-.tool-tip-message::before {
-  z-index: 3;
-  content: '';
-  position: absolute;
-  left: 4px;
-  bottom: 105%;
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 10px solid red; 
-}
-.tool-tip-message::after {
-  z-index: 4;
-  content: '';
-  position: absolute;
-  left: 4px;
-  bottom: 95%;
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 10px solid white; 
-}
-
 .file-status {
   border-bottom: none;
   border-top: 1px solid #838486;
@@ -607,20 +504,17 @@
 .success-text {
   color: green;
   padding-right: 5px;
-  /*border-right: 1px solid #838486;*/
 }
 
 .error-text {
   color: red;
   margin-left: 10px;
   padding-right: 5px;
-  /*border-right: 1px solid #838486;*/
 }
 
 .loading-text {
   margin-left: 10px;
   padding-right: 5px;
-  /*border-right: 1px solid #838486;*/
 }
 
 .file-upload-message {
