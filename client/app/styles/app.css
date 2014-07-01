@@ -445,11 +445,11 @@
   position: relative;
 }
 
-.visitorName.ng-invalid {
+.form-input.ng-invalid {
   color: red;
 }
 
-.visitorName-label {
+.form-input-label {
   position: absolute;
   top: 15px;
   left: 5%;
@@ -458,29 +458,21 @@
   transition: 0.2s;
 }
 
-.visitorName:focus + label {
+.form-input:focus + label {
   font-size: 10px; 
   bottom: 100%;
-  margin-top: -15px;
+  margin-top: -3.5%;
   color: #62D8BF;
   padding-top: 0;
   padding-bottom: 0;
 }
 
-.visitorName.ng-pristine + label {
+.form-input.ng-pristine + label {
   z-index: 3;
 }
 
-.visitorName:not(:focus).ng-dirty + label {
+.form-input:not(:focus).ng-dirty + label {
   opacity: 0;
-}
- 
-.email.ng-invalid {
-  color: red;
-}
-
-.email-block {
-  padding-top: 17px;
 }
 
 .tool-tip-container {
@@ -530,9 +522,8 @@
 }
 
 .user-message {
-  padding-top: 17px;
   border-top: none;
-  padding-bottom: 0;
+  position: relative;
 }
 
 .user-message-box {
@@ -542,7 +533,6 @@
   outline: none;
   resize: none;
   overflow: auto;
-  margin-bottom: 17px;
   z-index: 1;
   height: 70px;
 }
@@ -551,8 +541,9 @@
   height: 10px;
 }
 
-.message.ng-invalid {
-  color: red;
+.user-message-label {
+
+
 }
 
 .tool-tip-container-message {

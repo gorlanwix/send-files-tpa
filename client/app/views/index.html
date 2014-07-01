@@ -128,14 +128,21 @@
     <!-- Note: Placeholder attribute is not supported in IE9 or below -->
 
       <div class="block files" ng-model="glued" scroll-glue>
-        <div class="tool-tip-container" ng-show="showNoFile">
+        <!-- <div class="tool-tip-container" ng-show="showNoFile">
             <span class="tool-tip">{{fileMessage}}</span>
-        </div>
+        </div> -->
         <ul class="list-files">
-          <p ng-if="!totalFilesAdded">
-            <span class="files-box-message" ng-file-drop-available="dropSupported=true" ng-show="!dropSupported">Uploaded files are displayed here</span>
-            <span class="files-box-message" ng-file-drop-available="dropSupported=true" ng-show="dropSupported">Drop files here</span>
-          </p>
+          <div ng-if="!totalFilesAdded">
+            <span class="files-box-message" ng-file-drop-available="dropSupported=true" ng-show="!dropSupported &amp;&amp; !showNoFile">
+              Uploaded files are displayed here
+            </span>
+            <span class="files-box-message" ng-file-drop-available="dropSupported=true" ng-show="dropSupported &amp;&amp; !showNoFile">
+              Drop files here
+            </span>
+            <span class="files-box-message form-invalid" ng-show="showNoFile">
+              Please add a file
+            </span>
+          </div>
           <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
             <span class="file-text" ng-style="fileStyle($index)" hover>
               <a class="retry-files" href="#" ng-click="retry($index)" ng-if="file.uploadResult === false &amp;&amp; !showFailedUploadPopup">.</a>
@@ -161,8 +168,8 @@
       </div>
 
       <div class="block input-block">
-        <input id="visitorName" name="visitorName" class="visitorName" ng-model="visitorName" ng-change="updateVisitorName(visitorName)" required>
-        <label class="visitorName-label" for="visitorName">
+        <input id="visitorName" name="visitorName" class="form-input" ng-model="visitorName" ng-change="updateVisitorName(visitorName)" required>
+        <label class="form-input-label" for="visitorName">
           <span ng-show="!showNoName">
             {{settings.yourNameText}}
           </span>
@@ -176,17 +183,33 @@
       </div>
 
       <div class="block input-block email-block">
-        <input name="email" type="email" class="email" placeholder="{{settings.emailAddressText}}" required ng-model="email" ng-pattern="emailRegex" ng-change="updateEmail(email)">
-        <div class="tool-tip-container" ng-show="showInvalidEmail">
+        <input id="email" name="email" type="email" class="form-input" required ng-model="email" ng-pattern="emailRegex" ng-change="updateEmail(email)">
+        <label class="form-input-label" for="email">
+          <span ng-show="!showInvalidEmail">
+            {{settings.emailAddressText}}
+          </span>
+          <span ng-show="showInvalidEmail" class="form-invalid">
+            Please enter a valid email address
+          </span>
+        </label>
+        <!-- <div class="tool-tip-container" ng-show="showInvalidEmail">
             <span class="tool-tip">Please enter a valid email address</span>
-        </div>
+        </div> -->
       </div>
 
       <div class="block user-message">
-        <textarea class="user-message-box" name="message" placeholder={{settings.messageText}} required ng-model="message" class="message" ng-change="updateMessage(message)"></textarea>
-         <div class="tool-tip-container-message">
+        <textarea id="message" class="user-message-box form-input" name="message" required ng-model="message" ng-change="updateMessage(message)"></textarea>
+        <label class="form-input-label user-message-label" for="message">
+          <span ng-show="!showNoMessage">
+            {{settings.messageText}}
+          </span>
+          <span ng-show="showNoMessage" class="form-invalid">
+            Please enter a message
+          </span>
+        </label>
+         <!-- <div class="tool-tip-container-message">
             <span class="tool-tip-message" ng-show="showNoMessage">Please enter a message</span>
-        </div>
+        </div> -->
         <!-- <p class= "file-statistics file-status">
           <span class="no-files" ng-if="!totalFilesAdded">
             No files uploaded

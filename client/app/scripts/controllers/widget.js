@@ -186,11 +186,19 @@ angular.module('sendFiles')
     /* Records the visitor's email and updates final message to server. */
     $scope.updateEmail = function (newValue) {
       finalSubmission.visitorEmail = newValue;
+      if (newValue === undefined) {
+        $scope.fileForm.email.$setPristine();
+        console.log('setting');
+      }
     };
 
     /* Records the visitor's message and updates final message to server. */
     $scope.updateMessage = function (newValue) {
       finalSubmission.visitorMessage = newValue;
+      if (newValue === undefined) {
+        $scope.fileForm.message.$setPristine();
+        console.log('setting');
+      }
     };
 
     /* Watches for changes in toal space visitor has left to upload files. */
