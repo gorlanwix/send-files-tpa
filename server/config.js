@@ -49,8 +49,8 @@ exports.auth = {
 
 
 exports.wixKeys = {
-  appKey : process.env.WIX_APP_KEY || require('./connect-keys/wix-key.json').appKey,
-  secretKey : process.env.WIX_SECRET_KEY || require('./connect-keys/wix-key.json').secretKey
+  appKey: process.env.WIX_APP_KEY || require('./connect-keys/wix-key.json').appKey,
+  secretKey: process.env.WIX_SECRET_KEY || require('./connect-keys/wix-key.json').secretKey
 };
 
 

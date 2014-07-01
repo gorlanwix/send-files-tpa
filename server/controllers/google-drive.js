@@ -21,18 +21,32 @@ var DRIVE_API_PATH = 'upload/drive/v2/files';
 var DRIVE_ABOUT_PATH = 'drive/v2/about';
 
 
-
+/**
+ * Checks if upload status code is recoverable
+ * @param  {number} statusCode status code to check
+ * @return {Boolean}
+ */
 function shouldRecover(statusCode) {
   var recoverWhenStatus = [500, 501, 502, 503];
   return recoverWhenStatus.indexOf(statusCode) > -1;
 }
 
+/**
+ * Constructs url
+ * @param  {String} root root of url
+ * @param  {String} path path to the source
+ * @return {String}      attached together root and path
+ */
 function constructUrl(root, path) {
   path = (path.charAt(0) === '/') ? path.substr(1) : path;
   return root + path;
 }
 
-
+/**
+ * Creates a client for googleapis
+ * @param  {String} accessToken if supplied, sets to credentials
+ * @return {Object}             oauth2 google client
+ */
 var createOauth2Client = module.exports.createOauth2Client = function (accessToken) {
   var oauth2Client = new OAuth2(googleKeys.clientId, googleKeys.clientSecret);
   if (arguments.length === 1) {
@@ -45,6 +59,13 @@ var createOauth2Client = module.exports.createOauth2Client = function (accessTok
 };
 
 
+/**
+ * Gets available quota on Google Drive
+ * @param  {String}   accessToken
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {number}               free quota
+ */
 module.exports.getAvailableCapacity = function (accessToken, callback) {
 
   var oauth2Client = createOauth2Client(accessToken);
@@ -73,7 +94,13 @@ module.exports.getAvailableCapacity = function (accessToken, callback) {
   });
 };
 
-// returns id of the folder
+/**
+ * Creates folder on Google Drive with name 'Wix Send Files'
+ * @param  {String}   accessToken
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {String}               id of the folder created
+ */
 module.exports.createFolder = function (accessToken, callback) {
 
   var oauth2Client = createOauth2Client(accessToken);
@@ -100,7 +127,15 @@ module.exports.createFolder = function (accessToken, callback) {
   });
 };
 
-
+/**
+ * Gets url for resumable upload to Google Drive
+ * @param  {Object}   file        file object
+ * @param  {String}   folderId    id of a folder to insert
+ * @param  {String}   accessToken
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {String}               upload url
+ */
 function getUploadUrl(file, folderId, accessToken, callback) {
   var fileDesc = {
     title: file.originalname,
@@ -142,6 +177,11 @@ function getUploadUrl(file, folderId, accessToken, callback) {
   });
 }
 
+/**
+ * Parse range header value to get byte to start uploading from
+ * @param  {String} range header value of format 0 - 24
+ * @return {number}       byte to start upload from
+ */
 function getStartUploadFrom(range) {
   var startFrom = 0;
   if (range) {
@@ -150,6 +190,17 @@ function getStartUploadFrom(range) {
   return startFrom;
 }
 
+/**
+ * Request how much of file has been uploaded.
+ * @param  {Object}   file        file object
+ * @param  {String}   uploadUrl   url to upload
+ * @param  {String}   accessToken
+ * @param  {number}   waitFor     number of milliseconds to wait before request
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {number}   byte to start upload form
+ * @return {number}   response status code
+ */
 function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
   var options = {
     url: uploadUrl,
@@ -185,7 +236,16 @@ function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
   }, waitFor);
 }
 
-
+/**
+ * Recovers upload to Google Drive.
+ * If Drive unavailable, retries with exponential wait time up to 16 seconds.
+ * @param  {Object}   file        file object
+ * @param  {String}   uploadUrl   url to upload
+ * @param  {String}   accessToken
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {number}   byte to recover from
+ */
 function recoverUpload(file, uploadUrl, accessToken, callback) {
   var watingTimes = [0, 1000, 2000, 4000, 8000, 16000];
   var startFrom = 0;
@@ -222,7 +282,17 @@ function recoverUpload(file, uploadUrl, accessToken, callback) {
 }
 
 
-// returns error, response body, and a boolean of whether it should be recovered
+/**
+ * Uploads file to Google Drive.
+ * @param  {Object}   file        file object
+ * @param  {Strign}   uploadUrl   url to upload
+ * @param  {String}   accessToken
+ * @param  {number}   start       byte to upload from
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {Object}               response body
+ * @return {Boolean}              whether to recover upload or not
+ */
 function uploadFile(file, uploadUrl, accessToken, start, callback) {
 
   var options = {
@@ -272,7 +342,16 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
   });
 }
 
-// returns error and parsed result of insertion
+/**
+ * Public method for uploading Google Drive and recovering on interrupt.
+ * Maximum number of recovers is MAX_UPLOAD_RECOVERS.
+ * @param  {Object}   file        file object
+ * @param  {String}   folderId    id of folder to insert
+ * @param  {String}   accessToken
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {Object}               response body object on success
+ */
 module.exports.insertFile = function (file, folderId, accessToken, callback) {
 
   console.log('insering file to google');

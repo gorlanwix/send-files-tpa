@@ -2,8 +2,6 @@
 
 ## Server (Andrey):
 - comments and better organization
-- send actual instance (not instanceId) as a state parameter on service auth
-- dropbox support error handling
 - handle zipping failures independently
 - heroku deployment
 - scheduled temporary files clean up, upload session closing
