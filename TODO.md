@@ -21,21 +21,14 @@ advisory locks for file clean up?
 
 ## Settings Pannel (Gorlan):
 - allow site owner to choose upload file size limit (an essay grader doesn't need 1 GB file limits)
-- add new page to call "refreshApp()" when pop up window closes
-- add debounce to save settings
-- name placeholder
-- order content settings
-- message "placeholder"
-- split headline into title (body L) and description (body M)
-- customize text placeholder background
-- border transparency
-- background/box transparency
-- head/description color/font
-- form background / form text
-- disconnect link
-- accordion to put site owner email (last one: configuration settings)
-- {{compId}}?instance=12345 for login and logout
-- connect settings to widget
-- userEmail object compatible with wix-model?
-
-
+- error with emailToSave when not logged in //might be server problem
+- userEmail gone
+- replaced with userProfile {}
+- instance={{instance}}&userProfile=true
+- currently sending an object to widget. try to make it just the value
+- fix login problem with new server configuration
+- fix verification page not closing automatically
+- dropbox/google choose page
+- display username/email whatever
+- add popup rather than another page to choose storage service
+- use routeprovider to configure routes for storage selection and verification completion
