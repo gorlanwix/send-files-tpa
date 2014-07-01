@@ -18,13 +18,13 @@ module.exports.insert = function (fileId, callback) {
     fileId
   ];
 
-  query(q, values, function(err) {
+  query(q, values, function (err) {
     if (err) {
       console.error('inserting failure error: ', err);
     }
     callback(err);
   });
-}
+};
 
 /**
  * Mark failure as resolved
@@ -42,7 +42,7 @@ module.exports.resolve = function (fileId, callback) {
   ];
 
   query(q, values, callback);
-}
+};
 
 /**
  * Get all outstanding failures for last 24 hours
@@ -74,4 +74,4 @@ module.exports.getAll = function (callback) {
   ];
 
   query(q, values, callback);
-}
+};

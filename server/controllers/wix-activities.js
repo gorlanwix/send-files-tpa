@@ -57,11 +57,11 @@ module.exports.post = function (instance, visitor, viewUrl, callback) {
 
 
   wix.Activities.postActivity(activity, instance.sessionToken)
-    .then(function(data) {
+    .then(function (data) {
       console.log('Success! ', data);
       callback(null, data);
-    }, function(error) {
+    }, function (error) {
       console.log('activity post error', error);
       callback(new Error('failed to post activity to wix'), null);
     });
-}
+};
