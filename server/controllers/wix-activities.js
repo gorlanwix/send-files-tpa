@@ -37,6 +37,7 @@ function constructMessage(visitor, viewUrl) {
  * @param  {Visitor}   visitor
  * @param  {String}    viewUrl  url where uploaded file can be viewed at
  * @param  {Function}  callback
+ * @return {Error}
  * @return {Object}    result of posting an activity
  */
 module.exports.post = function (instance, visitor, viewUrl, callback) {

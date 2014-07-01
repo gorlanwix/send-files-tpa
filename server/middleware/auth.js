@@ -50,6 +50,7 @@ function decryptState(state){
 /**
  * Creates folder in google drive and inserts google user account
  * @params passport callback params
+ * @return {Error}
  * @return {Object} profile
  */
 module.exports.googleCallback = function (req, accessToken, refreshToken, tokens, profile, done) {
@@ -82,6 +83,7 @@ module.exports.googleCallback = function (req, accessToken, refreshToken, tokens
 /**
  * Inserts dropbox user account
  * @params passport callback params
+ * @return {Error}
  * @return {Object} profile
  */
 module.exports.dropboxCallback = function (req, accessToken, refreshToken, tokens, profile, done) {

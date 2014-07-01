@@ -18,7 +18,12 @@ var DROPBOX_API_CONTENT = 'https://api-content.dropbox.com/1/';
 var requestService = utils.requestService;
 
 
-
+/**
+ * Gets available quota on Dropbox
+ * @param  {String}   accessToken
+ * @param  {Function} callback
+ * @return {number}               free quota
+ */
 module.exports.getAvailableCapacity = function (accessToken, callback) {
   var options = {
     url: DROPBOX_API_ROOT + 'account/info',
@@ -46,6 +51,16 @@ module.exports.getAvailableCapacity = function (accessToken, callback) {
   });
 };
 
+
+/**
+ * Finished chunked upload
+ * @param  {Object}   file        file object
+ * @param  {String}   accessToken
+ * @param  {String}   uploadId    id of upload
+ * @param  {Function} callback
+ * @return {Error}                on failure
+ * @return {Object}               response body object on success
+ */
 function commitChunkedUpload(file, accessToken, uploadId, callback) {
   var options = {
     url: DROPBOX_API_CONTENT + 'commit_chunked_upload/sandbox/' + file.originalname,
@@ -73,7 +88,14 @@ function commitChunkedUpload(file, accessToken, uploadId, callback) {
   });
 }
 
-
+/**
+ * Chunked upload to Dropbox.
+ * @param  {Object}   file        file object to upload
+ * @param  {String}   accessToken
+ * @param  {Function} callback
+ * @return {Error}                on failure
+ * @return {Object}               response body on success
+ */
 function uploadFile(file, accessToken, callback) {
 
   var readStream = fs.createReadStream(file.path);
@@ -130,7 +152,14 @@ function uploadFile(file, accessToken, callback) {
   });
 }
 
-
+/**
+ * Public method for uploading to Dropbox
+ * @param  {object}   file        file object
+ * @param  {String}   accessToken
+ * @param  {Function} callback
+ * @return {Error}                on failure
+ * @return {Object}               response body on success
+ */
 module.exports.insertFile = function (file, accessToken, callback) {
 
   console.log('insering file to dropbox');

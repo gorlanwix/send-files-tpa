@@ -6,6 +6,7 @@ var query = require('../config.js').query;
  * Opens new upload session
  * @param  {WixWidget} instance
  * @param  {Function}  callback
+ * @return {Error}
  * @return {number}    session id
  */
 module.exports.open = function (instance, callback) {
@@ -31,6 +32,7 @@ module.exports.open = function (instance, callback) {
  * Checks if session is open
  * @param  {number}   sessionId id of upload session
  * @param  {Function} callback
+ * @return {Error}
  * @return {Boolean}            true if open, fase if cloased
  */
 module.exports.isOpen = function (sessionId, callback) {
@@ -55,6 +57,7 @@ module.exports.isOpen = function (sessionId, callback) {
  * Closes upload session
  * @param  {number}   sessionId upload session id to close
  * @param  {Function} callback
+ * @return {Error}
  * @return {Object}   session row that was closed
  */
 module.exports.close = function (sessionId, callback) {

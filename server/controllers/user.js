@@ -17,7 +17,7 @@ var WidgetSettings = db.widget.WidgetSettings;
  * @param  {Object}    profile
  * @param  {Object}    serviceSettings
  * @param  {Function}  callback
- * @return {null}
+ * @return {Error}
  */
 module.exports.insert = function (instance, tokens, profile, serviceSettings, callback) {
   var provider = profile.provider;
@@ -35,6 +35,7 @@ module.exports.insert = function (instance, tokens, profile, serviceSettings, ca
  * Removes user's service account information
  * @param  {WixWidget} instance
  * @param  {Function}  callback
+ * @return {Error}
  * @return {Object}    tokens
  */
 var remove = module.exports.remove = function (instance, callback) {
@@ -56,6 +57,7 @@ var remove = module.exports.remove = function (instance, callback) {
  * @param  {WixWidget} instance
  * @param  {Object}    tokens
  * @param  {Function}  callback
+ * @return {Error}
  * @return {Object}    tokens with fresh access token
  */
 function getGoogleInstanceToken(instance, tokens, callback) {
@@ -96,6 +98,7 @@ function getGoogleInstanceToken(instance, tokens, callback) {
  * Gets fresh tokens for currently signed in account
  * @param  {WixWidget} instance
  * @param  {Function}  callback
+ * @return {Error}
  * @return {Object}    tokens with fresh access token
  */
 module.exports.getTokens = function (instance, callback) {
@@ -129,7 +132,7 @@ module.exports.getTokens = function (instance, callback) {
  * Revokes access for currently signed in accout
  * @param  {Object}   tokens
  * @param  {Function} callback
- * @return {null}
+ * @return {Error}
  */
 module.exports.revokeAccess = function (tokens, callback) {
   switch (tokens.provider) {

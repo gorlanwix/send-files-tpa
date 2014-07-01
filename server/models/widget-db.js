@@ -22,7 +22,7 @@ var WidgetSettings = module.exports.WidgetSettings = function (profile, provider
  * @param  {WixWidget}   instance
  * @param  {WidgetSettings}   widgetSettings
  * @param  {Function} callback
- * @return {null}
+ * @return {Error}
  */
 var insertSettings = module.exports.insertSettings = function (instance, widgetSettings, callback) {
   var q = 'INSERT INTO widget_settings (instance_id, component_id, settings, service_settings, user_profile, curr_provider, updated, created) \
@@ -52,6 +52,7 @@ var insertSettings = module.exports.insertSettings = function (instance, widgetS
  * @param  {WixWidget}   instance
  * @param  {WidgetSettings}   widgetSettings
  * @param  {Function} callback
+ * @return {Error}
  * @return {Object} updated settings
  */
 var updateSettings = module.exports.updateSettings = function (instance, widgetSettings, callback) {
@@ -82,7 +83,7 @@ var updateSettings = module.exports.updateSettings = function (instance, widgetS
  * @param  {WixWidget} instance
  * @param  {WidgetSettings} widgetSettings
  * @param  {Function} callback
- * @return {null}
+ * @return {Error}
  */
 module.exports.updateOrInsertSettings = function (instance, widgetSettings, callback) {
   updateSettings(instance, widgetSettings, function (err, updatedSettings) {
@@ -101,6 +102,7 @@ module.exports.updateOrInsertSettings = function (instance, widgetSettings, call
  * Getter for widget settings
  * @param  {WixWidget} instance
  * @param  {Function} callback
+ * @return {Error}
  * @return {WidgetSettings|null} null if not found
  */
 module.exports.getSettings = function (instance, callback) {
@@ -121,7 +123,7 @@ module.exports.getSettings = function (instance, callback) {
       return callback(err, null);
     }
 
-    if(!row) {
+    if (!row) {
       return callback(null, null);
     }
 

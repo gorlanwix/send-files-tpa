@@ -32,6 +32,7 @@ function generateTmpName(filename) {
  * @param  {Array}    files    Array of file objects to be zipped
  * @param  {String}   newName  original name of the file
  * @param  {Function} callback
+ * @return {Error}
  * @return {Object}   file object describing archive
  */
 function zip(files, newName, callback) {
@@ -88,6 +89,7 @@ function zip(files, newName, callback) {
  * @param  {Visitor}  Visitor  represent visitor who uploaded the files
  * @param  {number}   sessionId session id of the upload
  * @param  {Function} callback
+ * @return {Error}
  * @return {Object}   file object describing archive with fileId set
  */
 function zipAndRegister(files, visitor, sessionId, callback) {
@@ -119,6 +121,7 @@ function zipAndRegister(files, visitor, sessionId, callback) {
  * @param  {Object}   serviceSettings settings required for the service to upload
  * @param  {Object}   tokens          account tokens for auth
  * @param  {Function} callback
+ * @return {Error}
  * @return {Object}                   response of the upload
  */
 function serviceInsert(file, serviceSettings, tokens, callback) {
@@ -242,6 +245,7 @@ module.exports.sendFiles = function (files, visitor, instance, sessionId, tokens
  * Get available quota of service user is signed in to
  * @param  {Object}   tokens   of current user
  * @param  {Function} callback
+ * @return {Error}
  * @return {number}   free quota
  */
 module.exports.getAvailableCapacity = function (tokens, callback) {
