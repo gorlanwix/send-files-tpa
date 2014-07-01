@@ -52,7 +52,7 @@ var insertSettings = module.exports.insertSettings = function (instance, widgetS
  * @param  {WixWidget}   instance
  * @param  {WidgetSettings}   widgetSettings
  * @param  {Function} callback
- * @return {null}
+ * @return {Object} updated settings
  */
 var updateSettings = module.exports.updateSettings = function (instance, widgetSettings, callback) {
   var q = 'UPDATE widget_settings \
@@ -62,7 +62,8 @@ var updateSettings = module.exports.updateSettings = function (instance, widgetS
                curr_provider = COALESCE($4, curr_provider), \
                updated = NOW() \
            WHERE instance_id = $5 \
-           AND component_id = $6';
+           AND component_id = $6 \
+           RETURNING *';
 
   var values = [
     widgetSettings.settings,
@@ -84,8 +85,11 @@ var updateSettings = module.exports.updateSettings = function (instance, widgetS
  * @return {null}
  */
 module.exports.updateOrInsertSettings = function (instance, widgetSettings, callback) {
-  updateSettings(instance, widgetSettings, function (err) {
+  updateSettings(instance, widgetSettings, function (err, updatedSettings) {
     if (err) {
+      return callback(err);
+    }
+    if (!updatedSettings) {
       insertSettings(instance, widgetSettings, callback);
     } else {
       callback(null);
@@ -97,7 +101,7 @@ module.exports.updateOrInsertSettings = function (instance, widgetSettings, call
  * Getter for widget settings
  * @param  {WixWidget} instance
  * @param  {Function} callback
- * @return {WidgetSettings}
+ * @return {WidgetSettings|null} null if not found
  */
 module.exports.getSettings = function (instance, callback) {
   var q = 'SELECT settings, service_settings, user_profile, curr_provider \
@@ -113,8 +117,12 @@ module.exports.getSettings = function (instance, callback) {
 
   query.first(q, values, function (err, row, result) {
     if (err) {
-      console.error('db settings update error: ', err);
+      console.error('db settings get error: ', err);
       return callback(err, null);
+    }
+
+    if(!row) {
+      return callback(null, null);
     }
 
     var settings = new WidgetSettings(
@@ -123,7 +131,6 @@ module.exports.getSettings = function (instance, callback) {
       row.settings,
       row.service_settings
     );
-
     callback(null, settings);
   });
 };

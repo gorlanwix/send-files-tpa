@@ -1,6 +1,9 @@
 'use strict';
 
 var config = require('./config.js');
+var httpStatus = require('http-status');
+var request = require('request');
+
 var wix = config.wix;
 
 
@@ -21,19 +24,30 @@ module.exports.Visitor = function (firstName, lastName, email, message) {
 };
 
 
-module.exports.error = function (message, statusCode) {
+var error = module.exports.error = function (message, statusCode) {
   var err = new Error(message);
   err.status = statusCode;
   return err;
 };
 
+module.exports.requestService = function (options, callback) {
+  request(options, function (err, res) {
+    if (err) {
+      console.error('request error', err);
+      return callback(err, null);
+    }
 
-module.exports.getResponseError = function (statusCode) {
-  if (statusCode === 401) {
-    return error('invalid access token', httpStatus.UNAUTHORIZED);
-  }
-
-  return error('service unavailable', httpStatus.INTERNAL_SERVER_ERROR);
+    switch(res.statusCode) {
+    case 401:
+      return callback(error('invalid access token', res.statusCode), null);
+    case 404:
+      return callback(error('not found', res.statusCode), null);
+    case 400:
+      return callback(error('bad request', res.statusCode), null);
+    default:
+      return callback(null, res);
+    }
+  });
 }
 
 module.exports.getInstanceId = function (instance) {

@@ -75,14 +75,12 @@ function send(userEmail, visitor, viewUrl, callback) {
 }
 
 // sends message to both user and visitor with upload error
-function sendErrors(userEmail, visitor, callback) {
+function sendError(visitor, callback) {
 
   var smtpTransport = getTransport();
 
-  var emailErrorUser = constructErrorMessageUser(visitor.name, visitor.email, visitor.message);
   var emailErrorVisitor = constructErrorMessageVisitor(visitor.name, visitor.email, visitor.message);
 
-  var emailToUser = new Email(userEmail, visitor.email, visitor.name, emailErrorUser);
   var emailToVisitor = new Email(visitor.email, null, visitor.name, emailErrorVisitor);
 
   smtpTransport.sendMail(emailToVisitor, function (err, res) {
@@ -90,21 +88,15 @@ function sendErrors(userEmail, visitor, callback) {
       console.error('emailToVisitor error: ', err);
       return callback(err, null);
     }
-    smtpTransport.sendMail(emailToUser, function (err, res) {
-      if (err) {
-        console.error('emailToUser error: ', err);
-        return callback(err, null);
-      }
 
-      smtpTransport.close();
-      callback(null, res);
-    });
+    smtpTransport.close();
+    callback(null, res);
   });
 }
 
 module.exports = {
   send: send,
-  sendErrors: sendErrors
+  sendError: sendError
 };
 
 

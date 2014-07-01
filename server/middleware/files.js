@@ -34,23 +34,33 @@ module.exports.session = function (req, res, next) {
 
     upload.getAvailableCapacity(tokens, function (err, capacity) {
       if (err) {
-        return next(err);
-      }
+        if (err.status === 401 || err.status === 403) {
+          user.remove(req.widgetIds, function (errUser) {
+            if (errUser) {
+              return next(errUser);
+            }
 
-      db.session.open(req.widgetIds, function (err, sessionId) {
-        if (err) {
-          return next(error('cannot open session', httpStatus.INTERNAL_SERVER_ERROR));
+            return next(err);
+          });
+        } else {
+          return next(err);
         }
+      } else {
+        db.session.open(req.widgetIds, function (err, sessionId) {
+          if (err) {
+            return next(error('cannot open session', httpStatus.INTERNAL_SERVER_ERROR));
+          }
 
-        var uploadSizeLimit = (!capacity || capacity > MAX_FILE_SIZE) ? MAX_FILE_SIZE : capacity;
-        var resJson = {
-          sessionId: sessionId,
-          uploadSizeLimit: uploadSizeLimit,
-          status: httpStatus.OK
-        };
-        res.status(httpStatus.OK);
-        res.json(resJson);
-      });
+          var uploadSizeLimit = (!capacity || capacity > MAX_FILE_SIZE) ? MAX_FILE_SIZE : capacity;
+          var resJson = {
+            sessionId: sessionId,
+            uploadSizeLimit: uploadSizeLimit,
+            status: httpStatus.OK
+          };
+          res.status(httpStatus.OK);
+          res.json(resJson);
+        });
+      }
     });
   });
 };
