@@ -4,10 +4,21 @@ var wixKeys = require('../config.js').wixKeys;
 
 var wixapi = require('openapi-node');
 
+/**
+ * Set wix keys
+ * @param  {WixWidget} instance
+ * @return {Object}    wix object
+ */
 function configureWix(instance) {
   return wixapi.getAPI(wixKeys.secretKey, wixKeys.appKey, instance.instanceId);
 }
 
+/**
+ * Create body of activity
+ * @param  {Visitor} visitor
+ * @param  {String} viewUrl url where uploaded file can be viewed at
+ * @return {String} text of the message
+ */
 function constructMessage(visitor, viewUrl) {
   var emailBackLink = '<a href="mailto:' + visitor.email + '">' + visitor.email + '</a>';
   var body = visitor.name.first + ' ' + visitor.name.last +
@@ -19,6 +30,15 @@ function constructMessage(visitor, viewUrl) {
   return body;
 }
 
+
+/**
+ * Post activity to wix dashboard and creates/updates wix contact
+ * @param  {WixWidget} instance
+ * @param  {Visitor}   visitor
+ * @param  {String}    viewUrl  url where uploaded file can be viewed at
+ * @param  {Function}  callback
+ * @return {Object}    result of posting an activity
+ */
 module.exports.post = function (instance, visitor, viewUrl, callback) {
 
   var wix = configureWix(instance);

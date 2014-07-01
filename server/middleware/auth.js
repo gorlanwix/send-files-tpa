@@ -4,19 +4,118 @@
 
 var user = require('../controllers/user.js');
 var db = require('../models/pg-database.js');
+var wixKeys = require('../config.js').wixKeys;
 var googleDrive = require('../controllers/google-drive.js');
 var utils = require('../utils.js');
 
-
+var WixWidget = utils.WixWidget;
+var crypto = require('crypto');
 var httpStatus = require('http-status');
 var error = utils.error;
 
+/**
+ * Exchanges encrypted instandId and compId for WixWidget
+ * @param  {String} state state returned from oauth callback
+ * @return {WixWidget}
+ */
+function stateForWidgetIds(state) {
+  var wixIds = decryptState(state).split('+');
+  return new WixWidget(wixIds[0], wixIds[1]);
+}
 
+/**
+ * Encrypts state to be included as param to oauth
+ * @param  {String} state oauth param
+ * @return {String} encrypted stated
+ */
+function encryptState(state){
+  var cipher = crypto.createCipher('aes-256-cbc', wixKeys.secretKey)
+  var crypted = cipher.update(state,'utf8','hex')
+  crypted += cipher.final('hex');
+  return crypted;
+}
+
+/**
+ * Decrytps state recieved as a query param in oauth callback
+ * @param  {String} state encrypted state
+ * @return {[type]}       decrypted state
+ */
+function decryptState(state){
+  var decipher = crypto.createDecipher('aes-256-cbc', wixKeys.secretKey)
+  var dec = decipher.update(state,'hex','utf8')
+  dec += decipher.final('utf8');
+  return dec;
+}
+
+/**
+ * Creates folder in google drive and inserts google user account
+ * @params passport callback params
+ * @return {Object} profile
+ */
+module.exports.googleCallback = function (req, accessToken, refreshToken, tokens, profile, done) {
+  console.log('google state: ', req.query.state);
+  console.log('google tokens: ', tokens);
+  console.log('google refreshToken: ', refreshToken);
+
+  var currInstance = stateForWidgetIds(req.query.state);
+  tokens.refresh_token = refreshToken;
+  googleDrive.createFolder(tokens.access_token, function (err, folderId) {
+    if (err) {
+      return callback(err, null);
+    }
+
+    var serviceSettings = {
+      folderId: folderId
+    };
+    user.insert(currInstance, tokens, profile, serviceSettings, function (err) {
+      if (err) {
+        console.error('google authCallback error: ', err);
+        return done(err, null);
+      }
+
+      done(null, profile);
+    });
+  });
+
+};
+
+/**
+ * Inserts dropbox user account
+ * @params passport callback params
+ * @return {Object} profile
+ */
+module.exports.dropboxCallback = function (req, accessToken, refreshToken, tokens, profile, done) {
+  console.log('dropbox state: ', req.query.state);
+  console.log('dropbox accessToken: ', accessToken);
+  console.log('dropbox refreshToken: ', refreshToken);
+  console.log('dropbox profile: ', profile);
+  console.log('dropbox tokens: ', tokens);
+
+
+  var currInstance = stateForWidgetIds(req.query.state);
+
+  user.insert(currInstance, tokens, profile, null, function (err) {
+    if (err) {
+      console.error('dropbox authCallback error: ', err);
+      return done(err, null);
+    }
+
+    done(null, profile);
+  });
+}
+
+/**
+ * Sets encrypted state param for oauth if user is not logged in
+ * @param {Object} params query params for oauth
+ */
 module.exports.setParamsIfNotLoggedIn = function (params) {
   return function (req, res, next) {
     db.token.get(req.widgetIds, function (err, tokensFromDb) {
       if (!tokensFromDb) {
-        params.state = req.widgetIds.instanceId + '+' + req.widgetIds.compId;
+
+        var state = req.widgetIds.instanceId + '+' + req.widgetIds.compId;
+
+        params.state = encryptState(state);
         next();
       } else {
         next(error('already connected with ' + tokensFromDb.provider, httpStatus.BAD_REQUEST));
@@ -25,6 +124,12 @@ module.exports.setParamsIfNotLoggedIn = function (params) {
   };
 };
 
+/**
+ * Logs user out by removing account and revoking access
+ * returns status 200 if successfull login
+ * returns status 400 if user is not logged in
+ * return status 500 if an error occurres
+ */
 module.exports.logout = function (req, res, next) {
 
   user.remove(req.widgetIds, function (err, removedTokens) {
