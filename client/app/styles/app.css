@@ -16,6 +16,7 @@
 .drop-text {
   display: block;
   font-size: 48px;
+  line-height: 55px;
   text-align: center;
   padding-top: 60%;
 }
@@ -32,11 +33,18 @@
   }
 }
 
-@media all and (min-width: 700px) {
+@media all and (min-width: 700px) and (max-width: 1000px) {
   .drop-text {
     padding-top: 25%;
   }
 }
+
+@media all and (min-width: 1000px) {
+  .drop-text {
+    padding-top: 18%;
+  }
+}
+
 
 .active {
   position: absolute;
@@ -232,6 +240,10 @@
   overflow-x: hidden;
 }
 
+.files-enlarge {
+  max-height: 185px;
+}
+
 .file-statistics {
   text-align: left;
   width: 100%;
@@ -415,12 +427,16 @@
   background-color: #FFFF99 !important;
 }
 
+.form-invalid {
+  color: red;
+}
+
 .input-block {
+  position: relative;
   border-top: none;
 }
 
 .input-block input {
-  position: relative;
   height: 100%;
   width: 90%;
   border: none;
@@ -433,6 +449,32 @@
   color: red;
 }
 
+.visitorName-label {
+  position: absolute;
+  top: 15px;
+  left: 5%;
+  width: 90%;
+  text-align: left;
+  transition: 0.2s;
+}
+
+.visitorName:focus + label {
+  font-size: 10px; 
+  bottom: 100%;
+  margin-top: -15px;
+  color: #62D8BF;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.visitorName.ng-pristine + label {
+  z-index: 3;
+}
+
+.visitorName:not(:focus).ng-dirty + label {
+  opacity: 0;
+}
+ 
 .email.ng-invalid {
   color: red;
 }
@@ -493,9 +535,8 @@
   padding-bottom: 0;
 }
 
-.user-message textarea {
+.user-message-box {
   position: relative;
-  height: 70px;
   width: 90%;
   border: none;
   outline: none;
@@ -503,6 +544,11 @@
   overflow: auto;
   margin-bottom: 17px;
   z-index: 1;
+  height: 70px;
+}
+
+.user-message-box-shrink {
+  height: 10px;
 }
 
 .message.ng-invalid {
@@ -527,9 +573,15 @@
   background-color: white;
   color: red;
   position: absolute;
-  bottom: 45px;
+  bottom: 10%;
+  margin-bottom: 13%;
   z-index: 3;
 }
+
+.lower-tool-tip-message {
+  margin-bottom: -9%;
+}
+
 .tool-tip-message::before {
   z-index: 3;
   content: '';

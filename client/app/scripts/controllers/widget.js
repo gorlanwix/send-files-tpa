@@ -2,7 +2,7 @@
 
 angular.module('sendFiles')
   .controller('WidgetCtrl', function ($scope, api, $wix, $upload, $http, $location, $timeout) {
-    $scope.glued = true;
+
      /* Regular expression used to determine if user input is a valid email. */
     $scope.emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
     
@@ -44,6 +44,11 @@ angular.module('sendFiles')
     /* Represents the Component ID of this widget. */
     var compId = '[UNKNOWN]'; //$wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
     console.log(compId);
+
+    /* Allows external package that does automatic scrolling of files list when
+     * user adds new files to work.
+     */
+     $scope.glued = true;
 
     /* Represents the user settings for the widget. */
     $scope.settings = {};
@@ -171,6 +176,11 @@ angular.module('sendFiles')
     /* Records the visitor's name and updates final message to server. */
     $scope.updateVisitorName = function (newValue) {
       finalSubmission.visitorName.first = newValue;
+      if (newValue === undefined) {
+        $scope.fileForm.visitorName.$setPristine();
+        console.log('setting');
+      }
+      console.log($scope.fileForm.visitorName.$dirty);
     };
 
     /* Records the visitor's email and updates final message to server. */

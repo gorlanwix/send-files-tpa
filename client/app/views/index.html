@@ -111,7 +111,7 @@
   </div>
 
   <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()" border-width>
-    <div ng-style="formStyle()" border-width>
+    <div ng-style="formStyle()" border-width adjust-block-size>
       <div class="block end-blocks file-upload top-block" widget-corners>
         <h2 class="title">
           {{settings.title}}
@@ -161,10 +161,18 @@
       </div>
 
       <div class="block input-block">
-        <input name="visitorName" class="visitorName" placeholder="{{settings.yourNameText}}" ng-model="visitorName" ng-change="updateVisitorName(visitorName)" required>
-        <div class="tool-tip-container" ng-show="showNoName">
-            <span class="tool-tip">Please enter a name.</span>
-        </div>
+        <input id="visitorName" name="visitorName" class="visitorName" ng-model="visitorName" ng-change="updateVisitorName(visitorName)" required>
+        <label class="visitorName-label" for="visitorName">
+          <span ng-show="!showNoName">
+            {{settings.yourNameText}}
+          </span>
+          <span ng-show="showNoName" class="form-invalid">
+            Please enter a name
+          </span>
+        </label>
+        <!-- <div class="tool-tip-container" ng-show="showNoName">
+            <span class="tool-tip">Please enter a name</span>
+        </div> -->
       </div>
 
       <div class="block input-block email-block">
@@ -175,7 +183,7 @@
       </div>
 
       <div class="block user-message">
-        <textarea name="message" placeholder={{settings.messageText}} required ng-model="message" class="message" ng-change="updateMessage(message)"></textarea>
+        <textarea class="user-message-box" name="message" placeholder={{settings.messageText}} required ng-model="message" class="message" ng-change="updateMessage(message)"></textarea>
          <div class="tool-tip-container-message">
             <span class="tool-tip-message" ng-show="showNoMessage">Please enter a message</span>
         </div>
