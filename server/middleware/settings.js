@@ -27,7 +27,7 @@ module.exports.get = function (req, res, next) {
   db.widget.getSettings(req.widgetIds, function (err, widgetSettings) {
 
     if (err) {
-      return error('cannot get settings', httpStatus.INTERNAL_SERVER_ERROR);
+      return next(error('cannot get settings', httpStatus.INTERNAL_SERVER_ERROR));
     }
 
     var settingsResponse = {
@@ -36,10 +36,10 @@ module.exports.get = function (req, res, next) {
     };
 
     if (widgetSettings) {
-      settingsResponse.provider = widgetSettings.curr_provider;
+      settingsResponse.provider = widgetSettings.provider;
       settingsResponse.settings = widgetSettings.settings;
-      if (req.query.userProfile === 'true') { // watch out, might be not a string
-        settingsResponse.userProfile = widgetSettings.user_profile;
+      if (req.query.userProfile === 'true') {
+        settingsResponse.userProfile = widgetSettings.userProfile;
       }
     }
 
@@ -49,7 +49,7 @@ module.exports.get = function (req, res, next) {
 };
 
 /**
- * Put widget settings in the following format:
+ * Save widget settings in the following format:
  * {
  *   widgetSettings: {
  *     settings: {}

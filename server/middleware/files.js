@@ -16,7 +16,15 @@ var fs = require('fs');
 var error = utils.error;
 var Visitor = utils.Visitor;
 
-
+/**
+ * Opens an upload session and checks available quota for upload
+ * @return {JSON} json response:
+ * {
+ *   sessionId: "",
+ *   uploadSizeLimit: {number},
+ *   status: {number}
+ * }
+ */
 module.exports.session = function (req, res, next) {
   user.getTokens(req.widgetIds, function (err, tokens) {
     if (!tokens) {
@@ -58,7 +66,15 @@ module.exports.session = function (req, res, next) {
 };
 
 
-
+/**
+ * Recieves a file for upload
+ * @return {JSON}  json response with file id:
+ *
+ * {
+ *   fileId: {number},
+ *   status: {number}
+ * }
+ */
 module.exports.upload = function (req, res, next) {
 
   var newFile = req.files.file;
@@ -75,6 +91,7 @@ module.exports.upload = function (req, res, next) {
   }
 
   if (formatError) {
+    // remove temp file
     fs.unlink(newFile.path, function (err) {
       if (err) {
         console.error('removing temp file error: ', err);
@@ -103,6 +120,7 @@ module.exports.upload = function (req, res, next) {
 
 /**
  * creates a Visitor from recieved JSON of a format:
+ *
  * {
  *   visitorEmail: "",
  *   visitorName: {
@@ -144,8 +162,11 @@ function parseVisitor(recievedJson) {
 
 
 
-
-
+/**
+ * Send an archive of files to user service and post wix activity. All in background
+ * after response ok.
+ * @return {JSON}  json response with ACCEPTED status if good request
+ */
 module.exports.commit = function (req, res, next) {
 
   var recievedJson = req.body;

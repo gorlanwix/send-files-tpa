@@ -1,9 +1,6 @@
 # TODO
 
 ## Server (Andrey):
-- comments and better organization
-- send actual instance (not instanceId) as a state parameter on service auth
-- dropbox support error handling
 - handle zipping failures independently
 - heroku deployment
 - scheduled temporary files clean up, upload session closing
@@ -21,14 +18,8 @@ advisory locks for file clean up?
 
 ## Settings Pannel (Gorlan):
 - allow site owner to choose upload file size limit (an essay grader doesn't need 1 GB file limits)
-- error with emailToSave when not logged in //might be server problem
-- userEmail gone
-- replaced with userProfile {}
-- instance={{instance}}&userProfile=true
-- currently sending an object to widget. try to make it just the value
-- fix login problem with new server configuration
-- fix verification page not closing automatically
 - dropbox/google choose page
 - display username/email whatever
 - add popup rather than another page to choose storage service
 - use routeprovider to configure routes for storage selection and verification completion
+
