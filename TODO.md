@@ -1,7 +1,6 @@
 # TODO
 
 ## Server (Andrey):
-- comments and better organization
 - handle zipping failures independently
 - heroku deployment
 - scheduled temporary files clean up, upload session closing

@@ -117,7 +117,7 @@ function uploadFile(file, accessToken, callback) {
       options.qs = {
         upload_id: uploadId,
         offset: offset
-      }
+      };
     }
 
     return request(options, function (err, res) {

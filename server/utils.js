@@ -43,20 +43,20 @@ module.exports.requestService = function (options, callback) {
       return callback(err, null);
     }
 
-    switch(res.statusCode) {
+    switch (res.statusCode) {
     case 401:
       return callback(error('invalid access token', res.statusCode), null);
     case 404:
       return callback(error('not found', res.statusCode), null);
     case 400:
       return callback(error('bad request', res.statusCode), null);
-    case 400:
+    case 403:
       return callback(error('forbidden', res.statusCode), null);
     default:
       return callback(null, res);
     }
   });
-}
+};
 
 /**
  * Parses and verifies instance to return instanceId

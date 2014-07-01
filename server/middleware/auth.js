@@ -14,6 +14,30 @@ var httpStatus = require('http-status');
 var error = utils.error;
 
 /**
+ * Encrypts state to be included as param to oauth
+ * @param  {String} state oauth param
+ * @return {String} encrypted stated
+ */
+function encryptState(state) {
+  var cipher = crypto.createCipher('aes-256-cbc', wixKeys.secretKey);
+  var crypted = cipher.update(state, 'utf8', 'hex');
+  crypted += cipher.final('hex');
+  return crypted;
+}
+
+/**
+ * Decrytps state recieved as a query param in oauth callback
+ * @param  {String} state encrypted state
+ * @return {[type]}       decrypted state
+ */
+function decryptState(state) {
+  var decipher = crypto.createDecipher('aes-256-cbc', wixKeys.secretKey);
+  var dec = decipher.update(state, 'hex', 'utf8');
+  dec += decipher.final('utf8');
+  return dec;
+}
+
+/**
  * Exchanges encrypted instandId and compId for WixWidget
  * @param  {String} state state returned from oauth callback
  * @return {WixWidget}
@@ -24,27 +48,14 @@ function stateForWidgetIds(state) {
 }
 
 /**
- * Encrypts state to be included as param to oauth
- * @param  {String} state oauth param
- * @return {String} encrypted stated
+ * Removes service json response from profile
+ * @param  {Object} profile
+ * @return {Object}         profile without fields
  */
-function encryptState(state){
-  var cipher = crypto.createCipher('aes-256-cbc', wixKeys.secretKey)
-  var crypted = cipher.update(state,'utf8','hex')
-  crypted += cipher.final('hex');
-  return crypted;
-}
-
-/**
- * Decrytps state recieved as a query param in oauth callback
- * @param  {String} state encrypted state
- * @return {[type]}       decrypted state
- */
-function decryptState(state){
-  var decipher = crypto.createDecipher('aes-256-cbc', wixKeys.secretKey)
-  var dec = decipher.update(state,'hex','utf8')
-  dec += decipher.final('utf8');
-  return dec;
+function removePrivateProfileFields(profile) {
+  delete profile._json;
+  delete profile._raw;
+  return profile;
 }
 
 /**
@@ -62,12 +73,14 @@ module.exports.googleCallback = function (req, accessToken, refreshToken, tokens
   tokens.refresh_token = refreshToken;
   googleDrive.createFolder(tokens.access_token, function (err, folderId) {
     if (err) {
-      return callback(err, null);
+      return done(err, null);
     }
 
     var serviceSettings = {
       folderId: folderId
     };
+
+    profile = removePrivateProfileFields(profile);
     user.insert(currInstance, tokens, profile, serviceSettings, function (err) {
       if (err) {
         console.error('google authCallback error: ', err);
@@ -96,6 +109,7 @@ module.exports.dropboxCallback = function (req, accessToken, refreshToken, token
 
   var currInstance = stateForWidgetIds(req.query.state);
 
+  profile = removePrivateProfileFields(profile);
   user.insert(currInstance, tokens, profile, null, function (err) {
     if (err) {
       console.error('dropbox authCallback error: ', err);
@@ -104,7 +118,7 @@ module.exports.dropboxCallback = function (req, accessToken, refreshToken, token
 
     done(null, profile);
   });
-}
+};
 
 /**
  * Sets encrypted state param for oauth if user is not logged in

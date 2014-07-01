@@ -48,7 +48,7 @@ var insert = module.exports.insert = function (file, sessionId, callback) {
 
     callback(null, row.file_id);
   });
-}
+};
 
 /**
  * Get files by ids
@@ -75,9 +75,9 @@ module.exports.getByIds = function (sessionId, fileIds, callback) {
       return callback(err, null);
     }
 
-    callback(null, result.rows);
+    callback(null, rows);
   });
-}
+};
 
 /**
  * Check if upload session is open and insert file
@@ -108,4 +108,4 @@ module.exports.checkSessionAndInsert = function (file, sessionId, callback) {
       callback(null, fileId);
     });
   });
-}
+};

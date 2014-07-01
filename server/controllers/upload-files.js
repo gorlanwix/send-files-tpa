@@ -126,29 +126,29 @@ function zipAndRegister(files, visitor, sessionId, callback) {
  */
 function serviceInsert(file, serviceSettings, tokens, callback) {
 
-  switch(tokens.provider) {
-    case 'google':
-      googleDrive.insertFile(file, serviceSettings.folderId, tokens.access_token, function (err, result) {
-        if (err) {
-          console.error('uploading to google error', err);
-          return callback(err, null);
-        }
-        console.log('inserted file: ', result);
-        callback(null, result.alternateLink);
-      });
-      return;
-    case 'dropbox':
-      dropbox.insertFile(file, tokens.access_token, function (err, result) {
-        if (err) {
-          console.error('uploading to dropbox error', err);
-          return callback(err, null);
-        }
-        console.log('inserted file: ', result);
-        callback(null, result);
-      });
-      return;
-    default:
-      callback(new Error('invalid provider'), null);
+  switch (tokens.provider) {
+  case 'google':
+    googleDrive.insertFile(file, serviceSettings.folderId, tokens.access_token, function (err, result) {
+      if (err) {
+        console.error('uploading to google error', err);
+        return callback(err, null);
+      }
+      console.log('inserted file: ', result);
+      callback(null, result.alternateLink);
+    });
+    return;
+  case 'dropbox':
+    dropbox.insertFile(file, tokens.access_token, function (err, result) {
+      if (err) {
+        console.error('uploading to dropbox error', err);
+        return callback(err, null);
+      }
+      console.log('inserted file: ', result);
+      callback(null, result);
+    });
+    return;
+  default:
+    callback(new Error('invalid provider'), null);
   }
 }
 
@@ -176,10 +176,6 @@ function handleError(error, instance, file, visitor, callback) {
     break;
   case 'zip':
   case 'settings':
-    if (err) {
-      console.error('something is wrong with widget db: ', err);
-    }
-    break;
   default:
     console.error('sending error emails, terrible error: ', error);
     email.sendError(visitor, function (err, res) {
@@ -232,7 +228,7 @@ module.exports.sendFiles = function (files, visitor, instance, sessionId, tokens
     zipAndRegister(files, visitor, sessionId, function (err, archive) {
       if (err) {
         err.type = 'zip';
-        handleError(err, instance, file, visitor, callback);
+        handleError(err, instance, archive, visitor, callback);
       }
 
       serviceInsertAndActivity(archive, settings, visitor, instance, tokens, callback);
