@@ -33,6 +33,20 @@ app.use(multer({
 }));
 
 
+/**
+ * CORS?
+ */
+
+// app.use(function(req, res, next){
+//   if (!req.get('Origin')) return next();
+//   res.set('Access-Control-Allow-Origin', 'http://localhost:3000'); //change to whatever is going to be our url
+//   res.set('Access-Control-Allow-Methods', 'GET, POST, PUT');
+//   res.set('Access-Control-Allow-Headers', 'X-Wix-Instance, Content-Type');
+//   if ('OPTIONS' == req.method) return res.send(200);
+//   next();
+// });
+
+
 app.use('/auth', function (req, res, next) {
 
   var instance = req.query.instance;

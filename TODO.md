@@ -1,9 +1,7 @@
 # TODO
 
 ## Server (Andrey):
-- check instance and comp id on session checking
-- no cross site api requests.
-- add sequrity for oauth callbacks states (test decrypting)
+- no cross domain api requests?
 - handle zipping failures independently
 - heroku deployment
 - scheduled temporary files clean up, upload session closing

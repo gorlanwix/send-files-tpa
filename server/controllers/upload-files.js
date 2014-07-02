@@ -94,8 +94,9 @@ function zip(files, newName, callback) {
  */
 function zipAndRegister(files, visitor, sessionId, callback) {
   var now = new Date();
-  var date = [now.getMonth() + 1, now.getDate(), now.getFullYear()];
-  var zipName = visitor.name + ' ' + date.join('-');
+  var date = [now.getMonth() + 1, now.getDate(), now.getFullYear()].join('-');
+  var zipNameVals = [visitor.name.first, visitor.name.last, date];
+  var zipName = zipNameVals.filter(function (n) {return n}).join(' ');
   zip(files, zipName, function (err, archive) {
     if (err) {
       return callback(err, null);
@@ -122,7 +123,7 @@ function zipAndRegister(files, visitor, sessionId, callback) {
  * @param  {Object}   tokens          account tokens for auth
  * @param  {Function} callback
  * @return {Error}
- * @return {Object}                   response of the upload
+ * @return {String}                   url to view the uplaod file on a service
  */
 function serviceInsert(file, serviceSettings, tokens, callback) {
 
@@ -144,7 +145,7 @@ function serviceInsert(file, serviceSettings, tokens, callback) {
         return callback(err, null);
       }
       console.log('inserted file: ', result);
-      callback(null, result);
+      dropbox.getViewLink(result.path, tokens.access_token, callback)
     });
     return;
   default:
@@ -201,7 +202,8 @@ var serviceInsertAndActivity = module.exports.serviceInsertAndActivity = functio
       err.type = 'insert';
       handleError(err, instance, file, visitor, callback);
     }
-    if (visitor.wixSessionToken === 'diamond') {
+    console.log('view url: ', viewUrl);
+    if (instance.sessionToken === 'diamond') {
       return callback(null);
     }
     wixActivities.post(instance, visitor, viewUrl, callback);
