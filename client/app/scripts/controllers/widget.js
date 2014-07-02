@@ -48,7 +48,7 @@ angular.module('sendFiles')
     /* Allows external package that does automatic scrolling of files list when
      * user adds new files to work.
      */
-     $scope.glued = true;
+    $scope.glued = true;
 
     /* Represents the user settings for the widget. */
     $scope.settings = {};

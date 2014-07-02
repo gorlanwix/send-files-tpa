@@ -224,10 +224,6 @@
   min-height: 14px;
 }
 
-.drag-drop-message {
-  margin-bottom: 0;
-}
-
 .files {
   position: relative;
   z-index: 2;
@@ -238,10 +234,14 @@
   min-height: 125px;
   max-height: 125px;
   overflow-x: hidden;
+  -webkit-transition: 0.5s ease;
+  -moz-transition: 0.5s ease;
+  -o-transition: 0.5s ease;
+   transition: 0.5s ease;
 }
 
 .files-enlarge {
-  max-height: 185px;
+  max-height: 183px;
 }
 
 .file-statistics {
@@ -251,11 +251,6 @@
   margin-bottom: 0;
   border-bottom: 1px solid #838486;
   padding-left: 4px;
-}
-
-.space-left {
-  float: right;
-  margin-right: 8px;
 }
 
 @media all and (min-width: 450px) {
@@ -489,10 +484,14 @@
   overflow: auto;
   z-index: 1;
   height: 70px;
+  -webkit-transition: 0.5s ease;
+  -moz-transition: 0.5s ease;
+  -o-transition: 0.5s ease;
+  transition: 0.5s ease;
 }
 
 .user-message-box-shrink {
-  height: 10px;
+  height: 12px;
 }
 
 .file-status {
