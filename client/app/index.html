@@ -13,50 +13,79 @@
     <link rel="stylesheet" href="styles/app.css">
     <!-- endbuild -->
     <style wix-style>
+      .dropper {
+        border-color: {{style.borderColor color-3}};
+        color: {{style.bodyColor color-15}};
+        {{style.bodyFont Body-M}}
+      }
+
+      .dropping {
+        background-color: {{style.fillColor color-8}};
+        color: {{style.bodyColor color-15}};
+        {{style.bodyFont Body-M}}
+      }
+      .popup {
+        border-color: {{style.borderColor color-3}};
+        color: {{style.bodyColor color-15}};
+        {{style.bodyFont Body-M}}
+        background-color: {{style.fillColor color-1}};
+      }
       .block {
         border-color: {{style.borderColor color-3}};
-        color: {{style.headlineColor color-15}};
-        {{style.headlineFont Body-M}}
+        color: {{style.bodyColor color-15}};
+        {{style.bodyFont Body-M}}
+        background-color: {{style.backgroundColor color-1}};
       }
+
+      .block input {
+        background-color: {{style.backgroundColor color-1}};
+      }
+
+      .form-input-label {
+        color: {{style.bodyColor color-15}};
+        {{style.bodyFont Body-M}}
+      }
+
+      .form-input:focus + label {
+        color: {{style.buttonTextColor color-25}};
+      }
+
+      .block textarea {
+        background-color: {{style.backgroundColor color-1}};
+      }
+
       .end-blocks {
         background-color: {{style.fillColor color-8}};
       }
-      .end-blocks button {
+      .buttons {
         background-color: {{style.buttonColor color-17}};
         color: {{style.buttonTextColor color-25}};
         {{style.buttonFont Body-M}}
       }
-      .dropee {
-        background-color: {{style.fillColor color-8}};
-        color: {{style.headlineColor color-15}};
-        {{style.headlineFont Body-M}}
+      .buttons[disabled] {
+        background-color: {{style.buttonColor color-17}};
+        color: {{style.buttonTextColor color-25}};
       }
-      .dropping {
-        background-color: {{style.fillColor color-8}};
-        color: {{style.headlineColor color-15}};
-        {{style.headlineFont Body-M}}
+      .title {
+        color: {{style.titleColor color-25}};
+        {{style.titleFont Heading-M}}
       }
-      .file-statistics {
-        border-color: {{style.borderColor color-3}};
+      .description {
+        color: {{style.descriptionColor color-25}};
+        {{style.descriptionFont Body-M}}
       }
       .file-text {
         border-color: {{style.borderColor color-3}};
       }
-      .remove {
-        border-color: {{style.borderColor color-3}};
-      }
       .progress-text {
-        {{style.headlineFont Body-M}}
-        color: {{style.headlineColor color-15}};
+        {{style.bodyFont Body-M}}
+        color: {{style.bodyColor color-15}};
       }
       .status-text {
-        {{style.headlineFont Body-M}}
+        {{style.bodyFont Body-M}}
       }
       .submit {
         border-color: {{style.borderColor color-3}};
-      }
-      .submit button[disabled] {
-        color: {{style.buttonTextColor color-25}};
       }
     </style>
   </head>
@@ -82,15 +111,22 @@
     <script src="bower_components/ng-file-upload/angular-file-upload.js"></script>
     <script src="bower_components/angular-resource/angular-resource.js"></script>
     <script src="bower_components/angular-animate/angular-animate.js"></script>
+    <script src="bower_components/angularjs-scroll-glue/src/scrollglue.js"></script>
     <!-- endbuild -->
 
     <!-- build:js({.tmp,app}) scripts/index.js -->
     <script src="scripts/app.js"></script>
     <script src="scripts/services/api.js"></script>
     <script src="scripts/services/wix.js"></script>
+    <script src="scripts/services/internals.js"></script>
     <script src="scripts/controllers/widget.js"></script>
     <script src="scripts/directives/hover.js"></script>
     <script src="scripts/services/debounce.js"></script>
+    <script src="scripts/directives/buttonRadius.js"></script>
+    <script src="scripts/directives/borderWidth.js"></script>
+    <script src="scripts/directives/widgetCorners.js"></script>
+    <script src="scripts/directives/dropping.js"></script>
+    <script src="scripts/directives/adjustBlockSize.js"></script>
     <!-- endbuild -->
 
     <!-- process:remove -->

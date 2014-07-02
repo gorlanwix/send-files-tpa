@@ -1,4 +1,13 @@
-<div class="main-body" style="min-width: 255px;"ng-controller="WidgetCtrl">
+<div class="main-body" style="min-width: 255px;"ng-controller="WidgetCtrl" button-radius border-width widget-corners title="Drop files here" ng-file-drop="onFileSelect($files)" dropping>
+  <div>
+  <!-- This surrounding div is used to prevent directives from being
+       applied to the dropper element. -->
+    <div class="dropper" ng-show="dropping">
+      <span class="drop-text">
+        Drop files here
+      </span>
+    </div>
+  </div>
   <div class="active" ng-if="!active">
     <span>
       THIS APP IS NOT YET ACTIVE.
@@ -83,7 +92,7 @@
     <span class="popup-message popup-margins">
       Success!<br>
       Your message and {{totalSuccess}} files have been sent.
-    </span> <!-- animate this away -->
+    </span>
   </div>
 
   <div class="popup" ng-show="submitFailed">
@@ -102,12 +111,9 @@
     </div>
   </div>
 
-  <div class="dropper" title="Drop files here" ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="dropping">
-    <span class="drop-text">Drop files here</span>
-  </div>
-  <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()">
-    <div ng-style="formStyle()">
-      <div class="block end-blocks file-upload top-block">
+  <form name="fileForm" novalidate ng-model="fileForm" ng-style="viewStyle()" border-width>
+    <div ng-style="formStyle()" border-width adjust-block-size>
+      <div class="block end-blocks file-upload top-block" widget-corners>
         <h2 class="title">
           {{settings.title}}
         </h2>
@@ -120,16 +126,19 @@
         <input type="file" title={{settings.addButtonText}} ng-file-select="onFileSelect($files)" multiple name="sendFile">
       </div>
 
-    <!-- Note: Placeholder attribute is not supported in IE9 or below -->
-
-      <div class="block files">
-        <div class="tool-tip-container" ng-show="showNoFile">
-            <span class="tool-tip">{{fileMessage}}</span>
-        </div>
+      <div class="block files" ng-model="glued" ng-mouseenter="onFiles = true" ng-mouseleave="onFiles = false" scroll-glue>
         <ul class="list-files">
-          <p ng-if="!totalFilesAdded">
-            Uploaded files are displayed here.
-          </p>
+          <div ng-if="!totalFilesAdded">
+            <span class="files-box-message" ng-file-drop-available="dropSupported=true" ng-show="!dropSupported &amp;&amp; !showNoFile">
+              Uploaded files are displayed here
+            </span>
+            <span class="files-box-message" ng-file-drop-available="dropSupported=true" ng-show="dropSupported &amp;&amp; !showNoFile">
+              Drop files here
+            </span>
+            <span class="files-box-message form-invalid" ng-show="showNoFile">
+              Please add a file
+            </span>
+          </div>
           <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
             <span class="file-text" ng-style="fileStyle($index)" hover>
               <a class="retry-files" href="#" ng-click="retry($index)" ng-if="file.uploadResult === false &amp;&amp; !showFailedUploadPopup">.</a>
@@ -139,7 +148,7 @@
                     {{file.retryMessage}}
                   </span>
                     {{file.name}}
-                  </span>
+                </span>
               </span>
               <a class="remove" href="#" ng-click="abort($index)">.</a>
               <span class="status-text progress-text" ng-if="file.uploadResult === undefined">
@@ -155,57 +164,55 @@
       </div>
 
       <div class="block input-block">
-        <input name="visitorName" class="visitorName" placeholder="{{settings.yourNameText}}" ng-model="visitorName" ng-change="updateVisitorName(visitorName)" required>
-        <div class="tool-tip-container" ng-show="showNoName">
-            <span class="tool-tip">Please enter a name.</span>
-        </div>
+        <input id="visitorName" name="visitorName" class="form-input" ng-model="visitorName" ng-change="updateVisitorName(visitorName)" required>
+        <label class="form-input-label" for="visitorName">
+          <span ng-show="!showNoName">
+            {{settings.yourNameText}}
+          </span>
+          <span ng-show="showNoName" class="form-invalid">
+            Please enter a name
+          </span>
+        </label>
       </div>
 
       <div class="block input-block email-block">
-        <input name="email" type="email" class="email" placeholder="{{settings.emailAddressText}}" required ng-model="email" ng-pattern="emailRegex" ng-change="updateEmail(email)">
-        <div class="tool-tip-container" ng-show="showInvalidEmail">
-            <span class="tool-tip">Please enter a valid email address</span>
-        </div>
+        <input id="email" name="email" type="email" class="form-input" required ng-model="email" ng-pattern="emailRegex" ng-change="updateEmail(email)">
+        <label class="form-input-label" for="email">
+          <span ng-show="!showInvalidEmail">
+            {{settings.emailAddressText}}
+          </span>
+          <span ng-show="showInvalidEmail" class="form-invalid">
+            Please enter a valid email address
+          </span>
+        </label>
       </div>
 
       <div class="block user-message">
-        <textarea name="message" placeholder={{settings.messageText}} required ng-model="message" class="message" ng-change="updateMessage(message)"></textarea>
-         <div class="tool-tip-container-message">
-            <span class="tool-tip-message" ng-show="showNoMessage">Please enter a message</span>
-        </div>
-<!--         <p class= "file-statistics file-status">
-          <span class="no-files" ng-if="!totalFilesAdded">
-            No files uploaded
+        <textarea id="message" class="user-message-box form-input" name="message" required ng-model="message" ng-change="updateMessage(message)" ng-focus="focusedTextarea = true" ng-blur="focusedTextarea = false"></textarea>
+        <label class="form-input-label user-message-label" for="message">
+          <span ng-show="!showNoMessage">
+            {{settings.messageText}}
           </span>
-          <span class="success-text" ng-if="totalSuccess" ng-style="successTextStyle()">
-            {{totalSuccess}} uploaded
+          <span ng-show="showNoMessage" class="form-invalid">
+            Please enter a message
           </span>
-          <span class="error-text" ng-if="totalFailed" ng-style="failedTextStyle()">
-            {{totalFailed}} failed
-          </span>
-          <span class="loading-text" ng-if="totalFilesAdded - totalSuccess - totalFailed" ng-style="loadingTextStyle()">
-            {{totalFilesAdded - totalSuccess - totalFailed}} loading...
-          </span>
-          <span class="file-upload-message" ng-show="showFileUploadMessage">
-            {{fileUploadMessage}}
-          </span>
-        </p> -->
+        </label>
       </div>
     </div>
 
-    <div class="block end-blocks submit bottom-block">
+    <div class="block end-blocks submit bottom-block" widget-corners>
       <button class="buttons bottom-buttons"  type="submit" ng-disabled="submitNotReady()" ng-click="submitProcessor()">
         <span ng-show="!submitting">{{settings.submitButtonText}}</span>
-        <span ng-show="submitting">Submitting...</span>
+        <span ng-show="submitting">Submitting
+          <span class="dot-one">.</span>
+          <span class="dot-two">.</span>
+          <span class="dot-three">.</span>​
+        </span>
       </button>
       <div class="submit-container" ng-mouseover="enableErrorMessage()" ng-mouseleave="disableErrorMessage()" ng-show="submitNotReady()"> 
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
       </div>
     </div>
-    <!-- <div class="failure-end end-blocks" ng-show="submitFailed">
-      <button class="buttons bottom-buttons" type="button" ng-click="submit()">Retry</button>
-      <button class="buttons bottom-buttons" type="reset" ng-click="reset()">Cancel</button>
-    </div> -->
   </form>
 </div>
 
