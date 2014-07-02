@@ -83,13 +83,14 @@ module.exports.getByIds = function (sessionId, fileIds, callback) {
  * Check if upload session is open and insert file
  * @param  {Object}   file      file to be inserted
  * @param  {number}   sessionId id of upload session
+ * @param  {WixWidget} instance  for checking rights
  * @param  {Function} callback
  * @return {Error}
  * @return {number}             if of inserted file
  */
-module.exports.checkSessionAndInsert = function (file, sessionId, callback) {
+module.exports.checkSessionAndInsert = function (file, sessionId, instance, callback) {
 
-  session.isOpen(sessionId, function (err, isOpen) {
+  session.isOpen(sessionId, instance, function (err, isOpen) {
 
     if (err) {
       return callback(err, null);

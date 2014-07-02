@@ -4,47 +4,35 @@
 
 var user = require('../controllers/user.js');
 var db = require('../models/pg-database.js');
-var wixKeys = require('../config.js').wixKeys;
 var googleDrive = require('../controllers/google-drive.js');
 var utils = require('../utils.js');
 
 var WixWidget = utils.WixWidget;
-var crypto = require('crypto');
 var httpStatus = require('http-status');
 var error = utils.error;
 
-/**
- * Encrypts state to be included as param to oauth
- * @param  {String} state oauth param
- * @return {String} encrypted stated
- */
-function encryptState(state) {
-  var cipher = crypto.createCipher('aes-256-cbc', wixKeys.secretKey);
-  var crypted = cipher.update(state, 'utf8', 'hex');
-  crypted += cipher.final('hex');
-  return crypted;
-}
 
 /**
- * Decrytps state recieved as a query param in oauth callback
- * @param  {String} state encrypted state
- * @return {[type]}       decrypted state
- */
-function decryptState(state) {
-  var decipher = crypto.createDecipher('aes-256-cbc', wixKeys.secretKey);
-  var dec = decipher.update(state, 'hex', 'utf8');
-  dec += decipher.final('utf8');
-  return dec;
-}
-
-/**
- * Exchanges encrypted instandId and compId for WixWidget
+ * Exchanges encrypted instandId and compId for WixWidget.
+ * Returns null if state is invalid.
  * @param  {String} state state returned from oauth callback
  * @return {WixWidget}
  */
 function stateForWidgetIds(state) {
-  var wixIds = decryptState(state).split('+');
-  return new WixWidget(wixIds[0], wixIds[1]);
+  var wixIds = null;
+  try {
+    wixIds = JSON.parse(utils.decrypt(state));
+  } catch (e) {
+    console.error('cannot parse decrypted state');
+    wixIds = null;
+  }
+
+  var isValid = wixIds && wixIds.instanceId && wixIds.compId;
+  if(!isValid) {
+    return null;
+  }
+
+  return wixIds;
 }
 
 /**
@@ -70,6 +58,10 @@ module.exports.googleCallback = function (req, accessToken, refreshToken, tokens
   console.log('google refreshToken: ', refreshToken);
 
   var currInstance = stateForWidgetIds(req.query.state);
+  if (!currInstance) {
+    return done(new Error('invalid state'), null);
+  }
+
   tokens.refresh_token = refreshToken;
   googleDrive.createFolder(tokens.access_token, function (err, folderId) {
     if (err) {
@@ -108,6 +100,9 @@ module.exports.dropboxCallback = function (req, accessToken, refreshToken, token
 
 
   var currInstance = stateForWidgetIds(req.query.state);
+  if (!currInstance) {
+    return done(new Error('invalid state'), null);
+  }
 
   profile = removePrivateProfileFields(profile);
   user.insert(currInstance, tokens, profile, null, function (err) {
@@ -129,9 +124,9 @@ module.exports.setParamsIfNotLoggedIn = function (params) {
     db.token.get(req.widgetIds, function (err, tokensFromDb) {
       if (!tokensFromDb) {
 
-        var state = req.widgetIds.instanceId + '+' + req.widgetIds.compId;
+        var state = JSON.stringify(req.widgetIds);
 
-        params.state = encryptState(state);
+        params.state = utils.encrypt(state);
         next();
       } else {
         next(error('already connected with ' + tokensFromDb.provider, httpStatus.BAD_REQUEST));

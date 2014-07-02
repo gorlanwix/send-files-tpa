@@ -3,6 +3,7 @@
 var config = require('./config.js');
 var httpStatus = require('http-status');
 var request = require('request');
+var crypto = require('crypto');
 
 var wix = config.wix;
 
@@ -22,12 +23,49 @@ module.exports.Visitor = function (firstName, lastName, email, message) {
   this.message = message;
 };
 
-
+/**
+ * Creates error with status code
+ * @param  {String} message    error message
+ * @param  {number} statusCode error status code
+ * @return {Error}
+ */
 var error = module.exports.error = function (message, statusCode) {
   var err = new Error(message);
   err.status = statusCode;
   return err;
 };
+
+
+
+/**
+ * Encrypts string with wix key
+ * @param  {String} state
+ * @return {String} encrypted string
+ */
+module.exports.encrypt = function (state) {
+  var cipher = crypto.createCipher('aes-256-cbc', wix.secret());
+  var crypted = cipher.update(state, 'utf8', 'hex');
+  crypted += cipher.final('hex');
+  return crypted;
+}
+
+/**
+ * Decrypts string with wix key
+ * @param  {String} state encrypted string
+ * @return {String}       decrypted string
+ */
+module.exports.decrypt = function (state) {
+  var dec = null;
+  try {
+    var decipher = crypto.createDecipher('aes-256-cbc', wix.secret());
+    var dec = decipher.update(state, 'hex', 'utf8');
+    dec += decipher.final('utf8');
+  } catch (e) {
+    dec = null;
+    console.error('Invalid encryption');
+  }
+  return dec;
+}
 
 /**
  * Make a request to a service.
