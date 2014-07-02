@@ -18,6 +18,7 @@
     <script src="../bower_components/angular-resource/angular-resource.js"></script>
     <script src="../bower_components/wix-ui-lib2/ui-lib.js"></script>
     <script src="../bower_components/angular-animate/angular-animate.js"></script>
+    <script src="../bower_components/angularjs-scroll-glue/src/scrollglue.js"></script>
     <!-- endbuild -->
 
     <!-- build:js({.tmp,app}) scripts/settings.js -->
@@ -37,8 +38,6 @@
         <p>The Wix Send Files App supports both Google Drive and Dropbox cloud services.</p>
         <ul class="list">
             <li wix-label="Connect with:" class="no-style-list">
-                <!--<a ng-href="/auth/login/google/{{compId}}?instance={{instance}}"><button class="uilib-btn btn-green" class="googleBtn">Google Drive</button></a>
-                <a ng-href="/auth/login/dropbox/{{compId}}?instance={{instance}}"><button class="uilib-btn btn-purple" id="dropboxBtn">Dropbox</button></a>-->
                 <a ng-href="/auth/login/google/{{compId}}?instance={{instance}}"><img class="name-logo google-name-logo" ng-src="../images/google_drive_logo_30h.png"></a>
                 <a ng-href="/auth/login/dropbox/{{compId}}?instance={{instance}}"><img class="name-logo dropbox-name-logo" ng-src="../images/dropbox_logo_30h.png"></a>
             </li>
