@@ -10,7 +10,7 @@ angular.module('sendFiles')
     $scope.instance = instance;
 
     $wix.UI.onChange('*', function (value, key) {
-      if (typeof($scope.settings[key]) == Object) { // if the settings changed is a button etc
+      if (key === 'widgetCorners' || key === 'buttonCorners' || key === 'borderWidth') { // if the settings changed is a button etc
         $scope.settings[key] = value.value;
       } else {
         $scope.settings[key] = value;
@@ -59,9 +59,9 @@ angular.module('sendFiles')
         }
       })
         .success(function(data, status, headers, config) {
-          console.log("logged out");
+          // console.log("logged out");
         }).error(function(data, status, headers, config) {
-          console.log("logged out"); // the promise returns an error, but everything works as expected.
+          // console.log("logged out"); // the promise returns an error, but everything works as expected.
         });
 
         $wix.Settings.refreshApp();
@@ -108,10 +108,10 @@ angular.module('sendFiles')
         }
         previousValidEmail = $scope.userReceiveEmail;
         console.log('provider success: ' + $scope.provider + ' ' + $scope.userReceiveEmail);
-        console.log(data.widgetSettings);
-        console.log(data.widgetSettings.settings);
-        console.log(data.widgetSettings.userProfile);
-        console.log(JSON.stringify(data.widgetSettings.userProfile.emails, null, 4));
+        // console.log(data.widgetSettings);
+        // console.log(data.widgetSettings.settings);
+        // console.log(data.widgetSettings.userProfile);
+        // console.log(JSON.stringify(data.widgetSettings.userProfile.emails, null, 4));
       }).error(function(data, status, headers, config) {
           console.log("There was an error obtaining your saved settings from the database.");
           $scope.settings = api.defaults;

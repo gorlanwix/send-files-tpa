@@ -21,8 +21,5 @@ advisory locks for file clean up?
 
 ## Settings Pannel (Gorlan):
 - allow site owner to choose upload file size limit (an essay grader doesn't need 1 GB file limits)
-- dropbox/google choose page
-- display username/email whatever
-- add popup rather than another page to choose storage service
-- use routeprovider to configure routes for storage selection and verification completion
-- make a filter to camel case google/dropbox and add "Drive" to google
+- change debounce to 20 seconds when ready for deployment
+- add scrollglue
