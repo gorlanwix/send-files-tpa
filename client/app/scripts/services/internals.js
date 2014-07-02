@@ -6,9 +6,9 @@ angular.module('sendFiles').factory('internals', function () {
    * @type {Object}
    */
   var constants = {
-    GBbytes: 1073741824,
-    MBbytes: 1048576,
-    emailRegex: /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/
+    GB_BYTES: 1073741824,
+    MB_BYTES: 1048576,
+    EMAIL_REGEX: /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/
   };
 
   /**
@@ -16,7 +16,7 @@ angular.module('sendFiles').factory('internals', function () {
    * @type {Object}
    */
   var limits = {
-    uploadLimit: constants.GBbytes,
+    uploadLimit: constants.GB_BYTES,
     maxFileLimit: 60
   };
 

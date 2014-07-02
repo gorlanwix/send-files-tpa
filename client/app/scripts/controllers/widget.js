@@ -7,7 +7,7 @@ angular.module('sendFiles')
       * Regular expression used to determine if user input is a valid email.
       * @type {Object - Regular Expression}
       */
-    $scope.emailRegex = internals.constants.emailRegex;
+    $scope.EMAIL_REGEX = internals.constants.EMAIL_REGEX;
 
     /**
      * Upper limit on total size of files that can be uploaded.
@@ -423,14 +423,14 @@ angular.module('sendFiles')
         if ($scope.totalBytes + file.size > uploadLimit ||
             $scope.totalFilesAdded + 1 > internals.limits.maxFileLimit) {
           console.log("overload!");
-          file.newSize = (Math.ceil(file.size / internals.constants.GBbytes * 100) / 100).toString() + 'GB';
+          file.newSize = (Math.ceil(file.size / internals.constants.GB_BYTES * 100) / 100).toString() + 'GB';
           $scope.overloadedList.push(file);
           $scope.showOverloadedPopup = true;
         } else {
           $scope.totalFilesAdded += 1;
           $scope.totalBytes += file.size;
 
-          var sizeInMB = Math.floor(file.size / internals.constants.MBbytes);
+          var sizeInMB = Math.floor(file.size / internals.constants.MB_BYTES);
           if (sizeInMB === 0) {
             file.newSize = ' 1MB';
           } else {
@@ -777,6 +777,7 @@ angular.module('sendFiles')
      */
     $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
       $scope.settings = message;
+      console.log($scope.settings.buttonCorners);
       $scope.$apply();
     });
 
