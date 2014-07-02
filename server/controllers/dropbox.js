@@ -52,6 +52,35 @@ module.exports.getAvailableCapacity = function (accessToken, callback) {
 };
 
 
+
+module.exports.getViewLink = function (path, accessToken, callback) {
+  var options = {
+    url: DROPBOX_API_ROOT + 'shares/sandbox' + path,
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + accessToken
+    },
+  };
+
+  requestService(options, function (err, res) {
+    // for some reason it recieves unparsed res.body
+
+    if (err) {
+      console.error('request for view link error', err);
+      return callback(err, null);
+    }
+
+    var body = JSON.parse(res.body);
+    if (res.statusCode !== httpStatus.OK) {
+      console.error('request error body: ', body);
+      return callback(error(body, res.statusCode), null);
+    }
+
+    callback(null, body.url);
+  });
+}
+
+
 /**
  * Finished chunked upload
  * @param  {Object}   file        file object
