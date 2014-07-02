@@ -6,17 +6,24 @@
 	<div class="box description-box">
 		<img class="logo" width="86" src="images/wix_icon.png">
 		<div class="notloggedin-container" ng-hide="provider">
-			<p class="description">Connect with your Google account. This process is secure and completely private. Login authentication is encrypted using Google API. Wix will not have access to your account name or password. 
+			<p class="description">Connect with your Google Drive or Dropbox account. This process is secure and completely private. Wix will not have access to your account name or password. 
 				<span class="mark-icon-container" wix-tooltip=" {placement:'bottom', text:'This is the account that users will upload files to.'}">
 					<img class="mark-icon" ng-mouseenter="show = true" ng-mouseleave="show = false" ng-src="images/question_mark.png">
 				</span>
 			</p>
-            <a ng-href="/auth/login/google/{{compId}}?instance={{instance}}" target="_blank"><button class="submit uilib-btn connect-button floatright">Connect account</button></a>
+            <!--<a ng-href="/auth/login/google/{{compId}}?instance={{instance}}" target="_blank"><button class="submit uilib-btn connect-button floatright">Connect account2</button></a>-->
+            <!--<a ng-href="/views/storage.html/{{compId}}/?instance={{instance}}">-->
+            <a ng-href="/views/storage.html?compId={{compId}}&instance={{instance}}" target="_blank">
+            	<button class="submit uilib-btn connect-button floatright">Connect account</button>
+            </a>
+            <!--</a>-->
 	    </div>
 	    <div class="loggedin-container connect" ng-show="provider">
-	    	<img class="mark-icon" ng-src="images/checkmark.png" />
-			<span class="connect">You are currently connected with your Google Drive account:</span>
-			<p>{{accountName || 'yourAccount@gmail.com'}}<!-- || 'There was an error retrieving your file repository account name.'}}--></p>
+	    	<img class="mark-icon" ng-src="../images/checkmark.png" />
+			<span class="connect">You are currently connected with your {{provider | storageName}} account:</span>
+			<p><img ng-if="provider == 'google'" class="service-favicon" ng-src="images/google_drive_favicon_20h.png">
+			<img ng-if="provider == 'dropbox'" class="service-favicon" ng-src="images/dropbox_favicon_20h.png">  {{userName}} - {{userAccount || 'There was an error retrieving your file repository account email.'}}
+			</p>
 				<p><a class="floatright" ng-click="logout()" target="_blank|_parent">Disconnect Account</a></p>
 				<a href="views/verified.html" style="font-size: 1px">_</a><!-- formatting -->
 		</div>
@@ -103,6 +110,10 @@
 		        		<div wix-param="descriptionColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-15'}"></div>
 			        	<div wix-param="descriptionFont" wix-ctrl="FontStylePicker"></div>
 			        </li>
+			        <li wix-label="Body Font">
+		        		<div wix-param="bodyColor" wix-ctrl="ColorPicker" wix-options="{startWithColor: 'color-15'}"></div>
+			        	<div wix-param="bodyFont" wix-ctrl="FontStylePicker"></div>
+			        </li>
 			        <li wix-label="Background &amp; Opacity">
 		        		<div wix-param="backgroundColor" wix-ctrl="ColorPickerWithOpacity" wix-options="{startWithColor: 'color-3', startWithOpacity:90}"></div>
 		        	</li>
@@ -124,7 +135,8 @@
 	        	</ul>
 	        </div>
 	    </div>
-	    <div class="acc-pane" ng-show="provider">
+	    <!-- Below is commented out because we are no longer letting site visitors send email messages. Instead messages will be sent through Wix dashboard -->
+	    <!--<div class="acc-pane" ng-show="provider">
 			<h3>Configuration Settings</h3>
 			<div class="acc-content">
 				<ul class="list">
@@ -144,6 +156,6 @@
 					</li>
 				</ul>
 			</div>
-		</div>
+		</div>-->
 	</div>
 </div>

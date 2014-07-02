@@ -123,3 +123,35 @@
 input[type="text"].uilib-input {
 	width: 210px;
 }
+
+.storage-body {
+  padding: 10px;
+}
+
+.no-style-list {
+  list-style-type: none;
+}
+
+.name-logo {
+  border-radius: 4px;
+  padding: 2px;
+  margin-bottom: -13px;
+}
+
+.name-logo:hover {
+  box-shadow: 0 0 8px #888888;
+}
+
+.google-name-logo {
+  margin-right: 50px;
+  border: 1px solid green;
+}
+
+.dropbox-name-logo {
+  border: 1px solid blue;
+}
+
+.service-favicon {
+  margin-bottom: -6px;
+  margin-right: 2px;
+}
