@@ -30,17 +30,22 @@ module.exports.open = function (instance, callback) {
 
 /**
  * Checks if session is open
- * @param  {number}   sessionId id of upload session
- * @param  {Function} callback
+ * @param  {number}    sessionId id of upload session
+ * @param  {WixWidget} instance  for checking rights
+ * @param  {Function}  callback
  * @return {Error}
  * @return {Boolean}            true if open, fase if cloased
  */
-module.exports.isOpen = function (sessionId, callback) {
+module.exports.isOpen = function (sessionId, instance, callback) {
   var q = 'SELECT closed \
            FROM session \
-           WHERE session_id = $1';
+           WHERE session_id = $1 \
+           AND instance_id = $2 \
+           AND component_id = $3';
   var values = [
-    sessionId
+    sessionId,
+    instance.instanceId,
+    instance.compId
   ];
 
   query.first(q, values, function (err, rows, result) {
@@ -56,19 +61,24 @@ module.exports.isOpen = function (sessionId, callback) {
 /**
  * Closes upload session
  * @param  {number}   sessionId upload session id to close
+ * @param  {WixWidget} instance  for checking rights
  * @param  {Function} callback
  * @return {Error}
  * @return {Object}   session row that was closed
  */
-module.exports.close = function (sessionId, callback) {
+module.exports.close = function (sessionId, instance, callback) {
   var q = 'UPDATE session \
            SET closed = $1 \
            WHERE session_id = $2 \
-           AND closed = $3 \
+           AND instance_id = $3 \
+           AND component_id = $4 \
+           AND closed = $5 \
            RETURNING *';
   var values = [
     true,
     sessionId,
+    instance.instanceId,
+    instance.compId,
     false
   ];
 

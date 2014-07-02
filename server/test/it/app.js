@@ -12,6 +12,8 @@ var email = require('../../controllers/email.js');
 var upload = require('../../controllers/upload-files.js');
 var db = require('../../models/pg-database.js');
 var query = require('../../config.js').query;
+var utils = require('../../utils.js');
+var WixWidget = utils.WixWidget;
 var pg = require('pg');
 var fs = require('fs');
 
@@ -380,7 +382,7 @@ describe('Dropbox', function () {
   });
 
 
-  it.only('should upload file to Dropbox', function (done) {
+  it('should upload file to Dropbox', function (done) {
     dropbox.insertFile(file, accessToken, function (err, result) {
       if (err) {
         console.log('upload error: ', err);
@@ -481,6 +483,32 @@ describe('Zip', function () {
       expect(file).to.have.property('originalname').to.equal('hello2.zip');
       expect(file).to.have.property('fileId').to.be.a('number');
       expect(fs.existsSync(file.path)).to.be.true;
+      done();
+    });
+  });
+});
+
+
+describe.only('Utils', function () {
+  describe('encryption', function () {
+    var fakeString = 'yolo';
+    var encryptedIds;
+    var widgetIds = new WixWidget(instanceId, compId);
+    before(function (done) {
+      encryptedIds = utils.encrypt(JSON.stringify(widgetIds));
+      done();
+    });
+    it('should produce giberrish on decryption', function (done) {
+      var decryptedString = utils.decrypt(fakeString);
+      console.log('decryptedString: ', decryptedString);
+      expect(decryptedString).to.not.exist;
+      done();
+    });
+    it('should decrypt encrypted widgetIds', function (done) {
+      var decryptedIds = JSON.parse(utils.decrypt(encryptedIds));
+      console.log('decryptedString: ', decryptedIds);
+      expect(decryptedIds).to.have.property('instanceId').to.equal(instanceId);
+      expect(decryptedIds).to.have.property('compId').to.equal(compId);
       done();
     });
   });

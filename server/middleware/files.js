@@ -100,7 +100,7 @@ module.exports.upload = function (req, res, next) {
     });
   } else {
 
-    db.files.checkSessionAndInsert(newFile, sessionId, function (err, fileId) {
+    db.files.checkSessionAndInsert(newFile, sessionId, req.widgetIds, function (err, fileId) {
       if (!fileId) {
         fs.unlink(newFile.path, function (err) {
           console.error('removing temp file error: ', err);
@@ -215,7 +215,7 @@ module.exports.commit = function (req, res, next) {
           return next(error(tokens.provider + ' account is full', httpStatus.REQUEST_ENTITY_TOO_LARGE));
         }
 
-        db.session.close(sessionId, function (err, session) {
+        db.session.close(sessionId, req.widgetIds, function (err, session) {
           if (!session) {
             return next(error('invalid session', httpStatus.BAD_REQUEST));
           }
