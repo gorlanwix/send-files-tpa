@@ -6,8 +6,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
+    <script type="text/javascript" src="//sslstatic.wix.com/services/js-sdk/1.31.0/js/Wix.js"></script>
     <!-- build:css({.tmp,app}) styles/settings.css -->
 
+    <link rel="stylesheet" href="../bower_components/wix-ui-lib2/ui-lib.css">
     <link rel="stylesheet" href="../styles/settings.css">
     <script src="../bower_components/jquery/dist/jquery.js"></script>
     <script src="../bower_components/ng-file-upload-shim/angular-file-upload-shim.js"></script>
@@ -15,6 +17,7 @@
     <script src="../bower_components/ng-file-upload/angular-file-upload.js"></script>
     <script src="../bower_components/angular-resource/angular-resource.js"></script>
     <script src="../bower_components/wix-ui-lib2/ui-lib.js"></script>
+    <script src="../bower_components/angular-animate/angular-animate.js"></script>
     <!-- endbuild -->
 
     <!-- build:js({.tmp,app}) scripts/settings.js -->
@@ -22,21 +25,24 @@
     <script src="../scripts/services/api.js"></script>
     <script src="../scripts/controllers/widget.js"></script>
     <script src="../scripts/controllers/settings.js"></script>
-    <script src="../scripts/services/wix.js"></script>
-    <script src="../scripts/controllers/verified.js"></script>
-    <!--<script src="../scripts/services/verify.js"></script>-->
-    <script src="../scripts/services/http.js"></script>
-    <script src="../scripts/filters/storagename.js"></script>
     <script src="../scripts/controllers/storage.js"></script>
-
+    <script src="../scripts/services/wix.js"></script>
+    <script src="../scripts/services/debounce.js"></script>
+    <script src="../scripts/filters/storagename.js"></script>
   </head>
 
-  <body ng-controller="VerifiedCtrl">
-    <div>
-    	<h4>Authentication complete.</h4>
-        <p>You are now logged in. This window will close automatically.</p>
-        <script>window.opener.location.reload(false);
-        window.close();</script>
+  <body ng-controller="StorageCtrl">
+    <div class="storage-body">
+    	<h4>Please choose your storage service.</h4>
+        <p>The Wix Send Files App supports both Google Drive and Dropbox cloud services.</p>
+        <ul class="list">
+            <li wix-label="Connect with:" class="no-style-list">
+                <!--<a ng-href="/auth/login/google/{{compId}}?instance={{instance}}"><button class="uilib-btn btn-green" class="googleBtn">Google Drive</button></a>
+                <a ng-href="/auth/login/dropbox/{{compId}}?instance={{instance}}"><button class="uilib-btn btn-purple" id="dropboxBtn">Dropbox</button></a>-->
+                <a ng-href="/auth/login/google/{{compId}}?instance={{instance}}"><img class="name-logo google-name-logo" ng-src="../images/google_drive_logo_30h.png"></a>
+                <a ng-href="/auth/login/dropbox/{{compId}}?instance={{instance}}"><img class="name-logo dropbox-name-logo" ng-src="../images/dropbox_logo_30h.png"></a>
+            </li>
+        </ul>
     	
     </div>
   </body>

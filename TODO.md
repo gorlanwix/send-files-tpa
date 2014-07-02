@@ -22,4 +22,4 @@ advisory locks for file clean up?
 - display username/email whatever
 - add popup rather than another page to choose storage service
 - use routeprovider to configure routes for storage selection and verification completion
-
+- make a filter to camel case google/dropbox and add "Drive" to google

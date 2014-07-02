@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('sendFiles')
-  .controller('SettingsCtrl', function ($scope, $wix, api, $http, Verify, debounce) {
+  .controller('SettingsCtrl', function ($scope, $wix, api, $http, debounce) {
 
     var previousValidEmail;
     var emailRegex = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1}$/;
@@ -100,12 +100,18 @@ angular.module('sendFiles')
             }
         $scope.provider = data.widgetSettings.provider;
         if ($scope.provider) {
-          $scope.userReceiveEmail = data.widgetSettings.userProfile.emails[0].value;
+          $scope.userName = data.widgetSettings.userProfile.displayName;
+          $scope.userAccount = data.widgetSettings.userProfile.emails[0].value;
+          $scope.userReceiveEmail = $scope.userAccount;
         } else {
           $scope.userReceiveEmail = null;
         }
         previousValidEmail = $scope.userReceiveEmail;
         console.log('provider success: ' + $scope.provider + ' ' + $scope.userReceiveEmail);
+        console.log(data.widgetSettings);
+        console.log(data.widgetSettings.settings);
+        console.log(data.widgetSettings.userProfile);
+        console.log(JSON.stringify(data.widgetSettings.userProfile.emails, null, 4));
       }).error(function(data, status, headers, config) {
           console.log("There was an error obtaining your saved settings from the database.");
           $scope.settings = api.defaults;
@@ -125,4 +131,12 @@ angular.module('sendFiles')
     }
 
     $wix.Settings.refreshApp();
+
+    var popup = Wix.UI.create({ctrl: 'Popup',
+                        options: {buttonSet: 'okCancel', fixed:true}});
+
+    $('#popupAnchorBtn').on('click', function(evt){
+      evt.stopPropagation();
+      popup.getCtrl().open();
+    });
 });
