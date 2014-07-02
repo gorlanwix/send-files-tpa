@@ -5,7 +5,6 @@ angular.module('sendFiles')
         return {
           link: function(scope, element) {
             var filesBlock;
-            var messageTooltip;
 
             var blocks = element.children();
             console.log('blocks', blocks);
@@ -16,14 +15,11 @@ angular.module('sendFiles')
               }
             }
             var textareaBlock = element.find('textarea');
-            var spanElements = element.find('span');
 
-            for (var j = 0; j < spanElements.length; j++) {
-              if (angular.element(spanElements[j]).hasClass('tool-tip-message')) {
-                messageTooltip = spanElements[j];
-                break;
-              }
-            }
+            var growMessageShrinkFiles = function() {
+              angular.element(filesBlock).removeClass('files-enlarge');
+              angular.element(textareaBlock).removeClass('user-message-box-shrink');
+            };
 
             angular.element(filesBlock).bind('scroll', function () {
               console.log('running directive!');
@@ -31,22 +27,17 @@ angular.module('sendFiles')
               if (scope.totalFilesAdded > 7 && (!scope.focusedTextarea || scope.onFiles)) {
                 angular.element(filesBlock).addClass('files-enlarge');
                 angular.element(textareaBlock).addClass('user-message-box-shrink');
-                angular.element(messageTooltip).addClass('lower-tool-tip-message');
               }
             });
 
             textareaBlock.bind('focus', function () {
               console.log('running click directive');
-              angular.element(filesBlock).removeClass('files-enlarge');
-              angular.element(textareaBlock).removeClass('user-message-box-shrink');
-              angular.element(messageTooltip).removeClass('lower-tool-tip-message');
+              growMessageShrinkFiles();
             });
 
             textareaBlock.bind('keypress', function () {
               console.log('running click directive');
-              angular.element(filesBlock).removeClass('files-enlarge');
-              angular.element(textareaBlock).removeClass('user-message-box-shrink');
-              angular.element(messageTooltip).removeClass('lower-tool-tip-message');
+              growMessageShrinkFiles();
             });
           }
         };
