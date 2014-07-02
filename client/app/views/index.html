@@ -1,6 +1,7 @@
 <div class="main-body" style="min-width: 255px;"ng-controller="WidgetCtrl" button-radius border-width widget-corners title="Drop files here" ng-file-drop="onFileSelect($files)" dropping>
-  <div> <!-- This surrounding div is used to prevent directives from being
-             applied to the dropper element. -->
+  <div>
+  <!-- This surrounding div is used to prevent directives from being
+       applied to the dropper element. -->
     <div class="dropper" ng-show="dropping">
       <span class="drop-text">
         Drop files here
@@ -91,7 +92,7 @@
     <span class="popup-message popup-margins">
       Success!<br>
       Your message and {{totalSuccess}} files have been sent.
-    </span> <!-- animate this away -->
+    </span>
   </div>
 
   <div class="popup" ng-show="submitFailed">
@@ -125,8 +126,6 @@
         <input type="file" title={{settings.addButtonText}} ng-file-select="onFileSelect($files)" multiple name="sendFile">
       </div>
 
-    <!-- Note: Placeholder attribute is not supported in IE9 or below -->
-
       <div class="block files" ng-model="glued" ng-mouseenter="onFiles = true" ng-mouseleave="onFiles = false" scroll-glue>
         <ul class="list-files">
           <div ng-if="!totalFilesAdded">
@@ -149,7 +148,7 @@
                     {{file.retryMessage}}
                   </span>
                     {{file.name}}
-                  </span>
+                </span>
               </span>
               <a class="remove" href="#" ng-click="abort($index)">.</a>
               <span class="status-text progress-text" ng-if="file.uploadResult === undefined">
@@ -198,23 +197,6 @@
             Please enter a message
           </span>
         </label>
-        <!-- <p class= "file-statistics file-status">
-          <span class="no-files" ng-if="!totalFilesAdded">
-            No files uploaded
-          </span>
-          <span class="success-text" ng-if="totalSuccess" ng-style="successTextStyle()">
-            {{totalSuccess}} uploaded
-          </span>
-          <span class="error-text" ng-if="totalFailed" ng-style="failedTextStyle()">
-            {{totalFailed}} failed
-          </span>
-          <span class="loading-text" ng-if="totalFilesAdded - totalSuccess - totalFailed" ng-style="loadingTextStyle()">
-            {{totalFilesAdded - totalSuccess - totalFailed}} loading...
-          </span>
-          <span class="file-upload-message" ng-show="showFileUploadMessage">
-            {{fileUploadMessage}}
-          </span>
-        </p> -->
       </div>
     </div>
 
