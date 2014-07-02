@@ -2,15 +2,18 @@
 
 var fs = require('fs');
 var googleapis = require('googleapis');
-var request = require('request');
 var async = require('async');
 var httpStatus = require('http-status');
-var userAuth = require('./user-auth.js');
+var user = require('./user.js');
 var config = require('../config.js');
 var OAuth2 = googleapis.auth.OAuth2;
 var googleKeys = require('../config.js').auth.google;
 var utils = require('../utils.js');
-var getResponseError = utils.getResponseError;
+var request = require('request');
+
+
+var error = utils.error;
+var requestService = utils.requestService;
 
 // google drive specific constants
 var ROOT_URL = 'https://www.googleapis.com/';
@@ -18,35 +21,54 @@ var DRIVE_API_PATH = 'upload/drive/v2/files';
 var DRIVE_ABOUT_PATH = 'drive/v2/about';
 
 
-
+/**
+ * Checks if upload status code is recoverable
+ * @param  {number} statusCode status code to check
+ * @return {Boolean}
+ */
 function shouldRecover(statusCode) {
   var recoverWhenStatus = [500, 501, 502, 503];
-  return recoverWhenStatus.indexOf(res.statusCode) > -1;
+  return recoverWhenStatus.indexOf(statusCode) > -1;
 }
 
+/**
+ * Constructs url
+ * @param  {String} root root of url
+ * @param  {String} path path to the source
+ * @return {String}      attached together root and path
+ */
 function constructUrl(root, path) {
   path = (path.charAt(0) === '/') ? path.substr(1) : path;
   return root + path;
 }
 
-
-var createOauth2Client = module.exports.createOauth2Client = function (tokens) {
+/**
+ * Creates a client for googleapis
+ * @param  {String} accessToken if supplied, sets to credentials
+ * @return {Object}             oauth2 google client
+ */
+var createOauth2Client = module.exports.createOauth2Client = function (accessToken) {
   var oauth2Client = new OAuth2(googleKeys.clientId, googleKeys.clientSecret);
   if (arguments.length === 1) {
-    oauth2Client.credentials = tokens;
+    oauth2Client.setCredentials({
+      access_token: accessToken
+    });
   }
 
   return oauth2Client;
 };
 
 
+/**
+ * Gets available quota on Google Drive
+ * @param  {String}   accessToken
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {number}               free quota
+ */
 module.exports.getAvailableCapacity = function (accessToken, callback) {
 
-  var oauth2Client = createOauth2Client();
-
-  oauth2Client.setCredentials({
-    access_token: accessToken
-  });
+  var oauth2Client = createOauth2Client(accessToken);
 
   googleapis.discover('drive', 'v2').execute(function (err, client) {
     if (err) {
@@ -59,6 +81,9 @@ module.exports.getAvailableCapacity = function (accessToken, callback) {
       .withAuthClient(oauth2Client)
       .execute(function (err, result) {
         if (err) {
+          if (err.code === 401) {
+            return callback(error('invalid access token', 401), null);
+          }
           return callback(err, null);
         }
         var totalQuota = parseInt(result.quotaBytesTotal, 10);
@@ -69,14 +94,16 @@ module.exports.getAvailableCapacity = function (accessToken, callback) {
   });
 };
 
-// returns id of the folder
+/**
+ * Creates folder on Google Drive with name 'Wix Send Files'
+ * @param  {String}   accessToken
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {String}               id of the folder created
+ */
 module.exports.createFolder = function (accessToken, callback) {
 
-  var oauth2Client = createOauth2Client();
-
-  oauth2Client.setCredentials({
-    access_token: accessToken
-  });
+  var oauth2Client = createOauth2Client(accessToken);
 
   var folder = {
     title: 'Wix Send Files',
@@ -100,7 +127,15 @@ module.exports.createFolder = function (accessToken, callback) {
   });
 };
 
-
+/**
+ * Gets url for resumable upload to Google Drive
+ * @param  {Object}   file        file object
+ * @param  {String}   folderId    id of a folder to insert
+ * @param  {String}   accessToken
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {String}               upload url
+ */
 function getUploadUrl(file, folderId, accessToken, callback) {
   var fileDesc = {
     title: file.originalname,
@@ -127,17 +162,14 @@ function getUploadUrl(file, folderId, accessToken, callback) {
   };
 
 
-  request(options, function (err, res) {
-
-    var body = res.body;
+  requestService(options, function (err, res) {
 
     if (err) {
-      console.error('request error', err);
       return callback(err, null);
     }
 
     if (res.statusCode !== httpStatus.OK) {
-      return callback(getResponseError(res.statusCode), null);
+      return callback(error(res.body, httpStatus.INTERNAL_SERVER_ERROR), null);
     }
 
     var uploadUrl = res.headers.location;
@@ -145,6 +177,11 @@ function getUploadUrl(file, folderId, accessToken, callback) {
   });
 }
 
+/**
+ * Parse range header value to get byte to start uploading from
+ * @param  {String} range header value of format 0 - 24
+ * @return {number}       byte to start upload from
+ */
 function getStartUploadFrom(range) {
   var startFrom = 0;
   if (range) {
@@ -153,6 +190,17 @@ function getStartUploadFrom(range) {
   return startFrom;
 }
 
+/**
+ * Request how much of file has been uploaded.
+ * @param  {Object}   file        file object
+ * @param  {String}   uploadUrl   url to upload
+ * @param  {String}   accessToken
+ * @param  {number}   waitFor     number of milliseconds to wait before request
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {number}   byte to start upload form
+ * @return {number}   response status code
+ */
 function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
   var options = {
     url: uploadUrl,
@@ -166,12 +214,13 @@ function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
   console.log('requesting upload status, waiting for ' + waitFor);
 
   setTimeout(function () {
-    request(options, function (err, res) {
+    requestService(options, function (err, res) {
 
       if (err) {
         console.error('requestUploadStatus error:', err);
         return callback(err, 0, res.statusCode);
       }
+
       console.log('upload status headers: ', res.headers);
       var rangeHeader = res.headers['range'];
 
@@ -181,13 +230,22 @@ function requestUploadStatus(file, uploadUrl, accessToken, waitFor, callback) {
         // restart upload from zero
         callback(null, 0, res.statusCode);
       } else {
-        callback(getResponseError(res.statusCode), 0, res.statusCode);
+        callback(error(res.body, httpStatus.INTERNAL_SERVER_ERROR), 0, res.statusCode);
       }
     });
   }, waitFor);
 }
 
-
+/**
+ * Recovers upload to Google Drive.
+ * If Drive unavailable, retries with exponential wait time up to 16 seconds.
+ * @param  {Object}   file        file object
+ * @param  {String}   uploadUrl   url to upload
+ * @param  {String}   accessToken
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {number}   byte to recover from
+ */
 function recoverUpload(file, uploadUrl, accessToken, callback) {
   var watingTimes = [0, 1000, 2000, 4000, 8000, 16000];
   var startFrom = 0;
@@ -217,14 +275,24 @@ function recoverUpload(file, uploadUrl, accessToken, callback) {
       if (statusCode === 308) {
         callback(null, startFrom);
       } else {
-        callback(getResponseError(statusCode), 0);
+        callback(error(res.body, httpStatus.INTERNAL_SERVER_ERROR), 0);
       }
     }
   );
 }
 
 
-// returns error, response body, and a boolean of whether it should be recovered
+/**
+ * Uploads file to Google Drive.
+ * @param  {Object}   file        file object
+ * @param  {Strign}   uploadUrl   url to upload
+ * @param  {String}   accessToken
+ * @param  {number}   start       byte to upload from
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {Object}               response body
+ * @return {Boolean}              whether to recover upload or not
+ */
 function uploadFile(file, uploadUrl, accessToken, start, callback) {
 
   var options = {
@@ -245,13 +313,14 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
 
   readStream.on('open', function () {
     readStream.pipe(request(options, function (err, res) {
-      var body = JSON.parse(res.body);
 
       if (err) {
         console.error('request for upload to Google Drive error: ', err);
         return callback(err, null, false); // might also set to true, should monitor this
       }
 
+      var body = JSON.parse(res.body);
+      console.log(body);
       if (res.statusCode === httpStatus.OK || res.statusCode === httpStatus.CREATED) {
         return callback(null, body, false);
       }
@@ -263,7 +332,7 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
       if (shouldRecover(res.statusCode)) {
         callback(new Error('upload to Google Drive was interrupted'), null, true);
       } else {
-        callback(getResponseError(res.statusCode), null, false);
+        callback(error(res.body, httpStatus.INTERNAL_SERVER_ERROR), null, false);
       }
     }));
   });
@@ -273,7 +342,16 @@ function uploadFile(file, uploadUrl, accessToken, start, callback) {
   });
 }
 
-// returns error and parsed result of insertion
+/**
+ * Public method for uploading Google Drive and recovering on interrupt.
+ * Maximum number of recovers is MAX_UPLOAD_RECOVERS.
+ * @param  {Object}   file        file object
+ * @param  {String}   folderId    id of folder to insert
+ * @param  {String}   accessToken
+ * @param  {Function} callback
+ * @return {Error}
+ * @return {Object}               response body object on success
+ */
 module.exports.insertFile = function (file, folderId, accessToken, callback) {
 
   console.log('insering file to google');

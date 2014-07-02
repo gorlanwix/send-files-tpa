@@ -7,13 +7,15 @@ var app = require('../../app');
 var async = require('async');
 var googleDrive = require('../../controllers/google-drive.js');
 var dropbox = require('../../controllers/dropbox.js');
-var userAuth = require('../../controllers/user-auth.js');
+var user = require('../../controllers/user.js');
 var email = require('../../controllers/email.js');
 var upload = require('../../controllers/upload-files.js');
+var db = require('../../models/pg-database.js');
 var query = require('../../config.js').query;
+var utils = require('../../utils.js');
+var WixWidget = utils.WixWidget;
 var pg = require('pg');
 var fs = require('fs');
-var connectionString = process.env.DATABASE_URL || require('../../connect-keys/pg-connect.json').connectPg;
 
 var instanceId = 'whatever';
 var compId = '12345'
@@ -79,9 +81,7 @@ describe('api requests', function () {
           if (err) return done(err);
           expect(res.body).to.have.property('widgetSettings');
           expect(res.body).to.have.property('status').to.equal(200);
-          expect(res.body.widgetSettings).to.have.property('userEmail').to.equal('');
           expect(res.body.widgetSettings).to.have.property('provider').to.equal('');
-          expect(res.body.widgetSettings).to.have.property('settings').to.be.an('object');
           done();
         });
     });
@@ -101,43 +101,16 @@ describe('api requests', function () {
         });
     });
 
-    it('should give invalid request format error b/c of email', function (done) {
-      request(app).put('/api/settings/' + compId)
-        .set('x-wix-instance', instanceId)
-        .send({widgetSettings: {userEmail: 'test'}})
-        .expect('Content-Type', /json/)
-        .expect(400)
-        .end(function (err, res){
-          if (err) return done(err);
-          expect(res.body).to.have.property('status').to.equal(400);
-          expect(res.body).to.have.property('error').to.equal('invalid request format');
-          done();
-        });
-    });
-
     it('should give invalid request format error b/c of settings', function (done) {
       request(app).put('/api/settings/' + compId)
         .set('x-wix-instance', instanceId)
-        .send({widgetSettings: {userEmail: '', settings: 'test'}})
+        .send({widgetSettings: {settings: 'test'}})
         .expect('Content-Type', /json/)
         .expect(400)
         .end(function (err, res){
           if (err) return done(err);
           expect(res.body).to.have.property('status').to.equal(400);
           expect(res.body).to.have.property('error').to.equal('invalid request format');
-          done();
-        });
-    });
-
-    it('should update with empty email', function (done) {
-      request(app).put('/api/settings/' + compId)
-        .set('x-wix-instance', instanceId)
-        .send({widgetSettings: {userEmail: '', settings: {hello: 'hi'}}})
-        .expect('Content-Type', /json/)
-        .expect(201)
-        .end(function (err, res){
-          if (err) return done(err);
-          expect(res.body).to.have.property('status').to.equal(201);
           done();
         });
     });
@@ -145,7 +118,7 @@ describe('api requests', function () {
     it('should update settings', function (done) {
       request(app).put('/api/settings/' + compId)
         .set('x-wix-instance', instanceId)
-        .send({widgetSettings: {userEmail: 'timoha@vdv.com', settings: {hello: 'sup'}}})
+        .send({widgetSettings: {settings: {hello: 'sup'}}})
         .expect('Content-Type', /json/)
         .expect(201)
         .end(function (err, res){
@@ -297,6 +270,9 @@ describe('api requests', function () {
 
 describe('Google Drive', function () {
   var accessToken;
+  var file;
+  var tmpPath = './tmp/';
+  var folderId;
   this.timeout(10000);
 
   before(function (done) {
@@ -304,12 +280,27 @@ describe('Google Drive', function () {
       instanceId: instanceId,
       compId: compId
     };
-    userAuth.getInstanceTokens(widgetIds, function (err, tokens) {
+    user.getTokens(widgetIds, function (err, tokens) {
       if (err) {
         console.error('token retrieval error: ', err);
+        done(err);
       }
       accessToken = tokens.access_token;
       done();
+    });
+    file = {
+      name: 'test.jpg',
+      originalname: 'test.jpg',
+      path: tmpPath + 'test.jpg',
+      mimetype: 'image/jpeg',
+      size: 58104
+    };
+    db.widget.getSettings(widgetIds, function (err, settings) {
+      if (err) {
+        console.error('cant get settings');
+        return done();
+      }
+      folderId = settings.serviceSettings.folderId;
     });
   });
 
@@ -317,6 +308,7 @@ describe('Google Drive', function () {
     googleDrive.getAvailableCapacity(accessToken, function (err, capacity) {
       if (err) {
         console.log('capacity error: ', err);
+        return done();
       }
       console.log('capacity: ', capacity);
       expect(capacity).to.be.a('number');
@@ -328,9 +320,21 @@ describe('Google Drive', function () {
     googleDrive.createFolder(accessToken, function (err, result) {
       if (err) {
         console.log('creating folder error: ', err);
+        return done();
       }
       console.log('created folder: ', result);
       expect(result).to.be.exist;
+      done();
+    });
+  });
+
+  it('should upload file to Google Drive', function (done) {
+    googleDrive.insertFile(file, folderId, accessToken, function (err, result) {
+      if (err) {
+        console.log('upload error: ', err);
+        return done();
+      }
+      expect(result).to.have.property('alternateLink').to.exist;
       done();
     });
   });
@@ -342,16 +346,17 @@ describe('Dropbox', function () {
   var accessToken;
   var file;
   var tmpPath = './tmp/';
-  this.timeout(10000);
+  this.timeout(300000);
 
   before(function (done) {
     var widgetIds = {
       instanceId: instanceId,
       compId: 'dropbox'
     };
-    userAuth.getInstanceTokens(widgetIds, function (err, tokens) {
+    user.getTokens(widgetIds, function (err, tokens) {
       if (err) {
         console.error('token retrieval error: ', err);
+        return done();
       }
       accessToken = tokens.access_token;
       done();
@@ -368,6 +373,7 @@ describe('Dropbox', function () {
     dropbox.insertFile(accessToken, function (err, capacity) {
       if (err) {
         console.log('capacity error: ', err);
+        return done(err);
       }
       console.log('capacity: ', capacity);
       expect(capacity).to.be.a('number');
@@ -376,10 +382,11 @@ describe('Dropbox', function () {
   });
 
 
-  it.only('should upload file to Dropbox', function (done) {
+  it('should upload file to Dropbox', function (done) {
     dropbox.insertFile(file, accessToken, function (err, result) {
       if (err) {
         console.log('upload error: ', err);
+        return done(err);
       }
       expect(result).to.have.property('path').to.exist;
       done();
@@ -476,6 +483,32 @@ describe('Zip', function () {
       expect(file).to.have.property('originalname').to.equal('hello2.zip');
       expect(file).to.have.property('fileId').to.be.a('number');
       expect(fs.existsSync(file.path)).to.be.true;
+      done();
+    });
+  });
+});
+
+
+describe.only('Utils', function () {
+  describe('encryption', function () {
+    var fakeString = 'yolo';
+    var encryptedIds;
+    var widgetIds = new WixWidget(instanceId, compId);
+    before(function (done) {
+      encryptedIds = utils.encrypt(JSON.stringify(widgetIds));
+      done();
+    });
+    it('should produce giberrish on decryption', function (done) {
+      var decryptedString = utils.decrypt(fakeString);
+      console.log('decryptedString: ', decryptedString);
+      expect(decryptedString).to.not.exist;
+      done();
+    });
+    it('should decrypt encrypted widgetIds', function (done) {
+      var decryptedIds = JSON.parse(utils.decrypt(encryptedIds));
+      console.log('decryptedString: ', decryptedIds);
+      expect(decryptedIds).to.have.property('instanceId').to.equal(instanceId);
+      expect(decryptedIds).to.have.property('compId').to.equal(compId);
       done();
     });
   });

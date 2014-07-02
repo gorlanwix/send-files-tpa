@@ -1,49 +1,106 @@
 'use strict';
 
 var config = require('./config.js');
+var httpStatus = require('http-status');
+var request = require('request');
+var crypto = require('crypto');
+
 var wix = config.wix;
 
 
-// parse instance and sets parsed insatnceId
-module.exports.WixWidget = function (instanceId, compId) {
+module.exports.WixWidget = function (instanceId, compId, sessionToken) {
   this.instanceId = instanceId;
   this.compId = compId;
+  this.sessionToken = sessionToken;
 };
 
-module.exports.Visitor = function (firstName, lastName, email, message, wixSessionToken) {
+module.exports.Visitor = function (firstName, lastName, email, message) {
   this.name = {
     first: firstName,
     last: lastName
   };
   this.email = email;
   this.message = message;
-  this.wixSessionToken = wixSessionToken;
 };
 
-// set any param to null to avoid it's update
-module.exports.WidgetSettings = function (userEmail, provider, settings, serviceSettings) {
-  this.userEmail = userEmail;
-  this.provider = provider;
-  this.settings = settings;
-  this.serviceSettings = serviceSettings;
-};
-
-
-module.exports.error = function (message, statusCode) {
+/**
+ * Creates error with status code
+ * @param  {String} message    error message
+ * @param  {number} statusCode error status code
+ * @return {Error}
+ */
+var error = module.exports.error = function (message, statusCode) {
   var err = new Error(message);
   err.status = statusCode;
   return err;
 };
 
 
-module.exports.getResponseError = function (statusCode) {
-  if (statusCode === 401) {
-    return error('invalid access token', httpStatus.UNAUTHORIZED);
-  }
 
-  return error('service unavailable', httpStatus.INTERNAL_SERVER_ERROR);
+/**
+ * Encrypts string with wix key
+ * @param  {String} state
+ * @return {String} encrypted string
+ */
+module.exports.encrypt = function (state) {
+  var cipher = crypto.createCipher('aes-256-cbc', wix.secret());
+  var crypted = cipher.update(state, 'utf8', 'hex');
+  crypted += cipher.final('hex');
+  return crypted;
 }
 
+/**
+ * Decrypts string with wix key
+ * @param  {String} state encrypted string
+ * @return {String}       decrypted string
+ */
+module.exports.decrypt = function (state) {
+  var dec = null;
+  try {
+    var decipher = crypto.createDecipher('aes-256-cbc', wix.secret());
+    var dec = decipher.update(state, 'hex', 'utf8');
+    dec += decipher.final('utf8');
+  } catch (e) {
+    dec = null;
+    console.error('Invalid encryption');
+  }
+  return dec;
+}
+
+/**
+ * Make a request to a service.
+ * Returns error depending on response status code.
+ * @param  {Object}   options  params to be passed to request
+ * @param  {Function} callback
+ * @return {Error}             on 400, 401, 403, 404
+ */
+module.exports.requestService = function (options, callback) {
+  request(options, function (err, res) {
+    if (err) {
+      console.error('request error', err);
+      return callback(err, null);
+    }
+
+    switch (res.statusCode) {
+    case 401:
+      return callback(error('invalid access token', res.statusCode), null);
+    case 404:
+      return callback(error('not found', res.statusCode), null);
+    case 400:
+      return callback(error('bad request', res.statusCode), null);
+    case 403:
+      return callback(error('forbidden', res.statusCode), null);
+    default:
+      return callback(null, res);
+    }
+  });
+};
+
+/**
+ * Parses and verifies instance to return instanceId
+ * @param  {String} instance widget instance
+ * @return {String}          instance id of the widget
+ */
 module.exports.getInstanceId = function (instance) {
   var instanceId;
   if (instance === 'whatever') { // for testing purposes

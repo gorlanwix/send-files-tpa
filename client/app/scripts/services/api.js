@@ -28,8 +28,13 @@ angular.module('sendFiles').factory('api', function ($wix, $location) {
     return instanceId; //returns the unparsed instance
   };
 
+  var getOrigCompId = $wix.Utils.getOrigCompId;
+  var getCompId = $wix.Utils.getCompId;
+
   return {
     defaults: defaults,
-    getInstance: getInstance
+    getInstance: getInstance,
+    getOrigCompId: getOrigCompId,
+    getCompId: getCompId
   };
 });
