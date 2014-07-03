@@ -32,13 +32,13 @@ angular.module('sendFiles')
      * Represents the Instance ID of this widget.
      * @type {String}
      */
-    var instance = 'whatever';//api.getInstance();//'whatever';
+    var instance = api.getInstance();
 
     /**
      * Represents the Component ID of this widget.
      * @type {String}
      */
-    var compId = '[UNKNOWN]'; //$wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
+    var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
 
     /**
      * Allows external package that does automatic scrolling of files list when
@@ -200,6 +200,7 @@ angular.module('sendFiles')
      * @param  {String} newValue Value in input
      */
     $scope.updateVisitorName = function (newValue) {
+      console.log(newValue);
       if (newValue === undefined) {
         $scope.fileForm.visitorName.$setPristine();
       }
@@ -210,8 +211,10 @@ angular.module('sendFiles')
      * @param  {String} newValue Value in input
      */
     $scope.updateEmail = function (newValue) {
+      console.log(newValue);
       if (newValue === undefined) {
         $scope.fileForm.email.$setPristine();
+        console.log($scope.fileForm.email.$pristine);
       }
     };
 
@@ -379,7 +382,7 @@ angular.module('sendFiles')
     $scope.submitNotReady = function() {
       if ($scope.active && $scope.fileForm.$valid &&
             (($scope.totalSuccess + $scope.totalFailed ) ===
-            $scope.totalFilesAdded) && $scope.totalSuccess) {
+            $scope.totalFilesAdded) && $scope.totalSuccess || true) {
         return false;
       } else {
         return true;
@@ -709,16 +712,19 @@ angular.module('sendFiles')
      * completly reset.
      */
     $scope.reset = function() {
+      $scope.fileForm.visitorName.$setPristine();
+      $scope.fileForm.email.$setPristine();
+      $scope.fileForm.message.$setPristine();
+      
+      $scope.submitting = false;
+      $scope.submitFailed = false;
+      $scope.submitSuccessful = false;
+      console.log('got through');
       $scope.visitorName = '';
       $scope.email = '';
       $scope.message = '';
 
       firstTimeUploading = true;
-
-      $scope.totalSuccess = 0;
-      $scope.totalFailed = 0;
-      $scope.submitting = false;
-      $scope.submitSuccessful = false;
 
       fileIndex = 0;
       uploadLimit = internals.limits.uploadLimit;
@@ -733,7 +739,11 @@ angular.module('sendFiles')
 
       fileUploadQueue = [];
 
-      $scope.submitFailed = false;
+      $timeout(function() {
+        $scope.totalSuccess = 0;
+      }, 3000);
+
+      $scope.totalFailed = 0;
     };
 
     /**

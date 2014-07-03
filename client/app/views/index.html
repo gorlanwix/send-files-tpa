@@ -176,7 +176,7 @@
       </div>
 
       <div class="block input-block email-block">
-        <input id="email" name="email" type="email" class="form-input" required ng-model="email" ng-pattern="emailRegex" ng-change="updateEmail(email)">
+        <input id="email" name="email" type="email" class="form-input" required ng-model="email" ng-pattern="EMAIL_REGEX" ng-change="updateEmail(email)">
         <label class="form-input-label" for="email">
           <span ng-show="!showInvalidEmail">
             {{settings.emailAddressText}}
