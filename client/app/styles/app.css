@@ -457,7 +457,7 @@
 .form-input:focus + label {
   font-size: 10px; 
   bottom: 100%;
-  margin-top: -3.5%;
+  margin-top: -15px;
   color: #62D8BF;
   padding-top: 0;
   padding-bottom: 0;
@@ -554,9 +554,9 @@
 }
 
 .bottom-buttons[disabled] {
-  opacity: 0.5;
+  opacity: 0.4;
   /* IE compatibility */
-  filter: alpha(opacity=0.5);
+  filter: alpha(opacity=0.4);
   padding: 10px;
 }
 
