@@ -41,7 +41,7 @@ angular.module('sendFiles').factory('internals', function () {
    * Change to false for production code.
    * @type {Boolean}
    */
-  var debug = true;
+  var debug = false;
 
   return {
     constants: constants,
