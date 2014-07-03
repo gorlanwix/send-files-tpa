@@ -14,7 +14,7 @@ angular.module('sendFiles')
               evt.preventDefault();
               scope.dropping = true;
             }, true);
-            element[0].addEventListener('dragleave', function(evt) {
+            element[0].addEventListener('dragleave', function() {
               scope.dropping = false;
             }, false);
             element[0].addEventListener('drop', function(evt) {

@@ -163,14 +163,7 @@ angular.module('sendFiles')
     $scope.failedAfterRetryList = [];
 
     /**
-     * While true, elements in the list of files that the user wants retried
-     * are being processed. During this time, the failed upload popup is not
-     * allowed to show up.
-     * @type {Boolean}
-     */
-    var processingFailedAfterRetryList = false;
-
-    /* A list of indices representing files waiting to be shown to the user
+     * A list of indices representing files waiting to be shown to the user
      * as files that failed to upload. They are shown once the current list
      * has been processed.
      * They are not shown immediately to prevent annoying the user.
@@ -355,7 +348,7 @@ angular.module('sendFiles')
         }, 1000);
       } else if (situation.type === 'failed upload') {
         if (situation.reply === 'yes') {
-          processingFailedAfterRetryList = true; //important!
+          $scope.failedAfterRetryList.processing = true;
           $scope.showFailedUploadPopup = false;
           $timeout(function() {
             while ($scope.failedAfterRetryList.length > 0) {
@@ -536,7 +529,7 @@ angular.module('sendFiles')
               if ($scope.uploadedFiles[index] !== 'aborted') {
                 $scope.fileList[index].retryMessage = undefined;
                 if ($scope.failedAfterRetryList.length === 0) {
-                  processingFailedAfterRetryList = false;
+                  $scope.failedAfterRetryList.processing = false;
                   if (retryQueue.length > 0) {
                     for (var i = 0; i < retryQueue.length; i++) {
                       $scope.failedAfterRetryList[i] = retryQueue[i];
@@ -558,7 +551,7 @@ angular.module('sendFiles')
             }
         }).error(function() {
             if ($scope.failedAfterRetryList.length === 0) {
-              processingFailedAfterRetryList = false;
+              $scope.failedAfterRetryList.processing = false;
               if (retryQueue.length > 0) {
                 for (var i = 0; i < retryQueue.length; i++) {
                   $scope.failedAfterRetryList[i] = retryQueue[i];
@@ -593,7 +586,7 @@ angular.module('sendFiles')
                   $scope.fileList[index].retryMessage = 'Failed: click to retry - ';
                   console.log('RETRY REMOVAL: ' + ($scope.uploadRetryList[arrayPosition].numberOfTries + 1));
                   $scope.uploadRetryList.splice(arrayPosition, 1);
-                  if (!processingFailedAfterRetryList) {
+                  if (!$scope.failedAfterRetryList.processing) {
                     $scope.failedAfterRetryList.push(index);
                     $scope.showFailedUploadPopup = true;
                   } else {
