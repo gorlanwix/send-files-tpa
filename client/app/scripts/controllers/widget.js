@@ -32,7 +32,7 @@ angular.module('sendFiles')
      * Represents the Component ID of this widget.
      * @type {String}
      */
-    var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
+    var compId = api.getOrigCompId() || api.getCompId();
 
     /**
      * Allows external package that does automatic scrolling of files list when
@@ -350,15 +350,19 @@ angular.module('sendFiles')
     $scope.handlePopup = function (situation) {
       if (situation.type === 'overload') {
         $scope.showOverloadedPopup = false;
-        $scope.overloadedList = [];
+        $timeout(function() {
+          $scope.overloadedList = [];
+        }, 1000);
       } else if (situation.type === 'failed upload') {
         if (situation.reply === 'yes') {
           $scope.showFailedUploadPopup = false;
           processingFailedAfterRetryList = true; //important!
-          while ($scope.failedAfterRetryList.length > 0) {
-            var indexValue = $scope.failedAfterRetryList.splice(0, 1);
-            $scope.retry(indexValue[0]);
-          }
+          $timeout(function() {
+            while ($scope.failedAfterRetryList.length > 0) {
+              var indexValue = $scope.failedAfterRetryList.splice(0, 1);
+              $scope.retry(indexValue[0]);
+            }
+          }, 1000);
         } else {
           $scope.showFailedUploadPopup = false;
           $scope.failedAfterRetryList = [];
@@ -385,8 +389,9 @@ angular.module('sendFiles')
     };
 
     /**
-     * Determines if a user is ready to submit or not. Returns true if
-     * NOT ready to submit and false if ready.
+     * Returns whether or not if the user has done everything needed to submit.
+     * Makes the submit button clickable and removes all error messages.
+     * @return {boolean} Whether or not the user is ready to submit
      */
     $scope.submitReady = function() {
       if ($scope.active && $scope.fileForm.$valid  &&
@@ -398,9 +403,11 @@ angular.module('sendFiles')
       }
     };
 
-    /* Call this  when users select file(s) to begin file upload.
+    /**
+     * Call this  when users select file(s) to begin file upload.
      * Gets the session ID and verifies capacity with server before
-     * file processing actually happens
+     * file processing actually happens.
+     * @param {Array of Files} $files A list of files the user is uploading
      */
     $scope.onFileSelect = function($files) {
       if ($scope.active && !$scope.submitting &&
@@ -425,9 +432,11 @@ angular.module('sendFiles')
       }
     };
 
-    /* Processes each file to verify that uploading it will not violate
+    /**
+     * Processes each file to verify that uploading it will not violate
      * the capacity limit or the maximum file total limit. Once that it is
      * confirmed, the function calls the upload function on each file.
+     * @param {Array of Files} $files A list of files to be processed
      */
     $scope.processFiles = function($files) {
       for (var i = 0; i < $files.length; i++) {
@@ -451,35 +460,39 @@ angular.module('sendFiles')
 
           $scope.fileList.push(file);
           $scope.fileList[fileIndex].progress = 100;
-          fileIndex += 1; //Increment first because not fast enough after $http
+          fileIndex += 1;
           $scope.start(fileIndex);
         }
       }
     };
 
-    /* Sends a request to the server to check if the Google Drive
-     * has enough storage space. */
+    /**
+     * Sends a request to the server to check if the user's Google Drive
+     * has enough storage space. Also receives session ID from server.
+     * @param  {Function} callback Calls this function after verification to 
+     *                             start the uploading the first files and
+     *                             those waiting in the queue
+     */
     $scope.verifySpace = function(callback) {
-      console.log("compId: " + compId);
       var verifyURL = '/api/files/session/' + compId; //wait for this
       $http({method: 'GET',
              url: verifyURL,
              headers: {'X-Wix-Instance' : instance},
              timeout: 10000
-        }).success(function (data, status, headers, config) {
+        }).success(function (data, status) {
           if (status === 200) {
             uploadLimit = data.uploadSizeLimit;
-
-            // uploadLimit = 0;
-
             $scope.sessionId = data.sessionId;
             callback();
           } else {
-            console.log('The server is returning an incorrect status.');
+            if (api.debug) {
+              console.log('The server is returning an incorrect status.');
+            }
           }
-        }).error(function (data, status, headers, config) {
-          console.log('Could not get sessionID');
-          console.log(status);
+        }).error(function (data, status) {
+          if (api.debug) {
+            console.log('Could not get sessionID');
+          }
           if (status === 401) {
             $scope.verifyErrorMessage = 'We are not accepting files' +
                                         ' at this time. Please contact us.';
@@ -495,11 +508,13 @@ angular.module('sendFiles')
 
     /**
      * Call this when the file at (INDEX - 1) of fileList is ready 
-     * to be sent to the server.
+     * to be sent to the server. Files that fail to upload are automatically
+     * retried up to 5 times before an error message is shown to the user.
+     * Note: We are using (index - 1) because it is too slow to increment
+     * the fileIndex after the asynchronous call.
      * Note: Progress starts at 100 because the progress bar is
      * "uncovered" as progress goes on so by completion, the 
      * HTML element covering the progress bar has a width of 0.
-     * 
      * @param {integer} index The index for the file in fileList AHEAD
      *                        of the one you want to upload.
      * 
@@ -516,7 +531,7 @@ angular.module('sendFiles')
           file: $scope.fileList[index] //could technically upload all files - but only supported in HTML 5
         }).progress(function(evt) {
           $scope.fileList[index].progress = (100 - Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10)));
-        }).success(function (data, status, headers, config) {
+        }).success(function (data, status) {
             if (status === 201) {
               if ($scope.uploadedFiles[index] !== 'aborted') {
                 $scope.fileList[index].retryMessage = undefined;
@@ -541,7 +556,7 @@ angular.module('sendFiles')
             } else {
               console.log('ERROR ERROR ERROR: success failed!');
             }
-        }).error(function(data, status, headers, config) {
+        }).error(function() {
             if ($scope.failedAfterRetryList.length === 0) {
               processingFailedAfterRetryList = false;
               if (retryQueue.length > 0) {
@@ -585,14 +600,12 @@ angular.module('sendFiles')
                     retryQueue.push(index);
                   }
                 }
-                console.log('totalruns: ' + totalruns);
                 console.log($scope.uploadRetryList);
               }
               console.log('failedAfterRetryList:');
               console.log($scope.failedAfterRetryList);
             }
             console.log('ERROR ERROR ERROR');
-            console.log(data);
             //give try again error to user
         }).xhr(function(xhr) {
             xhr.upload.addEventListener('abort', function() {
@@ -602,7 +615,8 @@ angular.module('sendFiles')
       }
     };
 
-    /* Call this when a files needs to be reuploaded - likely due to a failure
+    /**
+     * Call this when a files needs to be reuploaded - likely due to a failure
      * to upload the first time.
      * @param: {integer} index The index of the file in the array fileList
      */
@@ -614,8 +628,10 @@ angular.module('sendFiles')
       $scope.start(index + 1);
     };
 
-    /** Call this when user wants to remove file from list.
-     * @param: {integer} index The index of the file in the array fileList
+    /** 
+     * Call this when user wants to remove a file from list.
+     * @param: {integer} index The index of the file to be removed
+     *                         in the array fileList
      */
     $scope.abort = function(index) {
       $scope.uploadedFiles[index] = 'aborted';
@@ -692,7 +708,7 @@ angular.module('sendFiles')
              headers: {'X-Wix-Instance' : instance},
              data: finalSubmission,
              timeout: 10000
-      }).success(function(data, status, headers, config) {
+      }).success(function(data, status) {
           if (status === 202) {
             $scope.submitting = false;
             $scope.submitSuccessful = true;
@@ -702,7 +718,7 @@ angular.module('sendFiles')
           } else {
             console.log('The server is giving an incorrect status.');
           }
-        }).error(function(data, status, headers, config) {
+        }).error(function(data, status) {
           if (status === 400 || status === 500) {
             $scope.submitErrorMessage = 'Something terrible happened. Try again.';
           } else if (status === 401) {
@@ -717,8 +733,8 @@ angular.module('sendFiles')
 
     /**
      * Call this to reset widget after widget upload fail/success.
-     * All failure/success messages will disappear and variables are
-     * completly reset.
+     * All failure/success messages and user inputs/file uploads
+     * will disappear and variables are completly reset.
      */
     $scope.reset = function() {
       $scope.fileForm.visitorName.$setPristine();
@@ -766,7 +782,7 @@ angular.module('sendFiles')
              url: urlDatabase,
              headers: {'X-Wix-Instance' : instance},
              timeout: 10000
-      }).success(function (data, status, headers, config) {
+      }).success(function (data, status) {
           if (status === 200) { //check if this is right status code
             console.log("code", data);
             if (!data.widgetSettings.provider ||
@@ -785,14 +801,14 @@ angular.module('sendFiles')
             $scope.settings = api.defaults;
           }
           console.log($scope.settings.buttonCorners);
-        }).error(function (data, status, headers, config) {
+        }).error(function () {
           $scope.settings = api.defaults;
       });
     };
 
     /** 
-     * When the site owner updates the settings, this function allows the
-     * widget to implement these changes immediately.
+     * When the site owner updates the settings, this added event listener
+     * allows the widget to implement these changes immediately.
      */
     $wix.addEventListener($wix.Events.SETTINGS_UPDATED, function(message) {
       $scope.settings = message;
