@@ -271,12 +271,16 @@ angular.module('sendFiles')
       if ($scope.fileList[index].uploadResult === true) {
         if (index === 0) {
           return {'border-top': 0, 'background-color': '#93C993', 'border-bottom': 0};
+        } else if (index === ($scope.fileList.length - 1)) {
+          return {'background-color': '#93C993'};
         } else {
           return {'background-color': '#93C993', 'border-bottom': 0};
         }
       } else if ($scope.fileList[index].uploadResult === false) {
         if (index === 0) {
           return {'border-top': 0, 'background-color': '#FF9999', 'border-bottom': 0};
+        } else if (index === ($scope.fileList.length - 1)) {
+          return {'background-color': '#FF9999'};
         } else {
           return {'background-color': '#FF9999', 'border-bottom': 0};
         }

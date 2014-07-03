@@ -17,13 +17,13 @@ angular.module('sendFiles')
 
             var growMessageShrinkFiles = function() {
               angular.element(filesBlock).removeClass('files-enlarge');
-              angular.element(textareaBlock).removeClass('user-message-box-shrink');
+              angular.element(textareaBlock).removeClass('message-box-shrink');
             };
 
             angular.element(filesBlock).bind('scroll', function () {
               if (scope.totalFilesAdded > 7 && (!scope.focusedTextarea || scope.onFiles)) {
                 angular.element(filesBlock).addClass('files-enlarge');
-                angular.element(textareaBlock).addClass('user-message-box-shrink');
+                angular.element(textareaBlock).addClass('message-box-shrink');
               }
             });
 
