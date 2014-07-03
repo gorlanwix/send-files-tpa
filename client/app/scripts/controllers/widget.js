@@ -355,8 +355,8 @@ angular.module('sendFiles')
         }, 1000);
       } else if (situation.type === 'failed upload') {
         if (situation.reply === 'yes') {
-          $scope.showFailedUploadPopup = false;
           processingFailedAfterRetryList = true; //important!
+          $scope.showFailedUploadPopup = false;
           $timeout(function() {
             while ($scope.failedAfterRetryList.length > 0) {
               var indexValue = $scope.failedAfterRetryList.splice(0, 1);
