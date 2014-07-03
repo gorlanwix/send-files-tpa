@@ -3,12 +3,6 @@
 angular.module('sendFiles')
   .controller('WidgetCtrl', function ($scope, api, internals, $wix, $upload, $http, $location, $timeout) {
 
-     /**
-      * Regular expression used to determine if user input is a valid email.
-      * @type {Object - Regular Expression}
-      */
-    $scope.EMAIL_REGEX = internals.constants.EMAIL_REGEX;
-
     /**
      * Upper limit on total size of files that can be uploaded.
      * @type {Number}
@@ -208,13 +202,21 @@ angular.module('sendFiles')
 
     /**
      * Sets email input to "untouched" when input is blank.
+     * Otherwise, it validates the input based on whether or not it fits the
+     * regex.
+     * This is used in place of ng-pattern in order to properly set validity
+     * when there is no input. Otherwise, the floating label does not reappear
+     * when the user types something and then subsequently removes their input.
      * @param  {String} newValue Value in input
      */
     $scope.updateEmail = function (newValue) {
-      console.log(newValue);
+      var EMAIL_REGEX = internals.constants.EMAIL_REGEX;
       if (newValue === undefined) {
         $scope.fileForm.email.$setPristine();
-        console.log($scope.fileForm.email.$pristine);
+      } else if (EMAIL_REGEX.test(newValue)) {
+        $scope.fileForm.email.$setValidity('validEmail', true);
+      } else {
+        $scope.fileForm.email.$setValidity('validEmail', false);
       }
     };
 
@@ -231,6 +233,7 @@ angular.module('sendFiles')
     /**
      * Lowers the opacity of the entire widget. Used for when the app is not
      * yet active or there is a popup being displayed.
+     * @return {Object} The resulting style
      */
     $scope.viewStyle = function() {
       if (!$scope.active || $scope.showOverloadedPopup ||
@@ -377,15 +380,17 @@ angular.module('sendFiles')
       }
     };
 
-    /* Determines if a user is ready to submit or not. Returns true if
-     * NOT ready to submit and false if ready. */
-    $scope.submitNotReady = function() {
-      if ($scope.active && $scope.fileForm.$valid &&
+    /**
+     * Determines if a user is ready to submit or not. Returns true if
+     * NOT ready to submit and false if ready.
+     */
+    $scope.submitReady = function() {
+      if ($scope.active && $scope.fileForm.$valid  &&
             (($scope.totalSuccess + $scope.totalFailed ) ===
-            $scope.totalFilesAdded) && $scope.totalSuccess || true) {
-        return false;
-      } else {
+            $scope.totalFilesAdded) && $scope.totalSuccess) {
         return true;
+      } else {
+        return false;
       }
     };
 
