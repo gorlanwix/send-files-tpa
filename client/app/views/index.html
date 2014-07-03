@@ -139,7 +139,7 @@
               Please add a file
             </span>
           </div>
-          <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
+          <li class="display-files" ng-repeat="file in fileList" ng-if="!file.aborted">
             <span class="file-text" ng-style="fileStyle($index)" hover>
               <a class="retry-files" href="#" ng-click="retry($index)" ng-if="file.uploadResult === false &amp;&amp; !showFailedUploadPopup">.</a>
               <span class="file-info" ng-style="fileNameStyle($index)">

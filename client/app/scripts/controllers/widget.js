@@ -13,7 +13,7 @@ angular.module('sendFiles')
      * Total size of all uploaded files so far in Bytes.
      * @type {Number}
      */
-    $scope.totalBytes = 0;
+    var totalBytes = 0;
 
     /**
      * Represents the total amount of files added by the visitor - but not
@@ -51,7 +51,7 @@ angular.module('sendFiles')
      * Represents the current session ID of this widget.
      * @type {String}
      */
-    $scope.sessionId = '';
+    var sessionId = '';
 
     /**
      * Represents if the widget is active.
@@ -129,7 +129,7 @@ angular.module('sendFiles')
      * This list is consulted when the user chooses to remove a file.
      * @type {Array of Objects}
      * */
-    $scope.upload = [];
+    var upload = [];
 
     /**
      * A list used to tell what files have been successfully uploaded. It is 
@@ -138,7 +138,7 @@ angular.module('sendFiles')
      * the upload has been completed successfully.
      * @type {Array of Numbers}
      */
-    $scope.uploadedFiles = [];
+    var uploadedFiles = [];
 
     /**
      * A queue of files waiting to be uploaded because the session ID hasn't
@@ -153,7 +153,7 @@ angular.module('sendFiles')
      * due to failures.
      * @type {Array of Numbers}
      */
-    $scope.uploadRetryList = [];
+    var uploadRetryList = [];
 
     /**
      * A list of indices representing files that have failed to upload
@@ -178,7 +178,7 @@ angular.module('sendFiles')
     var finalSubmission = {visitorName: {first: '', last: ''},
                            visitorEmail: '',
                            visitorMessage: '',
-                           fileIds: $scope.uploadedFiles,
+                           fileIds: uploadedFiles,
                            wixSessionToken : null
                           };
 
@@ -403,14 +403,14 @@ angular.module('sendFiles')
           !$scope.submitSuccessful && !$scope.submitFailed) {
         if (firstTimeUploading) {
           firstTimeUploading = false;
-          $scope.verifySpace(function() {
-            $scope.processFiles($files);
+          verifySpace(function() {
+            processFiles($files);
             for (var i = 0; i < fileUploadQueue.length; i++) {
-              $scope.processFiles(fileUploadQueue[i]);
+              processFiles(fileUploadQueue[i]);
             }
           }, $files);
-        } else if ($scope.sessionId) {
-          $scope.processFiles($files);
+        } else if (sessionId) {
+          processFiles($files);
         } else {
           fileUploadQueue.push($files);
         }
@@ -423,17 +423,17 @@ angular.module('sendFiles')
      * confirmed, the function calls the upload function on each file.
      * @param {Array of Files} $files A list of files to be processed
      */
-    $scope.processFiles = function($files) {
+    var processFiles = function($files) {
       for (var i = 0; i < $files.length; i++) {
         var file = $files[i];
-        if ($scope.totalBytes + file.size > uploadLimit ||
+        if (totalBytes + file.size > uploadLimit ||
             $scope.totalFilesAdded + 1 > internals.limits.maxFileLimit) {
           file.newSize = (Math.ceil(file.size / internals.constants.GB_BYTES * 100) / 100).toString() + 'GB';
           $scope.overloadedList.push(file);
           $scope.showOverloadedPopup = true;
         } else {
           $scope.totalFilesAdded += 1;
-          $scope.totalBytes += file.size;
+          totalBytes += file.size;
 
           var sizeInMB = Math.floor(file.size / internals.constants.MB_BYTES);
           if (sizeInMB === 0) {
@@ -445,7 +445,7 @@ angular.module('sendFiles')
           $scope.fileList.push(file);
           $scope.fileList[fileIndex].progress = 100;
           fileIndex += 1;
-          $scope.start(fileIndex);
+          start(fileIndex);
         }
       }
     };
@@ -457,7 +457,7 @@ angular.module('sendFiles')
      *                             start the uploading the first files and
      *                             those waiting in the queue
      */
-    $scope.verifySpace = function(callback) {
+    var verifySpace = function(callback) {
       var verifyURL = '/api/files/session/' + compId;
       $http({method: 'GET',
              url: verifyURL,
@@ -466,7 +466,7 @@ angular.module('sendFiles')
         }).success(function (data, status) {
           if (status === 200) {
             uploadLimit = data.uploadSizeLimit;
-            $scope.sessionId = data.sessionId;
+            sessionId = data.sessionId;
             callback();
           } else {
             if (internals.debug) {
@@ -503,11 +503,11 @@ angular.module('sendFiles')
      *                        of the one you want to upload.
      * 
      */
-    $scope.start = function(index) {
+    var start = function(index) {
       index -= 1;
-      if ($scope.upload[index] !== 'aborted') {
-        var uploadURL = '/api/files/upload/' + compId + '?sessionId=' + $scope.sessionId;
-        $scope.upload[index] = $upload.upload({
+      if (upload[index] !== 'aborted') {
+        var uploadURL = '/api/files/upload/' + compId + '?sessionId=' + sessionId;
+        upload[index] = $upload.upload({
           url: uploadURL,
           method: 'POST',
           headers: {'X-Wix-Instance' : instance},
@@ -516,7 +516,7 @@ angular.module('sendFiles')
           $scope.fileList[index].progress = (100 - Math.min(95, parseInt(95.0 * evt.loaded / evt.total, 10)));
         }).success(function (data, status) {
             if (status === 201) {
-              if ($scope.uploadedFiles[index] !== 'aborted') {
+              if (uploadedFiles[index] !== 'aborted') {
                 $scope.fileList[index].retryMessage = undefined;
                 if ($scope.failedAfterRetryList.length === 0) {
                   $scope.failedAfterRetryList.processing = false;
@@ -528,7 +528,7 @@ angular.module('sendFiles')
                     $scope.showFailedUploadPopup = true;
                   }
                 }
-                $scope.uploadedFiles.push(data.fileId);
+                uploadedFiles.push(data.fileId);
                 $scope.fileList[index].progress = 0;
                 $scope.fileList[index].uploadResult = true;
                 $scope.totalSuccess += 1;
@@ -549,26 +549,26 @@ angular.module('sendFiles')
                 $scope.showFailedUploadPopup = true;
               }
             }
-            if ($scope.uploadedFiles[index] !== 'aborted') {
+            if (uploadedFiles[index] !== 'aborted') {
               $scope.fileList[index].uploadResult = false;
               $scope.totalFailed += 1;
-              var arrayPosition = $scope.uploadRetryList.map(
+              var arrayPosition = uploadRetryList.map(
                 function(elem) {
                   return elem.fileLocation;
                 }).indexOf(index);
               if (arrayPosition < 0) {
                 $scope.fileList[index].retryMessage = 'Failed: Auto-retrying - ';
-                $scope.uploadRetryList.push(
+                uploadRetryList.push(
                   {fileLocation: index,
                    numberOfTries: 1});
                 $scope.retry(index);
               } else {
-                if ($scope.uploadRetryList[arrayPosition].numberOfTries < 5) {
-                  $scope.uploadRetryList[arrayPosition].numberOfTries += 1;
+                if (uploadRetryList[arrayPosition].numberOfTries < 5) {
+                  uploadRetryList[arrayPosition].numberOfTries += 1;
                   $scope.retry(index);
                 } else {
                   $scope.fileList[index].retryMessage = 'Failed: click to retry - ';
-                  $scope.uploadRetryList.splice(arrayPosition, 1);
+                  uploadRetryList.splice(arrayPosition, 1);
                   if (!$scope.failedAfterRetryList.processing) {
                     $scope.failedAfterRetryList.push(index);
                     $scope.showFailedUploadPopup = true;
@@ -597,7 +597,7 @@ angular.module('sendFiles')
       $scope.fileList[index].progress = 100;
       $scope.fileList[index].uploadResult = undefined;
       $scope.totalFailed -= 1;
-      $scope.start(index + 1);
+      start(index + 1);
     };
 
     /** 
@@ -606,7 +606,8 @@ angular.module('sendFiles')
      *                         in the array fileList
      */
     $scope.abort = function(index) {
-      $scope.uploadedFiles[index] = 'aborted';
+      $scope.fileList[index].aborted = true;
+      uploadedFiles[index] = 'aborted';
       $scope.totalFilesAdded -= 1;
       if ($scope.fileList[index].uploadResult === false) {
         $scope.totalFailed -= 1;
@@ -614,11 +615,11 @@ angular.module('sendFiles')
       if ($scope.fileList[index].uploadResult === true) {
         $scope.totalSuccess -= 1;
       }
-      if ($scope.upload[index] !== undefined) {
-        $scope.upload[index].abort();
+      if (upload[index] !== undefined) {
+        upload[index].abort();
       }
-      $scope.upload[index] = 'aborted';
-      $scope.totalBytes -= $scope.fileList[index].size;
+      upload[index] = 'aborted';
+      totalBytes -= $scope.fileList[index].size;
     };
 
     /** 
@@ -646,7 +647,7 @@ angular.module('sendFiles')
 
               finalSubmission.wixSessionToken = 'diamond'; //FOR TESTING. REMOVE THIS
 
-              $scope.submit();
+              submit();
             });
       }
     };
@@ -656,12 +657,12 @@ angular.module('sendFiles')
      * If successful, the widget displays a success message and restart.
      * Otherwise, error messages are shown.
     */
-    $scope.submit = function () {
+    var submit = function () {
       var uploadedFileTemp = [];
       var j = 0;
-      for (var i = 0; i < $scope.uploadedFiles.length; i++) {
-        if ($scope.uploadedFiles[i] !== 'aborted') {
-          uploadedFileTemp[j] = $scope.uploadedFiles[i];
+      for (var i = 0; i < uploadedFiles.length; i++) {
+        if (uploadedFiles[i] !== 'aborted') {
+          uploadedFileTemp[j] = uploadedFiles[i];
           j += 1;
         }
       }
@@ -669,7 +670,7 @@ angular.module('sendFiles')
       finalSubmission.visitorName.first = internals.escapeHtml($scope.visitorName.trim());
       finalSubmission.visitorEmail = internals.escapeHtml($scope.email.trim());
       finalSubmission.visitorMessage = internals.escapeHtml($scope.message.trim());
-      var uploadURL = '/api/files/commit/' + compId + '?sessionId=' + $scope.sessionId;
+      var uploadURL = '/api/files/commit/' + compId + '?sessionId=' + sessionId;
       $http({method: 'POST',
              url: uploadURL,
              headers: {'X-Wix-Instance' : instance},
@@ -722,20 +723,21 @@ angular.module('sendFiles')
 
       fileIndex = 0;
       uploadLimit = internals.limits.uploadLimit;
-      $scope.totalBytes = 0;
+      totalBytes = 0;
       $scope.totalFilesAdded = 0;
       
       $scope.fileList = [];
       $scope.overloadedList = [];
-      $scope.upload = [];
-      $scope.uploadedFiles = [];
-      $scope.uploadRetryList = [];
+      uploadRetryList = [];
 
+      upload = [];
+      uploadedFiles = [];
+      uploadRetryList = [];
       fileUploadQueue = [];
 
       $timeout(function() {
         $scope.totalSuccess = 0;
-      }, 3000);
+      }, 1000);
 
       $scope.totalFailed = 0;
     };
@@ -745,7 +747,7 @@ angular.module('sendFiles')
      * latest user settings. It's called whenever the widget is first loaded.
      * On errors, the default settings are loaded.
      */
-    $scope.getDatabaseSettings = function() {
+    var getDatabaseSettings = function() {
       var urlDatabase = '/api/settings/' + compId;
       $http({method: 'GET',
              url: urlDatabase,
@@ -755,7 +757,7 @@ angular.module('sendFiles')
           if (status === 200) {
             if (!data.widgetSettings.provider ||
                 !data.widgetSettings.userEmail) {
-              $scope.active = false;
+              // $scope.active = false;
             }
             if (data.widgetSettings.settings !== null &&
                 Object.getOwnPropertyNames(data.widgetSettings.settings).length !== 0) {
@@ -783,5 +785,5 @@ angular.module('sendFiles')
       $scope.$apply();
     });
 
-    $scope.getDatabaseSettings();
+    getDatabaseSettings();
   });
