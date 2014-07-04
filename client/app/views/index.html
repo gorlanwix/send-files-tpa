@@ -139,7 +139,7 @@
               Please add a file
             </span>
           </div>
-          <li class="display-files" ng-repeat="file in fileList" ng-if="uploadedFiles[$index] !== 'aborted'">
+          <li class="display-files" ng-repeat="file in fileList" ng-if="!file.aborted">
             <span class="file-text" ng-style="fileStyle($index)" hover>
               <a class="retry-files" href="#" ng-click="retry($index)" ng-if="file.uploadResult === false &amp;&amp; !showFailedUploadPopup">.</a>
               <span class="file-info" ng-style="fileNameStyle($index)">
@@ -151,7 +151,7 @@
                 </span>
               </span>
               <a class="remove" href="#" ng-click="abort($index)">.</a>
-              <span class="status-text progress-text" ng-if="file.uploadResult === undefined">
+              <span class="progress-text" ng-if="file.uploadResult === undefined">
                 {{100 - file.progress}}%
               </span>
             </span>
@@ -164,7 +164,7 @@
       </div>
 
       <div class="block input-block">
-        <input id="visitorName" name="visitorName" class="form-input" ng-model="visitorName" ng-change="updateVisitorName(visitorName)" required>
+        <input id="visitorName" name="visitorName" class="form-input" ng-model="visitorName" ng-change="updateVisitorName(visitorName)" ng-required="true">
         <label class="form-input-label" for="visitorName">
           <span ng-show="!showNoName">
             {{settings.yourNameText}}
@@ -175,8 +175,8 @@
         </label>
       </div>
 
-      <div class="block input-block email-block">
-        <input id="email" name="email" type="email" class="form-input" required ng-model="email" ng-pattern="emailRegex" ng-change="updateEmail(email)">
+      <div class="block input-block">
+        <input id="email" name="email" class="form-input" ng-model="email" ng-change="updateEmail(email)" ng-required="true">
         <label class="form-input-label" for="email">
           <span ng-show="!showInvalidEmail">
             {{settings.emailAddressText}}
@@ -187,9 +187,9 @@
         </label>
       </div>
 
-      <div class="block user-message">
-        <textarea id="message" class="user-message-box form-input" name="message" required ng-model="message" ng-change="updateMessage(message)" ng-focus="focusedTextarea = true" ng-blur="focusedTextarea = false"></textarea>
-        <label class="form-input-label user-message-label" for="message">
+      <div class="block input-block">
+        <textarea id="message" class="message form-input" name="message" ng-required="true" ng-model="message" ng-change="updateMessage(message)" ng-focus="focusedTextarea = true" ng-blur="focusedTextarea = false"></textarea>
+        <label class="form-input-label message-label" for="message">
           <span ng-show="!showNoMessage">
             {{settings.messageText}}
           </span>
@@ -201,7 +201,7 @@
     </div>
 
     <div class="block end-blocks submit bottom-block" widget-corners>
-      <button class="buttons bottom-buttons"  type="submit" ng-disabled="submitNotReady()" ng-click="submitProcessor()">
+      <button class="buttons bottom-buttons"  type="submit" ng-disabled="!submitReady()" ng-click="submitProcessor()">
         <span ng-show="!submitting">{{settings.submitButtonText}}</span>
         <span ng-show="submitting">Submitting
           <span class="dot-one">.</span>
@@ -209,10 +209,9 @@
           <span class="dot-three">.</span>​
         </span>
       </button>
-      <div class="submit-container" ng-mouseover="enableErrorMessage()" ng-mouseleave="disableErrorMessage()" ng-show="submitNotReady()"> 
+      <div class="submit-container" ng-mouseover="enableErrorMessage()" ng-mouseleave="disableErrorMessage()" ng-show="!submitReady()"> 
         <!-- Invisible element that surrounds Submit Button - allows mouse events when button disabled -->
       </div>
     </div>
   </form>
 </div>
-
