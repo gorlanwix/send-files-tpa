@@ -59,19 +59,6 @@
   border-radius: 0 !important;
 }
 
-.submitting {
-  position: absolute;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 13px;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  width: 100%;
-  height: 81.3%;
-  line-height: 400px;
-  text-align: center;
-}
-
 .popup {
   text-align: center;
   position: absolute;
@@ -87,7 +74,6 @@
   -moz-box-shadow:    1px 1px 4px #7A6969;
   -webkit-box-shadow: 1px 1px 4px #7A6969;
   box-shadow:         1px 1px 4px #7A6969;
-  border-radius: 5px;
 }
 
 .popup.ng-hide-add, .popup.ng-hide-remove {
@@ -162,10 +148,6 @@
   padding-top: 15px;
   padding-bottom: 15px;
   background-color: white;
-}
-
-.visitorForm {
-  opacity: 0.3;
 }
 
 .end-blocks {
@@ -296,11 +278,8 @@
   padding-bottom: 1px;
   padding-left: 5px;
   border: 1px solid #838486;
-  border-left: none;
-  border-right: none;
-  height: 21px;
-  overflow-y: hidden;
-  overflow-x: hidden; 
+  border-left: 0;
+  border-right: 0;
   position: relative;
   white-space: nowrap;
   overflow: hidden;
@@ -378,18 +357,8 @@
   color: white;
 }
 
-.status-text {
-  float: right;
-  color: #E50000;
-  font-size: 17px;
-  display: inline-block;
-}
-
-.checkmark {
-  color: #005900;
-}
-
 .progress-text {
+  float: right;
   font-size: 14px;
   color: #282828;
 }
@@ -438,7 +407,6 @@
   border: none;
   outline: none;
   z-index: 2;
-  position: relative;
 }
 
 .form-input.ng-invalid {
@@ -455,9 +423,9 @@
 }
 
 .form-input:focus + label {
-  font-size: 10px; 
+  font-size: 11px; 
   bottom: 100%;
-  margin-top: -3.5%;
+  margin-top: -15px;
   color: #62D8BF;
   padding-top: 0;
   padding-bottom: 0;
@@ -471,19 +439,14 @@
   opacity: 0;
 }
 
-.user-message {
-  border-top: none;
-  position: relative;
-}
-
-.user-message-box {
+.message {
   position: relative;
   width: 90%;
   border: none;
   outline: none;
   resize: none;
   overflow: auto;
-  z-index: 1;
+  z-index: 2;
   height: 70px;
   -webkit-transition: 0.5s ease;
   -moz-transition: 0.5s ease;
@@ -491,36 +454,8 @@
   transition: 0.5s ease;
 }
 
-.user-message-box-shrink {
+.message-box-shrink {
   height: 12px;
-}
-
-.file-status {
-  border-bottom: none;
-  border-top: 1px solid #838486;
-  width: 95%;
-}
-
-.success-text {
-  color: green;
-  padding-right: 5px;
-}
-
-.error-text {
-  color: red;
-  margin-left: 10px;
-  padding-right: 5px;
-}
-
-.loading-text {
-  margin-left: 10px;
-  padding-right: 5px;
-}
-
-.file-upload-message {
-  margin-left: 10px;
-  padding-right: 5px;
-  color: red;
 }
 
 .submit {
@@ -554,9 +489,9 @@
 }
 
 .bottom-buttons[disabled] {
-  opacity: 0.5;
+  opacity: 0.4;
   /* IE compatibility */
-  filter: alpha(opacity=0.5);
+  filter: alpha(opacity=0.4);
   padding: 10px;
 }
 
@@ -643,4 +578,3 @@
         opacity: 1;
     }
 }
-

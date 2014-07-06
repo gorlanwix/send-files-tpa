@@ -1,5 +1,9 @@
 'use strict';
-
+/**
+ * This directive binds an event listener to all the relevant elements whose
+ * border width can be adjusted by the user. This means all changes in the
+ * settings will immediately be reflected in the widget.
+ */
 angular.module('sendFiles')
   .directive('borderWidth', function() {
         return {
