@@ -21,7 +21,7 @@ angular.module('sendFiles').factory('api', function ($wix, $location) {
     if (instance && instance[1]) {
       var instanceId = instance[1]; //instanceId is actually the unparsed instance
     } else {
-      console.log('All hell has broken loose.');
+      // console.log('All hell has broken loose.');
       //BREAK STUFF! THIS SHOULD NEVER HAPPEN.
       var instanceId;
     }

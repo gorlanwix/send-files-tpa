@@ -7,7 +7,6 @@ angular.module('sendFiles').filter('storageName', function () {
 			if (input === 'google') {
 				displayName += " Drive";
 			}
-			console.log(displayName);
 			return displayName[0].toUpperCase() + displayName.slice(1)
 		}
 	}

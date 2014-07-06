@@ -131,12 +131,4 @@ angular.module('sendFiles')
     }
 
     $wix.Settings.refreshApp();
-
-    var popup = Wix.UI.create({ctrl: 'Popup',
-                        options: {buttonSet: 'okCancel', fixed:true}});
-
-    $('#popupAnchorBtn').on('click', function(evt){
-      evt.stopPropagation();
-      popup.getCtrl().open();
-    });
 });
