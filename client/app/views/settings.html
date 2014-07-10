@@ -3,7 +3,7 @@
 </div>
 
 <div ng-controller="SettingsCtrl">
-	<div class="box description-box">
+	<header class="box">
 		<img class="logo" width="86" src="images/wix_icon.png">
 		<div class="notloggedin-container" ng-hide="provider">
 			<p class="description">Connect with your Google Drive or Dropbox account. This process is secure and completely private. Wix will not have access to your account name or password. 
@@ -25,7 +25,7 @@
 				<p><a class="floatright" ng-click="logout()" target="_blank|_parent">Disconnect Account</a></p>
 				<a href="views/verified.html" style="font-size: 1px">_</a><!-- formatting -->
 		</div>
-	</div>
+	</header>
 	<div wix-ctrl="Accordion">
 	    <div class="acc-pane">
 	        <h3>Content Settings</h3>

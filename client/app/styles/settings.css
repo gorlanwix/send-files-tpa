@@ -6,21 +6,10 @@
   display: none;
 }
 
-.logo {
-	float: left;
-	margin-right: 15px;
-	border-right: 1px solid #ccc;
-	padding-right: 15px;
-}
-
 .description {
 	vertical-align: top;
   font-size: 12px;
 	padding-left: 30px;
-}
-
-.description-box {
-	padding: 10px 10px 20px 10px;
 }
 
 .site-owner-email {
@@ -64,51 +53,8 @@
   margin-bottom: -5px;
 }
 
-.userReceiveEmail.ng-invalid {
-
-}
-
 .align-with-above {
   margin-left: 120px;
-}
-
-.tool-tip-container {
-  width: 90%;
-  margin: 0 auto;
-  position: relative;
-}
-
-.tool-tip {
-  display: block;
-  border: 1px solid blue;
-  padding: 3px;
-  padding-left: 4px;
-  padding-right: 4px;
-  z-index: 1;
-  background-color: white;
-  color: blue;
-}
-.tool-tip::before {
-  z-index: 2;
-  content: '';
-  top: 0;
-  left: 5px;
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 10px solid blue; 
-}
-.tool-tip::after {
-  z-index: 3;
-  content: '';
-  top: 2px;
-  left: 5px;
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 10px solid white; 
 }
 
 .configuration-email {

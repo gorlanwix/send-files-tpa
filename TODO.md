@@ -18,6 +18,6 @@ advisory locks for file clean up?
 
 
 ## Settings Pannel (Gorlan):
-- allow site owner to choose upload file size limit (an essay grader doesn't need 1 GB file limits)
 - change debounce to 20 seconds when ready for deployment
-- add scrollglue
+- consider using ng-view with routeprovider instead of ng-include for a smoother login process (not sure if it works )
+
