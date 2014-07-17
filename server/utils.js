@@ -8,10 +8,11 @@ var crypto = require('crypto');
 var wix = config.wix;
 
 
-module.exports.WixWidget = function (instanceId, compId, sessionToken) {
+var WixWidget = module.exports.WixWidget = function (instanceId, compId, sessionToken, permissions) {
   this.instanceId = instanceId;
   this.compId = compId;
   this.sessionToken = sessionToken;
+  this.permissions = permissions;
 };
 
 module.exports.Visitor = function (firstName, lastName, email, message) {
@@ -99,10 +100,10 @@ module.exports.requestService = function (options, callback) {
 /**
  * Parses and verifies instance to return instanceId
  * @param  {String} instance widget instance
- * @return {String}          instance id of the widget
+ * @return {WixWidget}    object identifying widget, without compId
  */
-module.exports.getInstanceId = function (instance) {
-  var instanceId;
+module.exports.parseForWixWidget = function (instance) {
+  var instanceId, permissions;
   if (instance === 'whatever') { // for testing purposes
     instanceId = instance;
   } else {
@@ -112,7 +113,8 @@ module.exports.getInstanceId = function (instance) {
       throw new Error('invalid instance');
     }
     instanceId = parsedInstance.instanceId;
+    permissions = parsedInstance.permissions;
   }
 
-  return instanceId;
+  return new WixWidget(instanceId, null, null, permissions);
 };

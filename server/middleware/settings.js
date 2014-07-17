@@ -76,3 +76,15 @@ module.exports.put = function (req, res, next) {
     res.json({status: httpStatus.CREATED});
   });
 };
+
+
+/**
+ * Check if settings are saved from inside wix editor
+ */
+module.exports.checkPermissions = function (req, res, next) {
+  if (req.widgetIds.permissions === 'OWNER') {
+    next();
+  } else {
+    next(error('Invalid permissions', httpStatus.UNAUTHORIZED));
+  }
+};

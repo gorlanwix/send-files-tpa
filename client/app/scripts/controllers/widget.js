@@ -32,13 +32,13 @@ angular.module('sendFiles')
      * Represents the Instance ID of this widget.
      * @type {String}
      */
-    var instance = 'whatever';//api.getInstance();//'whatever';
+    var instance = api.getInstance();//'whatever';
 
     /**
      * Represents the Component ID of this widget.
      * @type {String}
      */
-    var compId = '[UNKNOWN]'; //$wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
+    var compId = $wix.Utils.getOrigCompId() || $wix.Utils.getCompId();
 
     /**
      * Allows external package that does automatic scrolling of files list when

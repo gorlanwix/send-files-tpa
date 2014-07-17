@@ -197,7 +197,7 @@ function handleError(error, instance, file, visitor, callback) {
  * @return {Error}
  */
 var serviceInsertAndActivity = module.exports.serviceInsertAndActivity = function (file, settings, visitor, instance, tokens, callback) {
-  serviceInsert(file, settings.service_settings, tokens, function (err, viewUrl) {
+  serviceInsert(file, settings.serviceSettings, tokens, function (err, viewUrl) {
     if (err) {
       err.type = 'insert';
       handleError(err, instance, file, visitor, callback);
