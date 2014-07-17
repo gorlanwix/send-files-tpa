@@ -12,9 +12,9 @@ angular.module('sendFiles')
 				controller: 'StorageCtrl'
 			})
 			.when('/verified', {
-				templateUrl: '/views/verified.html',
+				templateUrl: '/views/verified.html'
 			})
 			.otherwise({
-				template: 'This page does not exist.'
+				template: 'The page does not exist.'
 			})
 	});
