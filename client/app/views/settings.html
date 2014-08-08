@@ -14,7 +14,6 @@
             <a ng-href="/views/storage.html?compId={{compId}}&instance={{instance}}" target="_blank">
             	<button class="submit uilib-btn connect-button floatright">Connect account</button>
             </a>
-            <!--</a>-->
 	    </div>
 	    <div class="loggedin-container connect" ng-show="provider">
 	    	<img class="mark-icon" ng-src="../images/checkmark.png" />
@@ -27,7 +26,7 @@
 		</div>
 	</header>
 	<div wix-ctrl="Accordion">
-	    <div class="acc-pane">
+	    <div class="acc-pane box">
 	        <h3>Content Settings</h3>
 	        <div class="acc-content">
 	        	<ul class="list">
@@ -55,7 +54,7 @@
 		        </ul>
 	        </div>
 	    </div>
-	    <div class="acc-pane">
+	    <div class="acc-pane box">
 	        <h3>Design Settings</h3> 
 	        <div class="acc-content">
 	        	<ul class="list">
@@ -114,7 +113,7 @@
 	        	</ul>
 	        </div>
 	    </div>
-	    <!-- Below is commented out because we are no longer letting site visitors send email messages. Instead messages will be sent through Wix dashboard -->
+	    <!-- Below is commented out because we are no longer letting site visitors send email messages. Instead messages will be sent through Wix dashboard. If you decide to use the widget's functionality to send email instead, you can uncomment this and the code block in /controllers/settings.js -->
 	    <!--<div class="acc-pane" ng-show="provider">
 			<h3>Configuration Settings</h3>
 			<div class="acc-content">

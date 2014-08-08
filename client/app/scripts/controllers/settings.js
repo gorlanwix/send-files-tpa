@@ -15,13 +15,16 @@ angular.module('sendFiles')
       } else {
         $scope.settings[key] = value;
       }
-      // $scope.settings[key] = value;
   	  $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
   		  $wix.Utils.getOrigCompId());
       $scope.putSettingsDebounced();
     });
 
     var putSettings = function () {
+      // The commented out block below is for verifying the site owner's email. 
+      // If you decide to not go with the Wix dashboard communication, 
+      // you can uncomment it to allow for email sending through the widget.
+
       // Validates email. If invalid, uses last known valid email.
       // var emailToSave = $scope.userReceiveEmail;
       // console.log($scope.userReceiveEmail);
@@ -29,6 +32,7 @@ angular.module('sendFiles')
       // if (emailRegex.test($scope.userReceiveEmail) === false) {
       //   emailToSave = previousValidEmail;
       // }
+
       var combineSettings = {widgetSettings: {settings: $scope.settings}};
       var settingsJson = JSON.stringify(combineSettings);
       var compId = $wix.Utils.getOrigCompId();
@@ -44,12 +48,11 @@ angular.module('sendFiles')
             console.log("There was an error saving settings.");
           })
           .then(function (response) {
-            console.log("settings saved: " + response.data);
+            // console.log("settings saved: " + response.data); //uncomment to check if settings are correctly saved
           });
-        // console.log(emailToSave);
       }
 
-    $scope.putSettingsDebounced = debounce.debounce(putSettings, 1000, false);
+    $scope.putSettingsDebounced = debounce.debounce(putSettings, 15000, false);
 
     $scope.logout = function () {
       $http.get('/auth/logout/' + $scope.compId + '?instance=' + instance, {
@@ -64,7 +67,10 @@ angular.module('sendFiles')
           // console.log("logged out"); // the promise returns an error, but everything works as expected.
         });
 
+        // Reloads widget
         $wix.Settings.refreshApp();
+
+        // Reload settings iframe
         location.reload();
     }
 
@@ -77,7 +83,6 @@ angular.module('sendFiles')
       }).success(function(data, status, headers, config) {
             if (status === 200) {
               if (data.widgetSettings.hasOwnProperty("settings") && data.widgetSettings.settings != null) { //checks to see if there are saved settings
-              // if (Object.keys(data.widgetSettings.settings)) { 
                 console.log('there are saved settings');
                 $scope.settings = data.widgetSettings.settings; //works (this is if everything goes as planned and settings are gotten from the server)
                 $wix.UI.initialize($scope.settings);
@@ -107,19 +112,16 @@ angular.module('sendFiles')
           $scope.userReceiveEmail = null;
         }
         previousValidEmail = $scope.userReceiveEmail;
-        console.log('provider success: ' + $scope.provider + ' ' + $scope.userReceiveEmail);
-        // console.log(data.widgetSettings);
-        // console.log(data.widgetSettings.settings);
-        // console.log(data.widgetSettings.userProfile);
-        // console.log(JSON.stringify(data.widgetSettings.userProfile.emails, null, 4));
+        // console.log('provider success: ' + $scope.provider + ' ' + $scope.userReceiveEmail);
+        // console.log(data.widgetSettings); //uncomment to test/view settings in console
       }).error(function(data, status, headers, config) {
-          console.log("There was an error obtaining your saved settings from the database.");
+          // console.log("There was an error obtaining your saved settings from the database.");
           $scope.settings = api.defaults;
           $wix.UI.initialize($scope.settings);
           $wix.Settings.triggerSettingsUpdatedEvent($scope.settings, 
             $wix.Utils.getOrigCompId());
-          console.log('provider error: ' + $scope.provider);
-          // alert("There was an error obtaining your account settings.");
+          // console.log('provider error: ' + $scope.provider);
+          // console.log("There was an error obtaining your account settings."); //uncomment to test there are errors getting settings.
       });
     }
 
