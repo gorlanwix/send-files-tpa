@@ -6,12 +6,12 @@
 	<header class="box">
 		<img class="logo" width="86" src="images/wix_icon.png">
 		<div class="notloggedin-container" ng-hide="provider">
-			<p class="description">Connect with your Google Drive or Dropbox account. This process is secure and completely private. Wix will not have access to your account name or password. 
+			<p class="description">Connect with your Google Drive or Dropbox account. This process is secure and completely private. Please temporarily disable your pop-up blocker if you would like to authenticate. Wix will not have access to your account name or password. 
 				<span class="mark-icon-container" wix-tooltip=" {placement:'bottom', text:'This is the account that users will upload files to.'}">
 					<img class="mark-icon" ng-mouseenter="show = true" ng-mouseleave="show = false" ng-src="images/question_mark.png">
 				</span>
 			</p>
-            <a ng-href="/views/storage.html?compId={{compId}}&instance={{instance}}" target="_blank">
+            <a ng-href="/views/storage.html?compId={{compId}}&instance={{instance}}" onclick="window.open(this.href, 'targetWindow','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=470,height=200');return false;">
             	<button class="submit uilib-btn connect-button floatright">Connect account</button>
             </a>
 	    </div>

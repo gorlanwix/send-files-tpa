@@ -2,6 +2,8 @@
   display: block !important;
 }
 
+/* ui-lib fixes */
+
 .btn-group > button.btn.grad-1{
     height: 31px;
   color:#373737;
@@ -937,6 +939,10 @@ label.deg-label{
   border-radius: 7px;
   border: 1px solid #ccc;
 }
+
+
+/* Above is from ui-lib */
+
 
 .loading {
   display: none;
