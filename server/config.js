@@ -6,7 +6,7 @@ exports.MAX_UPLOAD_RECOVERS = 10;
 exports.EXPIRE_TIME = 1000 * 60 * 60 * 23; // 23 hours in miliseconds
 
 exports.TMP_DIR = './tmp/';
-exports.CLIENT_APP_DIR = process.env.CLIENT_DIR || '../../client/app';
+exports.CLIENT_APP_DIR = process.env.CLIENT_DIR || '/client/app';
 
 
 var googleScopes = [

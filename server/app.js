@@ -21,12 +21,20 @@ var WixWidget = utils.WixWidget;
 var app = module.exports = express();
 var passport = require('./middleware/passport.js')(app);
 // parse application/json
+
+
+function trimServerFolder(url) {
+  return url.replace('server', '');
+}
+
+
 app.use(bodyParser.json());
-app.use('/views', express.static(__dirname + config.CLIENT_APP_DIR + '/views'));
-app.use('/scripts', express.static(__dirname + config.CLIENT_APP_DIR + '/scripts'));
-app.use('/styles', express.static(__dirname + config.CLIENT_APP_DIR + '/styles'));
-app.use('/images', express.static(__dirname + config.CLIENT_APP_DIR + '/images'));
-app.use('/bower_components', express.static(__dirname + config.CLIENT_APP_DIR + '/bower_components'));
+console.log("dir ", trimServerFolder(__dirname) + config.CLIENT_APP_DIR + '/views' )
+app.use('/views', express.static(trimServerFolder(__dirname) + config.CLIENT_APP_DIR + '/views'));
+app.use('/scripts', express.static(trimServerFolder(__dirname) + config.CLIENT_APP_DIR + '/scripts'));
+app.use('/styles', express.static(trimServerFolder(__dirname) + config.CLIENT_APP_DIR + '/styles'));
+app.use('/images', express.static(trimServerFolder(__dirname) + config.CLIENT_APP_DIR + '/images'));
+app.use('/bower_components', express.static(trimServerFolder(__dirname) + config.CLIENT_APP_DIR + '/bower_components'));
 
 
 
