@@ -11,7 +11,7 @@ var httpStatus = require('http-status');
 var fs = require('fs');
 var getResponseError = utils.getResponseError;
 
-var maxChunkSize = 4 * 1024 * 1024; //10mb
+var maxChunkSize = 4 * 1024 * 1024; //4mb
 
 var DROPBOX_API_ROOT = 'https://api.dropbox.com/1/';
 var DROPBOX_API_CONTENT = 'https://api-content.dropbox.com/1/';
