@@ -52,7 +52,7 @@ angular.module('sendFiles')
           });
       }
 
-    $scope.putSettingsDebounced = debounce.debounce(putSettings, 15000, false);
+    $scope.putSettingsDebounced = debounce.debounce(putSettings, 1000, false);
 
     $scope.logout = function () {
       $http.get('/auth/logout/' + $scope.compId + '?instance=' + instance, {
