@@ -21,8 +21,24 @@ var WixWidget = utils.WixWidget;
 var app = module.exports = express();
 var passport = require('./middleware/passport.js')(app);
 // parse application/json
+
+
+function trimServerFolder(url) {
+  return url.replace('server', '');
+}
+
+
 app.use(bodyParser.json());
-app.use(express.static(__dirname + config.CLIENT_APP_DIR));
+console.log("dir ", trimServerFolder(__dirname) + config.CLIENT_APP_DIR + '/views' )
+app.use('/views', express.static(trimServerFolder(__dirname) + config.CLIENT_APP_DIR + '/views'));
+app.use('/scripts', express.static(trimServerFolder(__dirname) + config.CLIENT_APP_DIR + '/scripts'));
+app.use('/styles', express.static(trimServerFolder(__dirname) + config.CLIENT_APP_DIR + '/styles'));
+app.use('/images', express.static(trimServerFolder(__dirname) + config.CLIENT_APP_DIR + '/images'));
+app.use('/bower_components', express.static(trimServerFolder(__dirname) + config.CLIENT_APP_DIR + '/bower_components'));
+
+
+
+
 
 // parse fields and files
 app.use(multer({
@@ -52,16 +68,40 @@ app.use('/auth', function (req, res, next) {
   var instance = req.query.instance;
 
   if (instance) {
-    var instanceId = null;
+    var widget = null;
     try {
-      instanceId = utils.getInstanceId(instance);
+      widget = utils.parseForWixWidget(instance);
     } catch (e) {
       return next(error('invalid instance', httpStatus.UNAUTHORIZED));
     }
 
-    req.widgetIds = new WixWidget(instanceId, null);
+    req.widgetIds = widget;
+  } else if (!req.query.state) {
+    next(error('No instance specified', httpStatus.BAD_REQUEST));
   }
+  next();
 
+});
+
+
+// settings endpoint
+app.use('/settings', function (req, res, next) {
+
+  var instance = req.query.instance;
+  var compId = req.query.origCompId;
+  if (instance) {
+    var widget = null;
+    try {
+      widget = utils.parseForWixWidget(instance);
+    } catch (e) {
+      return next(error('invalid instance', httpStatus.UNAUTHORIZED));
+    }
+
+    req.widgetIds = widget;
+    req.widgetIds.compId = compId;
+  } else {
+    next(error('No instance specified', httpStatus.BAD_REQUEST))
+  }
   next();
 });
 
@@ -69,14 +109,13 @@ app.use('/api', function (req, res, next) {
 
   var instance = req.header('X-Wix-Instance');
 
-  var instanceId = null;
+  var widget = null;
   try {
-    instanceId = utils.getInstanceId(instance);
+    widget = utils.parseForWixWidget(instance);
   } catch (e) {
     return next(error('invalid instance', httpStatus.UNAUTHORIZED));
   }
-
-  req.widgetIds = new WixWidget(instanceId, null);
+  req.widgetIds = widget;
   next();
 });
 
@@ -89,13 +128,14 @@ app.param('compId', function (req, res, next, compId) {
 
 // Authentication
 
-app.get('/auth/logout/:compId', auth.logout);
+app.get('/auth/logout/:compId', settings.checkPermissions, auth.logout);
 
 // Google
 
 var googleParams = config.auth.google.params;
 
 app.get('/auth/login/google/:compId',
+  settings.checkPermissions,
   auth.setParamsIfNotLoggedIn(googleParams),
   passport.authenticate('google', googleParams));
 
@@ -110,6 +150,7 @@ app.get('/auth/callback/google', passport.authenticate('google', {
 var dropboxParams = config.auth.dropbox.params;
 
 app.get('/auth/login/dropbox/:compId',
+  settings.checkPermissions,
   auth.setParamsIfNotLoggedIn(dropboxParams),
   passport.authenticate('dropbox', dropboxParams));
 
@@ -127,9 +168,18 @@ app.post('/api/files/upload/:compId', files.upload);
 app.post('/api/files/commit/:compId', files.commit);
 
 // Settings
+app.get('/settings', settings.checkPermissions, function (req, res) {
+  res.sendfile('settings.html', {root: config.CLIENT_APP_DIR.slice(1, config.CLIENT_APP_DIR.length)});
+});
+
+
+// Settings
+app.get('/', function (req, res) {
+  res.sendfile('index.html', {root: config.CLIENT_APP_DIR.slice(1, config.CLIENT_APP_DIR.length)});
+});
 
 app.get('/api/settings/:compId', settings.get);
-app.put('/api/settings/:compId', settings.put);
+app.put('/api/settings/:compId', settings.checkPermissions, settings.put);
 
 // error catcher
 app.use(function (err, req, res, next) {
